@@ -1,16 +1,19 @@
 {
   "schemaVersion": 1,
-  "productVersion": "0.1.0",
-  "chromeVersion": "0.1.0",
-  "versionName": "0.1.0",
+  "productVersion": "0.2.0",
+  "chromeVersion": "0.2.0",
+  "versionName": "0.2.0",
   "channel": "stable",
-  "buildNumber": 2026100601,
+  "buildNumber": 2026100901,
   "repository": "zer0-lyz/appraisal-toolbox-releases",
   "bridgeProtocol": "connector-agent-binding-v3",
   "minimumSupportedVersion": "0.1.0",
   "mandatory": false,
   "releaseNotes": [
-    "评估工具箱 0.1.0：从天源工作台拆分 7 个无绑定模块（浙江土地市场网、阿里司法拍卖、阿里资产租赁、表格设置、安居客数据、折旧摊销与资本性支出预测、地图基础配置），新增版本更新模块",
-    "更新模块使用工具箱专属发布清单（toolbox-update-manifest.json），与主工作台更新通道互不影响；页内一键安装关闭，更新经发布页下载"
+    "评估工具箱 0.2.0：浙江土地地图底图仅保留高德 API（移除 Esri/OSM 备选与切换），未配置密钥时在地图页提示配置路径",
+    "修复地图点位系统性偏移：官网 CGCS2000 坐标在高德底图渲染前自动转换为 GCJ-02（约 500 米），存档数据仍保持原始坐标",
+    "历史加载修复：本地/刷新一律以存档查询条件为准，面板残留条件不再污染结果；旧 Excel 历史按文件名还原条件并支持本地重放",
+    "修复地图初始化崩溃（底图 subdomains 覆盖 Leaflet 默认值导致按钮全部无响应）",
+    "表格设置与安居客主操作按钮增加前置条件实时门禁与原因提示；首页分组与图标语义化"
   ]
 }

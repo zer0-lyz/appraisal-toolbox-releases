@@ -2321,12 +2321,32 @@ export const alibabaAuctionModule = {
       return Boolean(appliedConfig) && parameterSnapshotMatches(config, appliedConfig);
     }
 
+    function renderNetworkGate() {
+      const ready = parametersApplied() && Boolean(config.outputDirectory) && !running && !opening;
+      const reason = running
+        ? "抓取正在运行"
+        : opening
+          ? "正在打开页面"
+          : !config.outputDirectory
+            ? "请先选择本机输出目录"
+            : !parametersApplied()
+              ? "请先确认并应用参数"
+              : "";
+      for (const button of [elements?.openAlibabaAuctionSource, elements?.runAlibabaAuction]) {
+        if (!button) continue;
+        button.disabled = !ready;
+        button.title = reason;
+        button.setAttribute("aria-disabled", String(!ready));
+      }
+    }
+
     function renderParameterState() {
       const state = elements?.alibabaAuctionParameterState;
       if (!state) return;
       const applied = parametersApplied();
       state.textContent = applied ? "参数已应用" : "参数有改动，需重新应用";
       state.dataset.kind = applied ? "ok" : "warn";
+      renderNetworkGate();
     }
 
     function readConfig() {
@@ -2679,7 +2699,7 @@ export const alibabaAuctionModule = {
     async function openSource() {
       if (opening || running) return;
       opening = true;
-      elements.openAlibabaAuctionSource.disabled = true;
+      renderNetworkGate();
       try {
         const requestConfig = requireAppliedParameters({ requireOutput: true });
         if (!requestConfig) return;
@@ -2699,7 +2719,7 @@ export const alibabaAuctionModule = {
         context.setStatus("阿里拍卖页面打开失败", "error");
       } finally {
         opening = false;
-        elements.openAlibabaAuctionSource.disabled = running;
+        renderNetworkGate();
       }
     }
 
@@ -2835,8 +2855,7 @@ export const alibabaAuctionModule = {
           for (const resolve of runControl.resumeResolvers.splice(0)) resolve();
         }
         runControl = null;
-        elements.runAlibabaAuction.disabled = false;
-        elements.openAlibabaAuctionSource.disabled = false;
+        renderNetworkGate();
         elements.pauseAlibabaAuction.disabled = true;
         elements.stopAlibabaAuction.disabled = true;
         elements.pauseAlibabaAuction.textContent = "暂停抓取";

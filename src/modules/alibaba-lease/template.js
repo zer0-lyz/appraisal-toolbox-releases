@@ -67,7 +67,7 @@ export const alibabaLeaseTemplate = `
       <div><h2>网络抓取</h2><p class="section-description">确认参数并选定输出位置后，只访问当前阿里资产搜索列表和详情页；不会读取历史文件。</p></div>
       <span class="badge">访问网络</span>
     </div>
-    <div class="button-row"><button id="openAlibabaLeaseSource" type="button" class="secondary">打开并登录</button><button id="runAlibabaLease" type="button">开始网络抓取</button></div>
+    <div class="button-row"><button id="openAlibabaLeaseSource" type="button" class="secondary" disabled title="请先选择本机输出目录并确认参数">打开并登录</button><button id="runAlibabaLease" type="button" disabled title="请先选择本机输出目录并确认参数">开始网络抓取</button></div>
   </section>
 
   <section class="section alibaba-lease-results">

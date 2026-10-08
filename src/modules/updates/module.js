@@ -405,7 +405,7 @@ export const updatesModule = {
         return;
       }
       if (!result.releasePublished) {
-        elements.updateHeadline.textContent = `当前版本 v${currentVersion}`;
+        elements.updateHeadline.textContent = `评估工具箱 v${currentVersion}`;
         elements.updateDescription.textContent = "发布源尚未发布正式版本，当前安装保持不变。";
         elements.updateBadge.textContent = "尚未发布";
         elements.updateFeedback.textContent = "仓库目前没有可供更新的正式版本";

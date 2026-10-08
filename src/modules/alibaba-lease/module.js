@@ -1135,12 +1135,32 @@ export const alibabaLeaseModule = {
       return Boolean(appliedConfig) && parameterSnapshotMatches(config, appliedConfig);
     }
 
+    function renderNetworkGate() {
+      const ready = parametersApplied() && Boolean(config.outputDirectory) && !running && !opening;
+      const reason = running
+        ? "抓取正在运行"
+        : opening
+          ? "正在打开页面"
+          : !config.outputDirectory
+            ? "请先选择本机输出目录"
+            : !parametersApplied()
+              ? "请先确认并应用参数"
+              : "";
+      for (const button of [elements?.openAlibabaLeaseSource, elements?.runAlibabaLease]) {
+        if (!button) continue;
+        button.disabled = !ready;
+        button.title = reason;
+        button.setAttribute("aria-disabled", String(!ready));
+      }
+    }
+
     function renderParameterState() {
       const state = elements?.alibabaLeaseParameterState;
       if (!state) return;
       const applied = parametersApplied();
       state.textContent = applied ? "参数已应用" : "参数有改动，需重新应用";
       state.dataset.kind = applied ? "ok" : "warn";
+      renderNetworkGate();
     }
 
     function readConfig() {
@@ -1399,7 +1419,7 @@ export const alibabaLeaseModule = {
     async function openSource() {
       if (opening || running) return;
       opening = true;
-      elements.openAlibabaLeaseSource.disabled = true;
+      renderNetworkGate();
       try {
         const requestConfig = requireAppliedParameters({ requireOutput: true });
         if (!requestConfig) return;
@@ -1413,7 +1433,7 @@ export const alibabaLeaseModule = {
         context.setStatus("阿里资产租赁页面打开失败", "error");
       } finally {
         opening = false;
-        elements.openAlibabaLeaseSource.disabled = running;
+        renderNetworkGate();
       }
     }
 
@@ -1492,8 +1512,7 @@ export const alibabaLeaseModule = {
           for (const resolve of runControl.resumeResolvers.splice(0)) resolve();
         }
         runControl = null;
-        elements.runAlibabaLease.disabled = false;
-        elements.openAlibabaLeaseSource.disabled = false;
+        renderNetworkGate();
         elements.pauseAlibabaLease.disabled = true;
         elements.stopAlibabaLease.disabled = true;
         elements.pauseAlibabaLease.textContent = "暂停抓取";
