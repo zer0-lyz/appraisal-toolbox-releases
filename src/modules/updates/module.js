@@ -29,20 +29,20 @@ function formatTime(value) {
 function safeReleaseUrl(value) {
   try {
     const url = new URL(String(value || ""));
-    const hosts = new Set([
-      "github.com",
-      "api.github.com",
-      "objects.githubusercontent.com",
-      "release-assets.githubusercontent.com",
-      "gitee.com",
-      "raw.giteeusercontent.com",
-    ]);
-    if (url.protocol !== "https:" || !hosts.has(url.hostname)) return "";
-    // Release manifests point releaseUrl at /releases/download/<tag>, which 404s
-    // without an asset name. The browsable page lives at /releases/tag/<tag>.
-    // Bare download URLs only; asset URLs keep their filename suffix.
+    if (url.protocol !== "https:" || url.username || url.password || url.port) return "";
+    // Never open release links belonging to a different GitHub/Gitee repository.
+    const allowedPaths = [
+      ["github.com", /^\\/zer0-lyz\\/appraisal-toolbox-releases\\/releases\\/(?:tag\\/[^/]+|download\\/[^/]+(?:\\/[^/]+)?)\\/?$/],
+      ["gitee.com", /^\\/zer0_y\\/appraisal-toolbox-releases\\/releases\\/(?:tag\\/[^/]+|download\\/[^/]+(?:\\/[^/]+)?)\\/?$/],
+      ["api.github.com", /^\\/repos\\/zer0-lyz\\/appraisal-toolbox-releases\\/releases\\/assets\\/\\d+$/],
+    ];
+    const sameRepository = allowedPaths.some(([host, path]) =>
+      url.hostname === host && path.test(url.pathname));
+    // GitHub's signed release-asset CDN URLs are allowed for assets only.
+    const githubAssetHost = ["objects.githubusercontent.com", "release-assets.githubusercontent.com"].includes(url.hostname);
+    if (!sameRepository && !githubAssetHost) return "";
     const bareDownload = url.pathname.match(
-      /^\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/?$/,
+      /^\\/([^/]+)\\/([^/]+)\\/releases\\/download\\/([^/]+)\\/?$/,
     );
     if (bareDownload) {
       url.pathname = `/${bareDownload[1]}/${bareDownload[2]}/releases/tag/${bareDownload[3]}`;
