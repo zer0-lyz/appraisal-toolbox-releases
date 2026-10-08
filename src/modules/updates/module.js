@@ -30,22 +30,22 @@ function safeReleaseUrl(value) {
   try {
     const url = new URL(String(value || ""));
     if (url.protocol !== "https:" || url.username || url.password || url.port) return "";
-    // Never open release links belonging to a different GitHub/Gitee repository.
-    const allowedPaths = [
-      ["github.com", /^\\/zer0-lyz\\/appraisal-toolbox-releases\\/releases\\/(?:tag\\/[^/]+|download\\/[^/]+(?:\\/[^/]+)?)\\/?$/],
-      ["gitee.com", /^\\/zer0_y\\/appraisal-toolbox-releases\\/releases\\/(?:tag\\/[^/]+|download\\/[^/]+(?:\\/[^/]+)?)\\/?$/],
-      ["api.github.com", /^\\/repos\\/zer0-lyz\\/appraisal-toolbox-releases\\/releases\\/assets\\/\\d+$/],
-    ];
-    const sameRepository = allowedPaths.some(([host, path]) =>
-      url.hostname === host && path.test(url.pathname));
-    // GitHub's signed release-asset CDN URLs are allowed for assets only.
-    const githubAssetHost = ["objects.githubusercontent.com", "release-assets.githubusercontent.com"].includes(url.hostname);
-    if (!sameRepository && !githubAssetHost) return "";
-    const bareDownload = url.pathname.match(
-      /^\\/([^/]+)\\/([^/]+)\\/releases\\/download\\/([^/]+)\\/?$/,
+    const parts = url.pathname.split("/").filter(Boolean);
+    const owner = url.hostname === "github.com" ? "zer0-lyz" : url.hostname === "gitee.com" ? "zer0_y" : "";
+    const repoMatch = owner && parts[0] === owner && parts[1] === "appraisal-toolbox-releases";
+    const releasePath = parts[2] === "releases" && (
+      (parts[3] === "tag" && parts.length === 5) ||
+      (parts[3] === "download" && (parts.length === 5 || parts.length === 6))
     );
-    if (bareDownload) {
-      url.pathname = `/${bareDownload[1]}/${bareDownload[2]}/releases/tag/${bareDownload[3]}`;
+    const apiAsset = url.hostname === "api.github.com" &&
+      parts.length === 6 && parts[0] === "repos" &&
+      parts[1] === "zer0-lyz" && parts[2] === "appraisal-toolbox-releases" &&
+      parts[3] === "releases" && parts[4] === "assets" &&
+      /^[0-9]+$/.test(parts[5]);
+    const assetHost = ["objects.githubusercontent.com", "release-assets.githubusercontent.com"].includes(url.hostname);
+    if (!(repoMatch && releasePath) && !apiAsset && !assetHost) return "";
+    if (repoMatch && parts[3] === "download" && parts.length === 5) {
+      url.pathname = "/" + parts[0] + "/" + parts[1] + "/releases/tag/" + parts[4];
     }
     return url.href;
   } catch {
