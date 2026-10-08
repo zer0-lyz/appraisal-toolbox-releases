@@ -1,0 +1,202 @@
+[data-module-id="alibaba-auction"] .alibaba-auction-params,
+[data-module-id="alibaba-auction"] .alibaba-auction-output,
+[data-module-id="alibaba-auction"] .alibaba-auction-results {
+  display: grid;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-params {
+  padding: 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-parameter-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-parameter-grid > label {
+  gap: 4px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-keyword-field {
+  grid-column: 1 / -1;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-source-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-source-row span {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-source-row input {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-output {
+  padding: 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-output-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-output-row input {
+  min-width: 0;
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-map-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-date-field input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-parameter-actions,
+[data-module-id="alibaba-auction"] .alibaba-auction-result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-result-toolbar {
+  justify-content: space-between;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress {
+  display: grid;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--surface-muted);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-heading,
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-counts {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-heading {
+  justify-content: space-between;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-heading strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-progress-counts strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table-wrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table th,
+[data-module-id="alibaba-auction"] .alibaba-auction-table td {
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+  vertical-align: middle;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--text);
+  background: var(--surface-muted);
+  font-weight: 700;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table .numeric {
+  text-align: right;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table td.empty-cell {
+  width: 100%;
+  padding: 26px 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-table a {
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  [data-module-id="alibaba-auction"] .alibaba-auction-parameter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-module-id="alibaba-auction"] .alibaba-auction-source-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px;
+  }
+}
+
+@media (max-width: 320px) {
+  [data-module-id="alibaba-auction"] .alibaba-auction-parameter-grid {
+    grid-template-columns: 1fr;
+  }
+}

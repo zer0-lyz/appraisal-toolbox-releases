@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>预测结果 - 折旧摊销与资本性支出预测</title>
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <main class="page" data-page="results">
+    <header class="page-header">
+      <div><h1>折旧摊销与资本性支出预测结果</h1><p>结果读取自当前工作簿；输入校验问题优先展示。</p></div>
+      <div class="button-row"><a class="button-link" href="../../sidepanel/index.html#depreciation-capex-forecast">返回参数页</a><button id="refreshResults" type="button" class="secondary">刷新结果</button></div>
+    </header>
+    <section class="section"><div id="resultStatus" class="status">正在读取...</div><div id="inputIssues" hidden><h2>输入校验</h2><ul id="issueList" class="error-list"></ul></div></section>
+    <section class="section"><div class="section-heading"><div><h2>检查结果</h2><p>优先查看输入校验状态和计算检查。</p></div></div><div id="checks"></div></section>
+    <section class="section"><div class="section-heading"><div><h2>预测汇总</h2><p>由 bundled Python skill 写回当前工作簿。</p></div></div><div id="forecastSummary"></div></section>
+    <section class="section"><div class="section-heading"><div><h2>费用科目汇总</h2><p>按费用科目展示预测结果。</p></div></div><div id="expenseSummary"></div></section>
+    <section class="section"><div class="section-heading"><div><h2>底稿导出</h2><p>导出当前模板工作簿（含输入和结果），不会静默覆盖源文件。</p></div></div><div class="button-row"><button id="exportWorkbook" type="button">导出底稿</button><button id="openDetails" type="button" class="secondary">查看详细数据</button></div><div id="exportStatus" class="status">尚未导出</div></section>
+  </main>
+  <script type="module" src="results.js"></script>
+</body>
+</html>

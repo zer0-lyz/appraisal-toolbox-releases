@@ -1,0 +1,154 @@
+[data-module-id="alibaba-lease"] .alibaba-lease-params,
+[data-module-id="alibaba-lease"] .alibaba-lease-output,
+[data-module-id="alibaba-lease"] .alibaba-lease-results {
+  display: grid;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-params {
+  padding: 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-parameter-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-parameter-grid > label {
+  gap: 4px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-keyword-field {
+  grid-column: 1 / -1;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-source-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-source-row span {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-source-row input {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-output {
+  padding: 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-output-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-output-row input {
+  min-width: 0;
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-map-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-date-field input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-parameter-actions,
+[data-module-id="alibaba-lease"] .alibaba-lease-result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-result-toolbar {
+  justify-content: space-between;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress {
+  display: grid;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--surface-muted);
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-heading,
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-counts {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-heading {
+  justify-content: space-between;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-heading strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+[data-module-id="alibaba-lease"] .alibaba-lease-progress-counts strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  [data-module-id="alibaba-lease"] .alibaba-lease-parameter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-module-id="alibaba-lease"] .alibaba-lease-source-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px;
+  }
+}
+
+@media (max-width: 320px) {
+  [data-module-id="alibaba-lease"] .alibaba-lease-parameter-grid {
+    grid-template-columns: 1fr;
+  }
+}

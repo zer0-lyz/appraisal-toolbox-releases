@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>资产输入 - 折旧摊销与资本性支出预测</title>
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <main class="page" data-page="asset-input">
+    <header class="page-header">
+      <div>
+        <h1 id="pageTitle">资产输入</h1>
+        <p>在表格中直接录入或粘贴资产数据；保存后按 row-3 表头写入当前工作簿。</p>
+      </div>
+      <div class="button-row">
+        <a class="button-link" href="../../sidepanel/index.html#depreciation-capex-forecast">返回参数页</a>
+        <a id="downloadTemplate" class="button-link" download>下载 canonical 模板</a>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-heading">
+        <div><h2 id="kindTitle">存量资产</h2><p>直接在单元格中编辑；也可以从 Excel 复制后整块粘贴，或先导入一个 .xlsx 工作簿。</p></div>
+        <span id="inputStatus" class="badge">未读取</span>
+      </div>
+      <div class="button-row">
+        <button id="loadExisting" type="button" class="secondary">读取工作簿已有数据</button>
+        <button id="pasteFromClipboard" type="button" class="secondary">从剪贴板读取</button>
+        <button id="addRow" type="button" class="secondary">添加行</button>
+        <button id="importWorkbook" type="button" class="secondary">选择 .xlsx 导入为当前工作簿</button>
+        <button id="clearInput" type="button" class="secondary">清空表格</button>
+      </div>
+      <p class="hint">粘贴带表头的数据按列名对齐，不带表头时按当前列顺序追加；行首 × 只从表格移除该行，不会删除工作簿中已保存的行。</p>
+      <ul id="inputErrors" class="error-list" hidden></ul>
+      <div id="gridWrap" class="grid-wrap"><div class="empty-state">暂无数据，点击“添加行”或“读取工作簿已有数据”开始</div></div>
+      <div id="inputMessage" class="status" aria-live="polite">等待输入</div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><div><h2>必填表头</h2><p>按名称精确匹配，不依赖列位置；额外元数据列会自动附加在右侧。</p></div><span id="rowCount" class="badge">0 行</span></div>
+      <ul id="requiredHeaders" class="header-list"></ul>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><div><h2>保存</h2><p>表格中的全部有效行写入当前工作簿；从工作簿读取的行按原行号原位更新，新行追加到空白行。</p></div></div>
+      <div class="button-row">
+        <button id="saveInput" type="button">保存到当前工作簿</button>
+        <a class="button-link secondary" href="../../sidepanel/index.html#depreciation-capex-forecast">返回状态</a>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="input.js"></script>
+</body>
+</html>

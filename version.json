@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "productVersion": "0.1.0",
+  "chromeVersion": "0.1.0",
+  "versionName": "0.1.0",
+  "channel": "stable",
+  "buildNumber": 2026100601,
+  "repository": "zer0-lyz/appraisal-toolbox-releases",
+  "bridgeProtocol": "connector-agent-binding-v3",
+  "minimumSupportedVersion": "0.1.0",
+  "mandatory": false,
+  "releaseNotes": [
+    "评估工具箱 0.1.0：从天源工作台拆分 7 个无绑定模块（浙江土地市场网、阿里司法拍卖、阿里资产租赁、表格设置、安居客数据、折旧摊销与资本性支出预测、地图基础配置），新增版本更新模块",
+    "更新模块使用工具箱专属发布清单（toolbox-update-manifest.json），与主工作台更新通道互不影响；页内一键安装关闭，更新经发布页下载"
+  ]
+}

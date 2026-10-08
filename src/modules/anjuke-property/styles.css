@@ -1,0 +1,36 @@
+[data-module-id="anjuke-property"] .anjuke-property-params,
+[data-module-id="anjuke-property"] .anjuke-property-output,
+[data-module-id="anjuke-property"] .anjuke-property-network-action,
+[data-module-id="anjuke-property"] .anjuke-property-results { display: grid; gap: 8px; }
+[data-module-id="anjuke-property"] .anjuke-property-params,
+[data-module-id="anjuke-property"] .anjuke-property-output,
+[data-module-id="anjuke-property"] .anjuke-property-network-action { padding: 8px; }
+[data-module-id="anjuke-property"] .anjuke-property-parameter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px 8px; }
+[data-module-id="anjuke-property"] .anjuke-property-keyword-field { grid-column: span 1; }
+[data-module-id="anjuke-property"] .anjuke-property-current-url-row { display: grid; gap: 4px; }
+[data-module-id="anjuke-property"] .anjuke-property-current-url-row span { color: var(--muted); font-size: 12px; }
+[data-module-id="anjuke-property"] .anjuke-property-current-url-row input { width: 100%; color: var(--muted); font-size: 12px; }
+[data-module-id="anjuke-property"] .anjuke-property-wide { grid-column: 1 / -1; }
+[data-module-id="anjuke-property"] .anjuke-property-wide textarea { resize: vertical; min-height: 42px; }
+[data-module-id="anjuke-property"] .anjuke-property-options,
+[data-module-id="anjuke-property"] .anjuke-property-parameter-actions,
+[data-module-id="anjuke-property"] .anjuke-property-result-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+[data-module-id="anjuke-property"] .anjuke-property-options { color: var(--muted); font-size: 12px; }
+[data-module-id="anjuke-property"] .anjuke-property-options label { display: inline-flex; align-items: center; gap: 5px; }
+[data-module-id="anjuke-property"] .anjuke-property-output-row { display: flex; align-items: center; gap: 8px; }
+[data-module-id="anjuke-property"] .anjuke-property-output-row input { min-width: 0; flex: 1; color: var(--muted); font-size: 12px; }
+[data-module-id="anjuke-property"] .anjuke-property-result-toolbar { justify-content: space-between; }
+[data-module-id="anjuke-property"] .anjuke-property-progress { display: grid; gap: 5px; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface-muted); }
+[data-module-id="anjuke-property"] .anjuke-property-progress-heading,
+[data-module-id="anjuke-property"] .anjuke-property-progress-counts { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+[data-module-id="anjuke-property"] .anjuke-property-progress-heading { justify-content: space-between; }
+[data-module-id="anjuke-property"] .anjuke-property-progress-heading strong { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-module-id="anjuke-property"] .anjuke-property-progress-track { width: 100%; height: 6px; overflow: hidden; border-radius: 999px; background: var(--line-soft); }
+[data-module-id="anjuke-property"] .anjuke-property-progress-value { height: 100%; border-radius: inherit; background: var(--accent); transition: width 180ms ease; }
+[data-module-id="anjuke-property"] .anjuke-property-progress-counts strong { color: var(--text); font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  [data-module-id="anjuke-property"] .anjuke-property-parameter-grid { grid-template-columns: 1fr; }
+  [data-module-id="anjuke-property"] .anjuke-property-keyword-field { grid-column: auto; }
+  [data-module-id="anjuke-property"] .anjuke-property-wide { grid-column: auto; }
+  [data-module-id="anjuke-property"] .anjuke-property-result-toolbar { align-items: stretch; flex-direction: column; }
+}

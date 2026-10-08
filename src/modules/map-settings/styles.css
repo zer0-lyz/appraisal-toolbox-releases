@@ -1,0 +1,57 @@
+[data-module-id="map-settings"] .map-settings-panel,
+[data-module-id="map-settings"] .map-settings-help {
+  max-width: 760px;
+}
+
+[data-module-id="map-settings"] .map-settings-enable-row {
+  margin: 14px 0;
+  font-weight: 600;
+}
+
+[data-module-id="map-settings"] .map-settings-provider-guide {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 8px;
+  background: var(--surface-soft, #f8fafc);
+}
+
+[data-module-id="map-settings"] .map-settings-provider-guide p {
+  margin: 0;
+}
+
+[data-module-id="map-settings"] .map-settings-provider-guide .external-link {
+  width: fit-content;
+  color: var(--accent, #0969da);
+  font-weight: 600;
+}
+
+[data-module-id="map-settings"] .map-settings-provider-guide ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted, #667085);
+  line-height: 1.6;
+  font-size: 12px;
+}
+
+[data-module-id="map-settings"] .map-settings-status[data-kind="ok"] {
+  color: #027a48;
+}
+
+[data-module-id="map-settings"] .map-settings-status[data-kind="warn"] {
+  color: #b54708;
+}
+
+[data-module-id="map-settings"] .map-settings-status[data-kind="error"] {
+  color: #b42318;
+}
+
+[data-module-id="map-settings"] .map-settings-help ol {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--muted, #667085);
+  line-height: 1.7;
+  font-size: 13px;
+}

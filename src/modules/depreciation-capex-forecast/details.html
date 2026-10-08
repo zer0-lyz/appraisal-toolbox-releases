@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>详细数据 - 折旧摊销与资本性支出预测</title>
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <main class="page" data-page="details">
+    <header class="page-header">
+      <div><h1>折旧摊销预测详细数据</h1><p>Native Helper 分页读取；月度 200 年时间轴按时间列分窗，不一次灌入 DOM。</p></div>
+      <div class="button-row"><a class="button-link" href="../../sidepanel/index.html#depreciation-capex-forecast">返回参数页</a><a class="button-link" href="results.html">返回结果</a></div>
+    </header>
+    <section class="section">
+      <div class="tab-row" role="tablist" aria-label="详细数据类型">
+        <button id="annualTab" type="button" role="tab" aria-selected="true">资产结果明细（年度）</button>
+        <button id="monthlyTab" type="button" role="tab" aria-selected="false">资产结果明细（月度）</button>
+        <button id="processTab" type="button" role="tab" aria-selected="false">单资产详细过程</button>
+      </div>
+      <div class="filter-row">
+        <label class="field"><span>资产筛选 / 资产编号</span><input id="assetFilter" type="text" placeholder="可输入资产编号或名称"></label>
+        <label class="field"><span>资产行分页</span><input id="pageNumber" type="number" min="1" value="1"></label>
+        <label class="field"><span>每页行数</span><select id="pageSize"><option>25</option><option selected>50</option><option>100</option></select></label>
+        <label class="field"><span>时间列起点</span><input id="columnStart" type="number" min="1" value="1"></label>
+        <label class="field"><span>时间列窗口</span><select id="columnCount"><option>12</option><option selected>24</option><option>60</option><option>120</option></select></label>
+        <button id="loadDetails" type="button">读取当前窗口</button>
+      </div>
+      <div id="detailStatus" class="status" aria-live="polite">请选择数据类型后读取</div>
+    </section>
+    <section class="section">
+      <div class="section-heading"><div><h2 id="tableTitle">资产结果明细（年度）</h2><p id="tableHint">只请求当前页和时间窗口，适合检查计算过程。</p></div><span id="windowInfo" class="badge">未读取</span></div>
+      <div id="detailTable"><div class="empty-state">尚未读取详细数据</div></div>
+      <div class="pagination"><button id="previousPage" type="button" class="secondary">上一页</button><button id="nextPage" type="button" class="secondary">下一页</button></div>
+    </section>
+  </main>
+  <script type="module" src="details.js"></script>
+</body>
+</html>

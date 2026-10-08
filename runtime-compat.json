@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "extensionVersion": "0.1.0",
+  "bridgeProtocol": "connector-agent-binding-v3",
+  "buildId": "2026-10-05-toolbox-v0-1-0",
+  "runtimeBuildId": "be1956352658064b160903cedc9703fc920502eee9fbfbd2bbf2a20e6156e3a6",
+  "runtimeBuildKind": "local",
+  "generatedAt": "2026-10-06T00:00:00.000Z"
+}
