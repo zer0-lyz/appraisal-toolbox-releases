@@ -91,39 +91,61 @@ function sendNativeMessage(message, timeoutMs = 12000) {
   });
 }
 
+// Idle timeout, not a total deadline: lengthy exports remain active while progress arrives.
+const NATIVE_STREAM_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+
 function streamNativeMessage(message, onProgress) {
   return new Promise((resolve, reject) => {
-    const port = chrome.runtime.connectNative(NATIVE_HOST_NAME);
+    let port;
     let settled = false;
+    let idleTimer;
 
     function finish(callback, value) {
       if (settled) return;
       settled = true;
+      window.clearTimeout(idleTimer);
       callback(value);
       try {
-        port.disconnect();
+        port?.disconnect();
       } catch {
         // The native host may already have closed after sending the final message.
       }
     }
 
-    port.onMessage.addListener((payload) => {
-      if (payload?.event === "progress") {
-        onProgress?.(payload);
-        return;
-      }
-      if (payload?.event === "complete") {
-        finish(resolve, payload);
-      }
-    });
+    function resetIdleTimeout() {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        finish(reject, new Error("NATIVE_STREAM_IDLE_TIMEOUT"));
+      }, NATIVE_STREAM_IDLE_TIMEOUT_MS);
+    }
 
-    port.onDisconnect.addListener(() => {
-      if (settled) return;
-      const messageText = chrome.runtime.lastError?.message || "NATIVE_EXPORT_CONNECTION_CLOSED";
-      finish(reject, new Error(messageText));
-    });
-
-    port.postMessage(message);
+    try {
+      port = chrome.runtime.connectNative(NATIVE_HOST_NAME);
+      resetIdleTimeout();
+      port.onMessage.addListener((payload) => {
+        if (settled) return;
+        resetIdleTimeout();
+        if (payload?.event === "progress") {
+          try {
+            onProgress?.(payload);
+          } catch (error) {
+            finish(reject, error);
+          }
+          return;
+        }
+        if (payload?.event === "complete") {
+          finish(resolve, payload);
+        }
+      });
+      port.onDisconnect.addListener(() => {
+        if (settled) return;
+        const messageText = chrome.runtime.lastError?.message || "NATIVE_EXPORT_CONNECTION_CLOSED";
+        finish(reject, new Error(messageText));
+      });
+      port.postMessage(message);
+    } catch (error) {
+      finish(reject, error);
+    }
   });
 }
 
