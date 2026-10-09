@@ -37,7 +37,7 @@ export function nativeRequest(message, timeoutMs = 60_000) {
     }, timeoutMs);
     const operation = message.operation || message.action;
     const payload = { ...message, action: NATIVE_ACTION, operation };
-    chrome.runtime.sendNativeMessage("com.tianyuan.workbench.helper", payload, (response) => {
+    chrome.runtime.sendNativeMessage("com.appraisal.toolbox.helper", payload, (response) => {
       if (settled) return;
       settled = true;
       globalThis.clearTimeout(timer);

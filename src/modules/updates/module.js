@@ -29,20 +29,22 @@ function formatTime(value) {
 function safeReleaseUrl(value) {
   try {
     const url = new URL(String(value || ""));
-    const hosts = new Set([
-      "github.com",
-      "api.github.com",
-      "objects.githubusercontent.com",
-      "release-assets.githubusercontent.com",
-      "gitee.com",
-      "raw.giteeusercontent.com",
-    ]);
-    if (url.protocol !== "https:" || !hosts.has(url.hostname)) return "";
+    if (url.protocol !== "https:" || url.username || url.password || url.port) return "";
+    const githubReleasePath = /^\/zer0-lyz\/appraisal-toolbox-releases\/releases(?:\/(?:latest|tag\/[^/]+|download\/[^/]+(?:\/[^/]+)?))?\/?$/i;
+    const githubApiPath = /^\/repos\/zer0-lyz\/appraisal-toolbox-releases\/releases(?:\/(?:latest|assets\/\d+|\d+))?\/?$/i;
+    const giteeReleasePath = /^\/zer0_y\/appraisal-toolbox-releases\/releases(?:\/(?:latest|tag\/[^/]+|download\/[^/]+(?:\/[^/]+)?))?\/?$/i;
+    const githubAssetHost = url.hostname === "objects.githubusercontent.com"
+      || url.hostname === "release-assets.githubusercontent.com";
+    const allowed = (url.hostname === "github.com" && githubReleasePath.test(url.pathname))
+      || (url.hostname === "api.github.com" && githubApiPath.test(url.pathname))
+      || (url.hostname === "gitee.com" && giteeReleasePath.test(url.pathname))
+      || (githubAssetHost && url.pathname !== "/");
+    if (!allowed) return "";
     // Release manifests point releaseUrl at /releases/download/<tag>, which 404s
     // without an asset name. The browsable page lives at /releases/tag/<tag>.
     // Bare download URLs only; asset URLs keep their filename suffix.
     const bareDownload = url.pathname.match(
-      /^\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/?$/,
+      /^\/(zer0-lyz)\/(appraisal-toolbox-releases)\/releases\/download\/([^/]+)\/?$/i,
     );
     if (bareDownload) {
       url.pathname = `/${bareDownload[1]}/${bareDownload[2]}/releases/tag/${bareDownload[3]}`;

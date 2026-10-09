@@ -3,7 +3,7 @@
 独立于天源底稿系统运行的 Chrome 侧边栏扩展，收录评估业务中不依赖天源页面绑定的数据采集与测算工具。
 
 - 扩展 ID（由 manifest key 固定）：`aamfmhcbjgofhmannejoiilkkpchfkgm`
-- 当前版本：`0.2.0`（构建 `2026100901`）
+- 当前版本：`0.2.1`（构建 `2026100902`）
 - 许可：MIT
 
 ## 功能模块
@@ -21,10 +21,15 @@
 
 ## 安装
 
-1. 本机需已安装「天源浏览器工作台」本机运行组件（Native Helper，`com.tianyuan.workbench.helper`），采集、Excel 导出、docx 处理与预测计算均由它完成；且其 native messaging 白名单包含本扩展 ID。
-2. `git clone` 本仓库（或下载 zip 解压）。
-3. Chrome 打开 `chrome://extensions` → 开发者模式 → 「加载已解压的扩展程序」→ 选择仓库根目录（含 `manifest.json`）。
-4. 点击工具栏图标打开侧边栏使用。
+1. 从 [Releases](https://github.com/zer0-lyz/appraisal-toolbox-releases/releases) 下载对应系统的完整安装包：
+   - macOS Apple Silicon：`appraisal-toolbox-v0.2.1-macos-arm64-full.zip`
+   - Windows x64：`appraisal-toolbox-v0.2.1-windows-x64-full.zip`
+2. 解压后运行包内安装器；安装器会配置专属 Native Host `com.appraisal.toolbox.helper`、独立运行目录、Node.js / Python 与离线依赖。
+3. Chrome 或 Edge 打开扩展管理页，开启开发者模式并加载安装器提示的 `extension` 目录。
+4. 确认扩展 ID 为 `aamfmhcbjgofhmannejoiilkkpchfkgm`。
+
+本产品不依赖天源浏览器工作台、Connector、MCP 或天源 CLI。macOS Apple Silicon
+安装包已完成本机自检；Windows x64 安装包需在 Windows 10/11 x64 实机完成验收。
 
 ## 版本更新机制
 
@@ -37,7 +42,7 @@
 
 - MV3 侧边栏 + 极简外壳（hash 路由、模块注册表、native messaging 封装）。
 - 功能即模块：`src/modules/<module-id>/`（module.js / template.js / styles.css），模块只通过 context 使用宿主能力，禁止跨模块引用内部文件。
-- 与主「天源浏览器工作台」共用本机运行组件，但存储命名空间（`appraisalToolbox*`）与更新源完全独立。
+- 使用专属 Native Host 和独立运行目录，与主「天源浏览器工作台」安装互不覆盖。
 
 ## 相关仓库
 

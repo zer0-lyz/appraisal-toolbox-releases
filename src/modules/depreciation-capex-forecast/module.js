@@ -63,7 +63,7 @@ function nativeMessage(chromeApi, message, timeoutMs = 30_000) {
     }, timeoutMs);
     const operation = message.operation || message.action;
     const payload = { ...message, action: NATIVE_ACTION, operation };
-    chromeApi.runtime.sendNativeMessage("com.tianyuan.workbench.helper", payload, (response) => {
+    chromeApi.runtime.sendNativeMessage("com.appraisal.toolbox.helper", payload, (response) => {
       if (settled) return;
       settled = true;
       globalThis.clearTimeout(timer);

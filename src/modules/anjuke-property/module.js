@@ -1,6 +1,6 @@
 import { anjukePropertyTemplate } from "./template.js";
 
-const DEFAULT_PROFILE_PATH = "~/.tianyuan-workbench/dependencies/anjuke-property-profile";
+const DEFAULT_PROFILE_PATH = "~/.appraisal-toolbox/profiles/anjuke-property";
 const DETAIL_DELAY_MS = 2200;
 const CAPTURE_STATUSES = ["ok", "blocked_verification", "not_case", "read_failed"];
 const DEFAULT_CONFIG = {

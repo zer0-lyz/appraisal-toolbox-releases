@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "评估工具箱",
   "description": "土地成交公示、司法拍卖、资产租赁、房产案例采集与折旧摊销测算工具箱，独立运行，不连接天源底稿系统。",
-  "version": "0.2.0",
-  "version_name": "0.2.0",
+  "version": "0.2.1",
+  "version_name": "0.2.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6YTIHBfOk/gByTinXxkC1mg6Su2HYl4UVWLkK1ntkuvR0JMzvLkyy/VqcJqDUOhd5oag/ybdIeDK2kqspQ/sPnMkMvFZZt/SWr0p+zu9xkHubwywyWWETX2aqm4jNZG9yGbdqi3DVdYC3TBqOFdAKp6JtXyTPkH7o9XsRX3Z8+iY5P8czfZkSMM1sfKXE+BEJ44D0AOMeFXaL4z+wOtECRaOITU0TpmsiCsf2nxUFuGmVX6GL5/MiftgrzpwOPgOahHo8+wV2ltkW9Zsn2UYRxgMI9TS/tis9jD1Ro2uopXicMSieHsxZxwfEtXJENza695OCIX/IDlRJCFPz8v4OQIDAQAB",
   "action": {
     "default_title": "评估工具箱"
