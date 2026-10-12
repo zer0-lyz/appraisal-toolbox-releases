@@ -1,3 +1,5 @@
+> 2026-10-12 Mac接收增补：统一入口/根两目标锁/缓存/manifest/双平台CI已落地；当前结果以 [MAC_EXECUTION_STATUS_20261012.md](MAC_EXECUTION_STATUS_20261012.md) 和 [UNIFIED_BUILD_RUNBOOK.md](UNIFIED_BUILD_RUNBOOK.md) 为准。以下内容保留Windows历史交接的时间边界；不得把旧“待实施”状态当成当前状态，也不得把新CI通过等同GUI/完整安装全面通过。
+
 # Windows / Mac 双端交接入口（2026-10-12）
 
 产品仍为评估工具箱 0.2.1，扩展 ID aamfmhcbjgofhmannejoiilkkpchfkgm，业务 build windows-e2e-round2.1。

@@ -1,3 +1,5 @@
+> 2026-10-12 Mac接收增补：统一入口/根两目标锁/缓存/manifest/双平台CI已落地；当前结果以 [MAC_EXECUTION_STATUS_20261012.md](MAC_EXECUTION_STATUS_20261012.md) 和 [UNIFIED_BUILD_RUNBOOK.md](UNIFIED_BUILD_RUNBOOK.md) 为准。以下内容保留Windows历史交接的时间边界；不得把旧“待实施”状态当成当前状态，也不得把新CI通过等同GUI/完整安装全面通过。
+
 # Windows 构建与实机问题：根因、修法、跨端预防
 
 以下定位相对仓库，行号为本次交接快照附近位置；搜索函数名比沿用旧报告行号可靠。业务修复已验收的部分不可回改。标为待办的项不得描述为已修复。

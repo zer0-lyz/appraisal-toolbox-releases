@@ -1,3 +1,5 @@
+> 2026-10-12 Mac接收增补：统一入口/根两目标锁/缓存/manifest/双平台CI已落地；当前结果以 [MAC_EXECUTION_STATUS_20261012.md](MAC_EXECUTION_STATUS_20261012.md) 和 [UNIFIED_BUILD_RUNBOOK.md](UNIFIED_BUILD_RUNBOOK.md) 为准。以下内容保留Windows历史交接的时间边界；不得把旧“待实施”状态当成当前状态，也不得把新CI通过等同GUI/完整安装全面通过。
+
 ## 验收状态订正：2026-10-12 上午真实桌面重装已通过
 
 已核读 tools-test-zcode/20261011-233740/补充验收结果.json 与补充实机验收报告.md 的上午增补：用户从开始菜单经典 PowerShell 执行卸载→install.cmd重装，验收agent装后核对success报告/上下文、Chrome/Edge×32/64注册指向新LocalAppData安装、EXE SHA与发布包一致、无env self-test四技能、11地市NM以及浏览器健康/行政区/历史加载通过。

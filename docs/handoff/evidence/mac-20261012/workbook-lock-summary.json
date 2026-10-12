@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "evidenceType": "real-POSIX-cross-process-lock-and-synthetic-file-busy",
+  "python": "3.14.6",
+  "sourceCommit": "80eec2bbec08001f4052a2b0adf7f1791f0b0b09",
+  "samePathConcurrentOperationRejected": true,
+  "lockReleasedForNextOperation": true,
+  "fileBusyDistinctFromOperationTimeout": true,
+  "workbookGuiCovered": false,
+  "windowsMsvcrtCovered": false
+}

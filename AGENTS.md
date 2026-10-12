@@ -2,7 +2,7 @@
 
 用户2026-10-12明确授权在本仓库发布Windows交接构建、通过分支/PR/Issue向Mac agent交接；历史提示词里的禁止推送已被覆盖。不直接合并main、不覆盖原v0.2.1、不将未覆盖项目说成通过。
 
-先读 docs/handoff/README.md、WINDOWS_LESSONS.md、ACCEPTANCE_STATUS.md、DUAL_PLATFORM_PLAN.md、BUILD_RUNBOOK.md 和协调Issue。Mac任务见MAC_AGENT_PROMPT.md。
+继续开发前先读 docs/handoff/MAC_EXECUTION_STATUS_20261012.md（实际成果/失败/下一责任人）和Issue#1，不能重复当作尚未实施。先读 docs/handoff/README.md、WINDOWS_LESSONS.md、ACCEPTANCE_STATUS.md、DUAL_PLATFORM_PLAN.md、BUILD_RUNBOOK.md 和协调Issue。Mac任务见MAC_AGENT_PROMPT.md。
 
 产品ID/host及原加载目录保持；原位更新前完整备份和逐文件SHA。禁止触碰天源目录、正式浏览器Profile、凭据、真实地图Key；禁止上传本机用户runtime-config、登录态日志和未脱敏截图。
 
