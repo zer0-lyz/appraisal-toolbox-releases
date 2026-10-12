@@ -1,0 +1,21 @@
+interface:
+  display_name: "折与资计算"
+  short_description: "自包含的折旧摊销与资本性支出预测技能包"
+  default_prompt: "Use $depreciation-capex-forecast to prepare the bundled workbook template, run the self-contained 折与资 calculation engine, and summarize the conclusion."
+bundle:
+  required_files:
+    - SKILL.md
+    - agents/openai.yaml
+    - references/workflow.md
+    - assets/折旧摊销预测输入模板.xlsx
+    - scripts/workflow.py
+    - scripts/depreciation_forecast/__init__.py
+    - scripts/depreciation_forecast/__main__.py
+    - scripts/depreciation_forecast/cli.py
+    - scripts/depreciation_forecast/model.py
+    - scripts/depreciation_forecast/workbook.py
+    - tests/test_workbook.py
+  digest:
+    algorithm: sha256
+    scope: required_files_excluding_manifest
+    value: "9ce8d0c148c29fb74e337612f0cde169ab4a9054a0a1d927a207411e8f22c7b3"
