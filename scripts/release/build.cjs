@@ -70,6 +70,8 @@ async function build(o) {
   const zipPython=o.target==='macos-arm64'?(o.python||'/usr/bin/python3'):path.join(packageRoot,'runtime/python-portable/python.exe');
   // Repack after target-independent version/lock/provenance changes.
   execFileSync(zipPython,[path.join(root,'scripts/release/package-macos.py'),'zip',packageRoot,archive],{stdio:'inherit'});
+  // Fail instead of publishing provenance for a checkout modified while packaging.
+  if(sourceState().commit!==state.commit||sourceInventory.some(item=>hash(path.join(root,item.path))!==item.sha256))throw Error('Source changed during build; discard candidate and rebuild from the frozen commit');
   const payload=inventory(packageRoot).map(x=>({...x,path:path.relative(packageRoot,x.path).replaceAll('\\','/')}));
   const relative=p=>path.relative(out,p).replaceAll('\\','/');
   const result={schemaVersion:3,product:'评估工具箱',productVersion:o.version,target:o.target,buildId:o['build-id'],buildNumber:Number(o['build-number']),extensionId:lock.extensionId,nativeHost:lock.nativeHost,sourceCommit:state.commit,sourceDirty:false,installerBuild:installerBuild(o.target),lockSha256:hash(lockfile),archive:{path:relative(archive),sha256:hash(archive)},packageRoot:relative(packageRoot),native,cache:{runtimeHit:cacheHit,key:o.target+'-'+hash(lockfile)},payload,acceptance:{offline:'pending',installer:'pending',gui:'not-covered',windowsRevalidation:'required for shared/Windows changes'}};
