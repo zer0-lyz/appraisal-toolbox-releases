@@ -1,0 +1,84 @@
+name: Dual platform candidate (no publication)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'native-helper/**'
+      - 'skills/**'
+      - 'macos/**'
+      - 'windows/**'
+      - 'scripts/release/**'
+      - 'release-inputs.lock.json'
+      - '.github/workflows/**'
+permissions:
+  contents: read
+concurrency:
+  group: candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: macos-arm64
+            runner: macos-15
+            node: 24.14.0
+          - target: windows-x64
+            runner: windows-2022
+            node: 24.18.1
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/toolbox-cache
+          key: toolbox-${{ matrix.target }}-${{ hashFiles('release-inputs.lock.json') }}
+      - name: Shared source regressions
+        run: node scripts/release/source-checks.cjs
+      - name: Bootstrap locked Windows tools
+        if: matrix.target == 'windows-x64'
+        shell: pwsh
+        run: |
+          ./windows/bootstrap-build-tools.ps1 -ToolsDirectory "$env:RUNNER_TEMP/toolbox-cache/tools"
+      - name: Build candidate from checked out commit
+        shell: bash
+        run: |
+          TARGET='${{ matrix.target }}'
+          TOOLS=()
+          if [[ "$TARGET" == windows-x64 ]]; then TOOLS=(--tools "$RUNNER_TEMP/toolbox-cache/tools"); fi
+          node scripts/release/build.cjs --target "$TARGET" --version 0.2.1 --build-id "ci-${GITHUB_RUN_ID}" --build-number 2026101201 --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
+      - name: Mac isolated install, upgrade, rollback, and actual host protocol
+        if: matrix.target == 'macos-arm64'
+        shell: bash
+        run: |
+          PACKAGE="$(node -p "require(process.argv[1]).packageRoot" "$RUNNER_TEMP/toolbox-output/release-manifest.json")"
+          bash macos/test-isolated-install.sh "$RUNNER_TEMP/toolbox-output/$PACKAGE" "$RUNNER_TEMP/toolbox-validation"
+      - name: Windows actual SEA imports and Native protocol (not desktop install)
+        if: matrix.target == 'windows-x64'
+        shell: pwsh
+        run: |
+          $Manifest = Get-Content -LiteralPath "$env:RUNNER_TEMP/toolbox-output/release-manifest.json" -Raw | ConvertFrom-Json
+          $Package = Join-Path "$env:RUNNER_TEMP/toolbox-output" $Manifest.packageRoot
+          $Config = @{ pythonBin=(Join-Path $Package 'runtime/python-portable/python.exe'); printSkillsDir=(Join-Path $Package 'skills'); depreciationSkillDir=(Join-Path $Package 'skills/depreciation-capex-forecast') } | ConvertTo-Json
+          [IO.File]::WriteAllText((Join-Path $Package 'native-helper/runtime-config.json'), $Config, [Text.UTF8Encoding]::new($false))
+          node scripts/release/verify-package.cjs $Package "$env:RUNNER_TEMP/toolbox-validation"
+      - name: Save candidates and sanitized synthetic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: toolbox-${{ matrix.target }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/toolbox-output/*.zip
+            ${{ runner.temp }}/toolbox-output/*.sha256
+            ${{ runner.temp }}/toolbox-output/release-manifest.json
+            ${{ runner.temp }}/toolbox-output/source-inventory.json
+            ${{ runner.temp }}/toolbox-validation/**/*summary.json
+          if-no-files-found: warn

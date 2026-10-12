@@ -37,11 +37,12 @@ function appendStderrTail(lines, line) {
 function pythonExportFailure(error, code) {
   const diagnostics = buildRunnerDiagnostics(Number.isInteger(error?.code) ? error.code : null, error?.stderr || error?.code || "导出文件回读失败");
   const tail = diagnostics.stderrTail.join("\n");
+  const repair = process.platform === "darwin" ? "请运行安装.command 修复安装" : "请运行 install.cmd 修复安装";
   const reason = /openpyxl|ModuleNotFoundError/i.test(tail)
-    ? "便携 Python 缺少 Excel 组件，请运行 install.cmd 修复安装"
+    ? `便携 Python 缺少 Excel 组件，${repair}`
     : /PermissionError|WinError\s*(?:5|32|33)|EACCES|EPERM|EBUSY/i.test(tail)
       ? "Excel 文件正被占用或无法写入，请关闭文件并检查输出目录权限"
-      : /ENOENT/i.test(tail) ? "便携 Python 路径不可用，请运行 install.cmd 修复安装"
+      : /ENOENT/i.test(tail) ? `便携 Python 路径不可用，${repair}`
         : error?.killed ? "Excel 生成超时，请减少记录数量后重试" : "Excel 生成或回读校验失败，请检查输出目录和本机助手";
   const failure = new Error(reason);
   failure.code = code;
