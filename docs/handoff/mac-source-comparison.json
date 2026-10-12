@@ -1,0 +1,319 @@
+{
+  "windowsSourceCommit": "8cde0ea68102a560ee7158190c48d1599fd13a00",
+  "macBaseSourceCommit": "328acaca898ab16cd234df0f8c25a6f3120db3cc",
+  "macAuthority": "official v0.2.1 macOS package payload + source-git snapshot; discount development working tree preserved separately",
+  "files": [
+    {
+      "path": "native-helper/README.md",
+      "windowsSha256": "08accf426bd7c56ef90341bc7b6bfdc9b384569903ee65761cc966ee0414d94c",
+      "macSha256": "48f7a0665d256fc04ff47e6613ec121668731fbb6cb6ccaf59d13dc37a015ede",
+      "same": false
+    },
+    {
+      "path": "native-helper/alibaba-auction.js",
+      "windowsSha256": "21fa02fa107c6dfbf044ac5b452818f86bf23d4115f89c031d9947efddaf4ca4",
+      "macSha256": "0013516e35e817eed832b1bfda5f2fc466de6ad196efc4a89c7b3beb6788cb5f",
+      "same": false
+    },
+    {
+      "path": "native-helper/alibaba-lease.js",
+      "windowsSha256": "53b9b5cfae2e18a2f8065899ae448419f0e60229988c81edc023505683f0b4e5",
+      "macSha256": "88d6145b070e7c73d957d68e3fb5f4a4c213241d0c2f97bba1f0916ebb32bb6a",
+      "same": false
+    },
+    {
+      "path": "native-helper/amap-map.js",
+      "windowsSha256": "57e3b67026994cb40ce3dec21ae38ea366b7ee10ac3f1b5edfb61d0e5d01058b",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "native-helper/anjuke-property.js",
+      "windowsSha256": "b9be10badd0e40dd666fe64f1fe598adb843a0f4dd218485f0a7701201c402e5",
+      "macSha256": "ed7d7aa72b79cb1ce4302330770f2e7a00cdb049fd8f000b0e6257180af6a837",
+      "same": false
+    },
+    {
+      "path": "native-helper/depreciation-capex-forecast.js",
+      "windowsSha256": "430f7cea6fcd009d559c91de14d9f2f324da7485266b9395d962386463968ff5",
+      "macSha256": "397fd057b5edaf7016cba8b40a386230320f152920300691574d29f5aac5e94e",
+      "same": false
+    },
+    {
+      "path": "native-helper/diagnostics.js",
+      "windowsSha256": "8e873aaf8f6719013e04a914e261177b20c83d1b87a8a95dd8771d5d052f88ad",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "native-helper/land-publicity-http.js",
+      "windowsSha256": "85355fee5fcbabe7d303d95c3d2d076eb818b6413e169aee1dc80b348f6a2f7c",
+      "macSha256": "85355fee5fcbabe7d303d95c3d2d076eb818b6413e169aee1dc80b348f6a2f7c",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.Default.css",
+      "windowsSha256": "61258232d98d64dc2a7b1e02130d67421bc5b9bda5994eef70228ff97570c170",
+      "macSha256": "61258232d98d64dc2a7b1e02130d67421bc5b9bda5994eef70228ff97570c170",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.css",
+      "windowsSha256": "614dea0a98ff3f4ead74f04918f6b1d1b9ba435c25b5fc23b21a394d1e3e4d87",
+      "macSha256": "614dea0a98ff3f4ead74f04918f6b1d1b9ba435c25b5fc23b21a394d1e3e4d87",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/amap-only.js",
+      "windowsSha256": "0335eb166f61ad66d902def7b9d3b384bd8bf9f5b718ecb2cc71d15de5457744",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "native-helper/map-assets/images/layers-2x.png",
+      "windowsSha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+      "macSha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/images/layers.png",
+      "windowsSha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+      "macSha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon-2x.png",
+      "windowsSha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+      "macSha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon.png",
+      "windowsSha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+      "macSha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-shadow.png",
+      "windowsSha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+      "macSha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.css",
+      "windowsSha256": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
+      "macSha256": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.js",
+      "windowsSha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+      "macSha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+      "same": true
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.markercluster.js",
+      "windowsSha256": "1e4e1d22972a3926f48598e0caf14e3fe7049835d428a344fed4f9e3665b3508",
+      "macSha256": "1e4e1d22972a3926f48598e0caf14e3fe7049835d428a344fed4f9e3665b3508",
+      "same": true
+    },
+    {
+      "path": "native-helper/native_host.js",
+      "windowsSha256": "f56dc0ba01790d987af7d875f984d5eba534496802221c91557859f3a40f712e",
+      "macSha256": "0908130c52306ded2bad96f4a6afddc788043ed431c5e9d0653d13712b280b61",
+      "same": false
+    },
+    {
+      "path": "native-helper/platform/common.js",
+      "windowsSha256": "eb5e5ec8d9507b1fc230328b73046417f1a805d9e446b14c56633d67679d2469",
+      "macSha256": "eb5e5ec8d9507b1fc230328b73046417f1a805d9e446b14c56633d67679d2469",
+      "same": true
+    },
+    {
+      "path": "native-helper/platform/index.js",
+      "windowsSha256": "c2e0316b117713e11ccdb4f4d81cadf7b5a10413993f8215a376b29606a05d02",
+      "macSha256": "c2e0316b117713e11ccdb4f4d81cadf7b5a10413993f8215a376b29606a05d02",
+      "same": true
+    },
+    {
+      "path": "native-helper/platform/macos.js",
+      "windowsSha256": "946a1d3f87dc7384afd1fe25b54de59d9147a6ee457882bb66d0704b52f7eccf",
+      "macSha256": "946a1d3f87dc7384afd1fe25b54de59d9147a6ee457882bb66d0704b52f7eccf",
+      "same": true
+    },
+    {
+      "path": "native-helper/platform/unsupported.js",
+      "windowsSha256": "ae1f4036c462a7b8f90f337d70fbf5275bc1b4b8e9588fc0772c77892848963e",
+      "macSha256": "ae1f4036c462a7b8f90f337d70fbf5275bc1b4b8e9588fc0772c77892848963e",
+      "same": true
+    },
+    {
+      "path": "native-helper/platform/windows.js",
+      "windowsSha256": "d881770bbe180f7923b8f486a38d37cee2cb4106e7c8f8f599c28344832f2bd8",
+      "macSha256": "65ad0e756c2ef9bc33eeeef7098c6f288b0dfaa7de06dbfe50daaa96e21b9a95",
+      "same": false
+    },
+    {
+      "path": "native-helper/process_launcher.js",
+      "windowsSha256": "6725ba6c273660f6cbcd40f7e5e3438fdd0d2b14b3455c6c5d05c050e02a94c0",
+      "macSha256": "6725ba6c273660f6cbcd40f7e5e3438fdd0d2b14b3455c6c5d05c050e02a94c0",
+      "same": true
+    },
+    {
+      "path": "native-helper/runtime_config.js",
+      "windowsSha256": "ce07235a5487ae5ecc5e5f71228e4d33b3a772a110ecc99ffea203250172ce0e",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "native-helper/runtime_paths.js",
+      "windowsSha256": "8e4e2dad865ec83effd6157ac6b828a854ac443ced36d438a9e35961ea6fa9f7",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "native-helper/update-sources.json",
+      "windowsSha256": "ecaaabddd0fd9c98b716434ef32fe202a1456610e10505295304ddb7037fdaec",
+      "macSha256": "ecaaabddd0fd9c98b716434ef32fe202a1456610e10505295304ddb7037fdaec",
+      "same": true
+    },
+    {
+      "path": "native-helper/update_checker.js",
+      "windowsSha256": "efda9c5d1adaaa60ef2bca7ce306883d60a84713b33cb28474fb4b4c236a1342",
+      "macSha256": "42d3ccbc388a6c4a6a79e352b6f7ada90f65f4bc935f0feb52856a4a1d8aca05",
+      "same": false
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/SKILL.md",
+      "windowsSha256": "31708155a49039dea8ee2b817232fd4e1b16911e0af26f88a100ab98f8dc149a",
+      "macSha256": "31708155a49039dea8ee2b817232fd4e1b16911e0af26f88a100ab98f8dc149a",
+      "same": true
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/agents/openai.yaml",
+      "windowsSha256": "343d23ccb022d4e73c314513f99dcb886c1b3bd00982d5f2dfcf5260f513be88",
+      "macSha256": "343d23ccb022d4e73c314513f99dcb886c1b3bd00982d5f2dfcf5260f513be88",
+      "same": true
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/scripts/fetch_anjuke_property_cases.py",
+      "windowsSha256": "11c763acaf001a6fc044022a6af52de7d914b3fa8e3f645854cf457f246ca181",
+      "macSha256": "2c64e86924092d6ea95c70c0e10f08c6ee718ecad67ed9be53bc8a0c800ddb17",
+      "same": false
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/SKILL.md",
+      "windowsSha256": "c2d6978fad15fd0bf06173fbb9309bf43af2048754c4a2225f0877fd1f729a69",
+      "macSha256": "c2d6978fad15fd0bf06173fbb9309bf43af2048754c4a2225f0877fd1f729a69",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/agents/openai.yaml",
+      "windowsSha256": "bfa942b30756ce8c0383f8d4647499667b440ce8d9f658ff38222b16b10ceb75",
+      "macSha256": "bfa942b30756ce8c0383f8d4647499667b440ce8d9f658ff38222b16b10ceb75",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/assets/折旧摊销预测输入模板.xlsx",
+      "windowsSha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701",
+      "macSha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/references/workflow.md",
+      "windowsSha256": "7cf1af2b6572150eed7b9e93cc6a618b7647fa48dce89fcd4e0e1744c8decd8c",
+      "macSha256": "7cf1af2b6572150eed7b9e93cc6a618b7647fa48dce89fcd4e0e1744c8decd8c",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__init__.py",
+      "windowsSha256": "76c440f9277a9bf818aceb9b864ff5b2b48a4553fe14abe44ab446e004c252ae",
+      "macSha256": "76c440f9277a9bf818aceb9b864ff5b2b48a4553fe14abe44ab446e004c252ae",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__main__.py",
+      "windowsSha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "macSha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/cli.py",
+      "windowsSha256": "ba7e8cd4bbd13ea3ca362e2f6edeb335bedf0ff5daf4dd80c5573f27b5ec63ea",
+      "macSha256": "ba7e8cd4bbd13ea3ca362e2f6edeb335bedf0ff5daf4dd80c5573f27b5ec63ea",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/model.py",
+      "windowsSha256": "2db43281e79c2fac1516125a6384517bd1b76c8ee59668c37898c9f0e23b34b4",
+      "macSha256": "2db43281e79c2fac1516125a6384517bd1b76c8ee59668c37898c9f0e23b34b4",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/workbook.py",
+      "windowsSha256": "1428a59d84595ed709dd7ffd3a83d7c45cc721e5b1fa4b335e50eb2ce920a1ee",
+      "macSha256": "1428a59d84595ed709dd7ffd3a83d7c45cc721e5b1fa4b335e50eb2ce920a1ee",
+      "same": true
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/workflow.py",
+      "windowsSha256": "306ef3fd86ee0339dd082cff67f3e7317700c928de926b230792b58819861518",
+      "macSha256": "eef471fca26f62fb1609a1f05401f498e522a90d8b427840b72a4bd7230646a2",
+      "same": false
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/tests/test_workbook.py",
+      "windowsSha256": "f7613b55a3a1f9dbf36df38298da0825dba817439a1846e47b06a6631d14dc4c",
+      "macSha256": "f7613b55a3a1f9dbf36df38298da0825dba817439a1846e47b06a6631d14dc4c",
+      "same": true
+    },
+    {
+      "path": "skills/map-shared/amap_support.py",
+      "windowsSha256": "3f399b5ec66c10afc3fb818a9189523c19bf5e6a47ea11a2aec7f660c93dad7f",
+      "macSha256": null,
+      "same": false
+    },
+    {
+      "path": "skills/table-format/SKILL.md",
+      "windowsSha256": "70b6a8fff0d63f181887b101205f89bc1645bbe85945e0427f1215cb2e95c2b5",
+      "macSha256": "70b6a8fff0d63f181887b101205f89bc1645bbe85945e0427f1215cb2e95c2b5",
+      "same": true
+    },
+    {
+      "path": "skills/table-format/scripts/format_word_tables.py",
+      "windowsSha256": "a7a80b9ab15d0c7bccc8b77ecdb1b53c5f9bdc078da06e6acd7e264a5b55f97a",
+      "macSha256": "a7a80b9ab15d0c7bccc8b77ecdb1b53c5f9bdc078da06e6acd7e264a5b55f97a",
+      "same": true
+    },
+    {
+      "path": "skills/zj-land-publicity/SKILL.md",
+      "windowsSha256": "e0283bdf5ca8501410116b121c0de812bc14420b3f2ace644152d04713b2f38f",
+      "macSha256": "a935ed9ee07cb4eee2e2aba339d7922997d44e471c8b1b370a21aa379e76df0c",
+      "same": false
+    },
+    {
+      "path": "skills/zj-land-publicity/land_http.py",
+      "windowsSha256": "29a53dbc9142f85ef9829e46f84acc2bc49c0c936537f5b7abb50902cd19f577",
+      "macSha256": "29a53dbc9142f85ef9829e46f84acc2bc49c0c936537f5b7abb50902cd19f577",
+      "same": true
+    },
+    {
+      "path": "skills/zj-land-publicity/land_publicity_runner.py",
+      "windowsSha256": "1cf4b0980ad000f3079e07f4141f73ce5f9877742d82a6416855e65ec01f8978",
+      "macSha256": "2dc7ac48c822001963f23430750f75d12739a276781fc7ea2d9b6bcbaf999b48",
+      "same": false
+    },
+    {
+      "path": "skills/zj-land-publicity/scrape_zj_land.py",
+      "windowsSha256": "69ba80851fd9e498f8e112ed2d128ca94e284709d096c0209d1960f6d264b29b",
+      "macSha256": "58379e83d50749f5af79f8f5b3254c9d0e10849ec435d15cdf8a6294cd10990f",
+      "same": false
+    },
+    {
+      "path": "skills/zj-land-publicity/tests/test_land_publicity_runner.py",
+      "windowsSha256": "62dd15ad580a87bb34fec1af67d8deda248e4ea87bf7cf1df7f0cef3e2b305c4",
+      "macSha256": "62dd15ad580a87bb34fec1af67d8deda248e4ea87bf7cf1df7f0cef3e2b305c4",
+      "same": true
+    }
+  ]
+}

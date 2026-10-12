@@ -1,3 +1,5 @@
+> 2026-10-12 Mac接收增补：统一入口/根两目标锁/缓存/manifest/双平台CI已落地；当前结果以 [MAC_EXECUTION_STATUS_20261012.md](MAC_EXECUTION_STATUS_20261012.md) 和 [UNIFIED_BUILD_RUNBOOK.md](UNIFIED_BUILD_RUNBOOK.md) 为准。以下内容保留Windows历史交接的时间边界；不得把旧“待实施”状态当成当前状态，也不得把新CI通过等同GUI/完整安装全面通过。
+
 # 当前可复用构建操作与已知限制
 
 当前能直接使用的是已交付完整包；本轮没有从新 commit 重建二进制。文件来源与字节映射在 release-manifest.json 和 source-inventory.json。原包固定 SHA a71aabe5008d06e4ba519a0abfb7c84fcdf6e53085a8eb54100313e626366a28，来自官方 v0.2.1 Windows full 资产；必须重新下载时先核对摘要，不从本机用户 runtime 取文件。

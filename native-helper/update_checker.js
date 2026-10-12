@@ -358,6 +358,7 @@ function normalizeManifestAsset(asset, manifestUrl, manifest = null) {
 }
 
 function resultFromManifest(manifest, manifestUrl, input, sourceHealth = null) {
+  manifest = require("./platform-update-manifest.js").selectPlatformManifest(manifest, platformKey(input.platform, input.architecture));
   const currentVersion = String(input.currentVersion || "").trim();
   const currentBuildNumber = Number(input.currentBuildNumber || 0);
   const latestVersion = String(manifest?.productVersion || "").trim().replace(/^v/i, "");
@@ -883,4 +884,5 @@ module.exports = {
   createSourceHealth,
   isAuthoritativeLatestManifestUrl,
   checkGithubUpdate,
+  resultFromManifest,
 };
