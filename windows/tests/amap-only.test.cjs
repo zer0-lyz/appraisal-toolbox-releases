@@ -2,23 +2,29 @@ const fs = require('node:fs'), path = require('node:path'), assert = require('no
 const source = path.resolve(__dirname, '../..'), out = path.resolve(process.argv[2]); fs.mkdirSync(out, {recursive:true});
 const client = fs.readFileSync(path.join(source,'native-helper/map-assets/amap-only.js'),'utf8');
 const configuration = {amapEnabled:true,amapWebKey:'synthetic-test-key'};
-function environment({constructorThrows=false}={}) {
-  const nodes=new Map(), timers=new Map(), scripts=[], instances=[];let nextTimer=0;
-  function node(id=''){const value={id,style:{},children:[],hidden:false,dataset:{},setAttribute(){},appendChild(item){this.children.push(item);if(item.id)nodes.set(item.id,item);return item;},remove(){this.removed=true;}};if(id)nodes.set(id,value);return value;}
-  const document={getElementById:id=>nodes.get(id),createElement:()=>node(),body:node(),head:node()};document.head.appendChild=item=>{scripts.push(item);return item;};
+function environment({constructorThrows=false,nativePixelScale=1}={}) {
+  const nodes=new Map(), timers=new Map(), animationFrames=new Map(), scripts=[], instances=[];let nextTimer=0;
+  function node(id=''){const value={id,style:{},children:[],hidden:false,dataset:{},domEvents:{},setAttribute(){},addEventListener(name,callback){this.domEvents[name]=callback;},removeEventListener(name){delete this.domEvents[name];},contains(item){return this===item||this.children.some(child=>child.contains?.(item)||child===item);},appendChild(item){this.children.push(item);if(item.id)nodes.set(item.id,item);return item;},remove(){this.removed=true;}};if(id)nodes.set(id,value);return value;}
+  const document={getElementById:id=>nodes.get(id),createElement:tag=>Object.assign(node(),{tagName:tag.toUpperCase()}),body:node(),head:node()};document.head.appendChild=item=>{if(item.tagName==='SCRIPT')scripts.push(item);document.head.children.push(item);if(item.id)nodes.set(item.id,item);return item;};
   const listeners={};
-  const context={document,setTimeout(fn,delay){const id=++nextTimer;timers.set(id,{fn,delay});return id;},clearTimeout(id){timers.delete(id);},addEventListener(name,callback){listeners[name]=callback;},encodeURIComponent,console};context.window=context;
+  const context={document,setTimeout(fn,delay){const id=++nextTimer;timers.set(id,{fn,delay});return id;},clearTimeout(id){timers.delete(id);},requestAnimationFrame(fn){const id=++nextTimer;animationFrames.set(id,fn);return id;},cancelAnimationFrame(id){animationFrames.delete(id);},addEventListener(name,callback){listeners[name]=callback;},removeEventListener(name){delete listeners[name];},encodeURIComponent,console};context.window=context;
   class MapFixture {
-    constructor(element,options){if(constructorThrows)throw Error('fixture failure');this.options=options;this.events={};this.centers=[];instances.push(this);}
+    constructor(element,options){if(constructorThrows)throw Error('fixture failure');this.element=element;this.options=options;this.center=options.center;this.zoom=options.zoom;this.events={};this.centers=[];instances.push(this);}
     on(name,callback){this.events[name]=callback;}
-    setZoomAndCenter(zoom,center){this.centers.push({zoom,center});}
+    setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center;this.centers.push({zoom,center});}
+    getCenter(){return {getLng:()=>this.center[0],getLat:()=>this.center[1]};}
+    getZoom(){return this.zoom;}
+    getSize(){return {width:parseFloat(this.element.style.width),height:parseFloat(this.element.style.height)};}
+    lngLatToContainer(value){const size=this.getSize(),scale=2**this.zoom*nativePixelScale;return new PixelFixture(size.width/2+(value.getLng()-this.center[0])*scale,size.height/2-(value.getLat()-this.center[1])*scale);}
+    containerToLngLat(pixel){const size=this.getSize(),scale=2**this.zoom*nativePixelScale;return {getLng:()=>this.center[0]+(pixel.x-size.width/2)/scale,getLat:()=>this.center[1]-(pixel.y-size.height/2)/scale};}
     resize(){this.resized=true;}
     destroy(){this.destroyed=true;}
   }
+  class PixelFixture {constructor(x,y){this.x=x;this.y=y;}getX(){return this.x;}getY(){return this.y;}}
   const baseProjection={bounds:{},project:latlng=>({x:latlng.lng,y:latlng.lat}),unproject:point=>({lng:point.x,lat:point.y})};
-  context.L={CRS:{EPSG3857:{projection:baseProjection}},extend:Object.assign,latLng:(lat,lng)=>({lat,lng}),map(id,options){const container=node(id);return {options,center:{lat:30.25,lng:120.16},zoom:9,events:{},getContainer(){return container;},getCenter(){return this.center;},getZoom(){return this.zoom;},setView(center,zoom){this.center={lat:center[0],lng:center[1]};this.zoom=zoom;return this;},on(name,callback){this.events[name]=callback;return this;},off(name){delete this.events[name];return this;}};}};
+  context.L={CRS:{EPSG3857:{projection:baseProjection}},extend:Object.assign,latLng:(lat,lng)=>({lat,lng}),map(id,options){const container=node(id),pane=node();container.appendChild(pane);return {options,center:{lat:30.25,lng:120.16},zoom:9,events:{},getContainer(){return container;},getPane(name){assert.equal(name,'mapPane');return pane;},getSize(){return {x:800,y:600};},getZoomScale(to,from){return 2**(to-from);},project(point,zoom){const projected=options.crs.projection.project(point);return {x:projected.x*2**zoom,y:-projected.y*2**zoom};},latLngToLayerPoint(point){const projected=this.project(point,this.zoom),center=this.project(this.center,this.zoom);return {x:400+projected.x-center.x,y:300+projected.y-center.y};},getCenter(){return this.center;},getZoom(){return this.zoom;},getMinZoom(){return 3;},getMaxZoom(){return 19;},setZoom(zoom){this.events['movestart zoomstart']?.();this.zoom=zoom;this.events['move zoom resize']?.();this.events['moveend zoomend']?.();return this;},setView(center,zoom){this.center={lat:center[0],lng:center[1]};this.zoom=zoom;return this;},on(name,callback){this.events[name]=callback;return this;},off(name){delete this.events[name];return this;}};}};
   vm.runInNewContext(client,context);
-  return {context,timers,scripts,instances,nodes,MapFixture,api:context.AppraisalAmap,expire(delay){for(const [id,timer] of [...timers])if(timer.delay===delay){timers.delete(id);timer.fn();}}};
+  return {context,timers,scripts,instances,nodes,MapFixture,PixelFixture,api:context.AppraisalAmap,paint(){for(let i=0;i<6&&animationFrames.size;i++)for(const [id,fn] of [...animationFrames]){animationFrames.delete(id);fn();}},expire(delay){for(const [id,timer] of [...timers])if(timer.delay===delay){timers.delete(id);timer.fn();}}};
 }
 const cases=[];
 for(const config of [{amapEnabled:false},{...configuration,amapWebKey:''}]){
@@ -26,19 +32,28 @@ for(const config of [{amapEnabled:false},{...configuration,amapWebKey:''}]){
   assert.equal(e.scripts.length,0);assert.equal(e.instances.length,0);assert.equal(map.getContainer().style.visibility,'hidden');
   assert.match(e.nodes.get('amap-configuration-notice').textContent,/地图基础配置/);cases.push('missing-config-no-network');
 }
-{
-  const e=environment(),reports=[];e.api.watch(configuration);const map=e.api.createMap('map',{},configuration,(message,kind)=>reports.push({message,kind}));
+for(const nativePixelScale of [1,2]){
+  const e=environment({nativePixelScale}),reports=[];e.api.watch(configuration);const map=e.api.createMap('map',{},configuration,(message,kind)=>reports.push({message,kind}));
   assert.equal(e.context._AMapSecurityConfig,undefined);
   assert.equal(e.scripts.length,1);assert.equal(new URL(e.scripts[0].src).hostname,'webapi.amap.com');
-  e.context.AMap={Map:e.MapFixture};e.scripts[0].onload();const sdk=e.instances[0];sdk.events.complete();
+  e.context.AMap={Map:e.MapFixture,Pixel:e.PixelFixture};e.scripts[0].onload();
+  function completeLatest(){for(let i=0;i<4;i++){const instance=e.instances.at(-1);instance.events.complete();e.paint();if(instance===e.instances.at(-1))return instance;}throw Error('Fixture projection did not settle');}
+  const sdk=completeLatest();
+  function aligned(instance){const point={lat:30.26,lng:120.18},gcj=e.api.toGcj(point.lng,point.lat),pixel=instance.lngLatToContainer({getLng:()=>gcj[0],getLat:()=>gcj[1]}),expected=map.latLngToLayerPoint(point),matrix=instance.element.style.transform.match(/translate3d\(([-\d.e]+)px,([-\d.e]+)px,0\) scale\(([-\d.e]+),([-\d.e]+)\)/);assert(matrix);assert(Math.abs(Number(matrix[1])+pixel.x*Number(matrix[3])-expected.x)<1e-5);assert(Math.abs(Number(matrix[2])+pixel.y*Number(matrix[4])-expected.y)<1e-5);}
+  aligned(sdk);
   assert.equal(map.getContainer().style.visibility,'visible');assert.equal(reports.at(-1).kind,'ok');
   assert.equal(e.nodes.get('amap-configuration-notice').hidden,true);
   const [lng,lat]=e.api.toGcj(120.16,30.25);assert(Math.abs(sdk.options.center[0]-lng)<1e-9);assert(Math.abs(sdk.options.center[1]-lat)<1e-9);
   const projected=map.options.crs.projection.project({lng:120.16,lat:30.25});assert(Math.abs(projected.x-lng)<1e-9);
   const original=map.options.crs.projection.unproject(projected);assert(Math.abs(original.lng-120.16)<1e-7);assert(Math.abs(original.lat-30.25)<1e-7);
-  map.center={lng:120.2,lat:30.3};map.zoom=12;map.events['move zoom resize']();assert.equal(sdk.centers.at(-1).zoom,12);assert(sdk.resized);
+  assert(map.getPane('mapPane').children.includes(sdk.element));
+  map.events['movestart zoomstart']();map.center={lng:120.2,lat:30.3};map.zoom=12;map.events['move zoom resize']();assert.equal(sdk.centers.length,0);aligned(sdk);
+  map.events['moveend zoomend']();const replacement=e.instances.at(-1);assert.equal(replacement.options.zoom,12);assert.equal(sdk.element.style.visibility,'visible');replacement.events.complete();e.paint();assert.equal(replacement.element.style.visibility,'visible');assert.equal(sdk.element.style.visibility,'hidden');aligned(replacement);
+  const instanceCount=e.instances.length;map.center={lng:120.3,lat:30.4};map.events['moveend zoomend']();assert.equal(e.instances.length,instanceCount);assert.equal(sdk.centers.at(-1).zoom,12);assert(sdk.resized);e.paint();aligned(sdk);
+  const button={classList:{contains:name=>name==='leaflet-control-zoom-in'},closest(){return this;}};map.getContainer().appendChild(button);let prevented=false,stopped=false;map.getContainer().domEvents.click({target:button,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});assert(prevented&&stopped);assert.equal(map.getZoom(),13);e.paint();
+  button.classList.contains=name=>name==='leaflet-control-zoom-out';map.getContainer().domEvents.click({target:button,preventDefault(){},stopImmediatePropagation(){}});assert.equal(map.getZoom(),12);e.paint();
   sdk.events.error();assert.equal(map.getContainer().style.visibility,'hidden');assert(sdk.destroyed);assert.equal(e.scripts.length,1);assert.match(reports.at(-1).message,/Key.*域名配置/);
-  cases.push('official-sdk-key-ready-center-resize-auth-error');
+  cases.push('official-sdk-shared-pane-calibrated-pixel-scale-'+nativePixelScale+'-pan-zoom-swap-auth-error');
 }
 for(const scenario of ['script-error','script-timeout','map-timeout','constructor-error']){
   const e=environment({constructorThrows:scenario==='constructor-error'});e.api.createMap('map',{},configuration);
