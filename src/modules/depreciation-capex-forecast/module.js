@@ -1,9 +1,12 @@
+import { userErrorMessage, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import {
   ADDED_HEADERS,
   PARAM_FIELDS,
   STOCK_HEADERS,
   depreciationCapexTemplate,
 } from "./template.js";
+import { nativeErrorMessage } from "../../core/native-errors.js";
+import { sendQueuedDepreciationNativeMessage, showNativeDiagnostics } from "../../core/native-messaging.mjs";
 
 const ACTIONS = Object.freeze({
   prepare: "prepare",
@@ -54,30 +57,19 @@ function elementMap(documentRef) {
 }
 
 function nativeMessage(chromeApi, message, timeoutMs = 30_000) {
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const timer = globalThis.setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(new Error("Native Helper 请求超时，请检查本机运行环境"));
-    }, timeoutMs);
-    const operation = message.operation || message.action;
-    const payload = { ...message, action: NATIVE_ACTION, operation };
-    chromeApi.runtime.sendNativeMessage("com.appraisal.toolbox.helper", payload, (response) => {
-      if (settled) return;
-      settled = true;
-      globalThis.clearTimeout(timer);
-      const error = chromeApi.runtime.lastError;
-      if (error) {
-        reject(new Error(error.message || "Native Helper 未响应"));
-        return;
-      }
-      if (!response || response.ok === false) {
-        reject(new Error(response?.message || response?.reason || "Native Helper 返回失败"));
-        return;
-      }
-      resolve(response);
-    });
+  const operation = message.operation || message.action;
+  const payload = { ...message, action: NATIVE_ACTION, operation };
+  return sendQueuedDepreciationNativeMessage(chromeApi, payload, timeoutMs).then((response) => {
+    if (!response || response.ok === false) {
+      showNativeDiagnostics(response);
+      const error = new Error(nativeErrorMessage(response?.reason || response?.message || "NATIVE_HOST_UNAVAILABLE"));
+      error.code = response?.reason || "";
+      error.diagnostics = response?.diagnostics;
+      throw error;
+    }
+    return response;
+  }).catch((error) => {
+    throw new Error(userErrorMessage(error));
   });
 }
 
@@ -188,7 +180,7 @@ export const depreciationCapexModule = {
   manifest: {
     id: MODULE_ID,
     type: "feature",
-    stage: "stable",
+    stage: "development",
     route: MODULE_ID,
     displayName: "折旧摊销与资本性支出预测",
     messageNamespace: MODULE_ID,

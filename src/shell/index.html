@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>评估工具箱</title>
     <link rel="stylesheet" href="../styles/shell.css">
+    <link rel="stylesheet" href="../styles/native-diagnostics.css">
   </head>
   <body>
     <main class="app">
@@ -23,12 +24,13 @@
             <h2>功能模块</h2>
             <p>选择一个功能开始处理</p>
           </div>
-          <span id="moduleCountBadge" class="badge">6 个业务工具</span>
+          <button id="nativeHealth" type="button" class="health-pill" title="点击重新检查本机助手" aria-live="polite">助手检查中</button>
+          <span id="moduleCountBadge" class="badge">4 个业务工具</span>
         </div>
         <div class="module-sections">
           <section class="module-section" aria-labelledby="moduleSectionTitle">
             <div class="module-section-heading">
-              <h3 id="moduleSectionTitle">业务工具</h3>
+              <h3 id="moduleSectionTitle">业务工具</h3><span id="landPublicityHealth" class="health-pill" title="检查土地网站连接">土地数据源检查中</span>
               <small>数据采集、文档处理与测算功能</small>
             </div>
             <div class="module-grid">
@@ -42,7 +44,6 @@
                 </span>
                 <strong>浙江土地市场网</strong>
                 <small>按行政区、用途和价格面积筛选并生成地图结果</small>
-                <small class="module-health" id="landPublicityHealth" hidden></small>
               </button>
               <button id="openAlibabaAuction" type="button" class="module-card">
                 <span class="module-icon" aria-hidden="true">
@@ -76,6 +77,14 @@
                 <strong>表格设置</strong>
                 <small>批量统一 Word 文档中所有表格的格式</small>
               </button>
+            </div>
+          </section>
+          <section class="module-section module-section-building" aria-labelledby="moduleSectionDevelopmentTitle">
+            <div class="module-section-heading">
+              <h3 id="moduleSectionDevelopmentTitle">开发中</h3>
+              <small>开发测试中，验证可用后转入业务工具</small>
+            </div>
+            <div class="module-grid">
               <button id="openAnjukeProperty" type="button" class="module-card">
                 <span class="module-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false">
@@ -84,6 +93,7 @@
                     <path class="icon-stroke" d="m17.5 16.8 2.8 2.8"></path>
                   </svg>
                 </span>
+                <span class="development-badge">开发中</span>
                 <strong>安居客数据</strong>
                 <small>抓取物业出售、租赁案例并保存原始证据</small>
               </button>
@@ -95,6 +105,7 @@
                     <path class="icon-stroke" d="M21 4.5H3a.75.75 0 0 0-.75.75V18A1.5 1.5 0 0 0 3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V5.25A.75.75 0 0 0 21 4.5m-.75 13.5H3.75V6h16.5z"></path>
                   </svg>
                 </span>
+                <span class="development-badge">开发中</span>
                 <strong>折旧摊销与资本性支出预测</strong>
                 <small>设置参数、录入资产并运行长周期折旧摊销预测</small>
               </button>

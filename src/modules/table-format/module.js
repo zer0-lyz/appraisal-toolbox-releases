@@ -1,4 +1,6 @@
+import { userErrorMessage, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { tableFormatTemplate } from "./template.js";
+import { nativeErrorMessage } from "../../core/native-errors.js";
 
 const DEFAULT_CONFIG = {
   outputMode: "copy_in_source",
@@ -68,7 +70,7 @@ function tableFormatFailureMessage(reason) {
   if (value.includes("TABLE_FORMAT_PYTHON_DEPENDENCY_MISSING")) {
     return "本机表格设置运行组件不完整，请重新安装工作台本机运行组件。";
   }
-  return value || "未知原因";
+  return userErrorMessage(value, "Word 表格处理失败，请检查文档和本机助手，并查看诊断详情。");
 }
 
 export const tableFormatModule = {
@@ -184,8 +186,8 @@ export const tableFormatModule = {
         setMessage(elements.tableFormatResultMessage, "文件已选择，请确认输出方式后开始执行。", "ok");
         context.setStatus(`已选择 ${inputPaths.length} 个 Word 文档`, "ok");
       } catch (error) {
-        setMessage(elements.tableFormatResultMessage, `选择文件失败：${error?.message || String(error)}`, "error");
-        context.setStatus(`选择文件失败：${error?.message || String(error)}`, "error");
+        setMessage(elements.tableFormatResultMessage, `选择文件失败：${userErrorMessage(error)}`, "error");
+        context.setStatus(`选择文件失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -206,8 +208,8 @@ export const tableFormatModule = {
         setMessage(elements.tableFormatResultMessage, `已选择并创建专用子文件夹：${result.directoryName || "表格格式设置"}。`, "ok");
         context.setStatus(`已选择目标文件夹：${config.outputDirectory}`, "ok");
       } catch (error) {
-        setMessage(elements.tableFormatResultMessage, `选择目标文件夹失败：${error?.message || String(error)}`, "error");
-        context.setStatus(`选择目标文件夹失败：${error?.message || String(error)}`, "error");
+        setMessage(elements.tableFormatResultMessage, `选择目标文件夹失败：${userErrorMessage(error)}`, "error");
+        context.setStatus(`选择目标文件夹失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -221,6 +223,10 @@ export const tableFormatModule = {
       if (config.outputMode === "new_directory" && !config.outputDirectory) {
         setMessage(elements.tableFormatResultMessage, "请先选择指定的目标文件夹。", "error");
         context.setStatus("表格设置缺少目标文件夹", "error");
+        return;
+      }
+      if (config.outputMode === "overwrite" && !context.document.defaultView?.confirm?.("将直接覆盖选中的原 Word 文档，此操作不可撤销。确认继续？")) {
+        setMessage(elements.tableFormatResultMessage, "已取消覆盖，原文件未修改。", "warn");
         return;
       }
       running = true;
@@ -251,9 +257,9 @@ export const tableFormatModule = {
           context.setStatus("Word 表格设置完成，全部文件校验通过", "ok");
         }
       } catch (error) {
-        renderProgress({ percent: 0, message: `执行失败：${error?.message || String(error)}` });
-        setMessage(elements.tableFormatResultMessage, error?.message || String(error), "error");
-        context.setStatus(`表格设置失败：${error?.message || String(error)}`, "error");
+        renderProgress({ percent: 0, message: `执行失败：${userErrorMessage(error)}` });
+        setMessage(elements.tableFormatResultMessage, userErrorMessage(error), "error");
+        context.setStatus(`表格设置失败：${userErrorMessage(error)}`, "error");
       } finally {
         running = false;
         renderInputList();

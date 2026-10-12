@@ -1,4 +1,14 @@
+import { userErrorMessage, nativeResponseError, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { alibabaAuctionTemplate } from "./template.js";
+import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
+import {
+  classifyAlibabaPage,
+  isAlibabaExpiredVerificationUrl,
+  getAlibabaBlockedErrorCode,
+  getAlibabaFailureMessage,
+  isAlibabaLoginUrl as isSharedAlibabaLoginUrl,
+  isAlibabaVerificationUrl as isSharedAlibabaVerificationUrl,
+} from "../../core/alibaba-page-state.js";
 // 区划目录已下沉到共享数据层，供阿里司法拍卖与阿里资产租赁两个模块复用。
 import { ALIBABA_REGION_CATALOG } from "../../data/china-regions.js";
 
@@ -606,8 +616,11 @@ function extractAlibabaListPage() {
     items.push({ href, text, listedAmount, listedBidCount, listedHasEndedText: /已结束/.test(text), listedHasExplicitSoldPrice: /(?:成交价|拍下价|最终成交价|成交金额)/.test(text) });
   }
   const body = document.body?.innerText || "";
+  const loginFormPresent = [...document.querySelectorAll('input[type="password"]')].some(isVisible)
+    && [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
   const totalMatch = body.match(/共找到\s*([\d,]+)\s*条/);
-  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="slider"],[id*="slider"],[class*="verify"],[id*="verify"]')].some(isVisible)
+  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
   return {
     url: location.href,
@@ -615,6 +628,7 @@ function extractAlibabaListPage() {
     total: totalMatch ? totalMatch[1] : "",
     items,
     pageText: clean(body.slice(0, 1200)),
+    loginFormPresent,
     verificationRequired,
   };
 }
@@ -724,9 +738,12 @@ async function extractAlibabaDetailPage() {
     && /(?:所在楼层|楼层|总层数)/.test(`${detailContentText}\n${noticeText}`);
   const itemNoticeText = noticeHasFields ? "" : await loadSupplementalSection("#ItemNotice", '#J_DetailTabMenu a[href="#ItemNotice"]');
   const body = document.body?.innerText || "";
+  const loginFormPresent = [...document.querySelectorAll('input[type="password"]')].some(isVisible)
+    && [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
   const scriptText = [...document.scripts].map((script) => script.textContent || "").join("\n");
   const detailText = `${detailContentText}\n${noticeText}\n${itemNoticeText}\n${body}\n${scriptText}`;
-  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="slider"],[id*="slider"],[class*="verify"],[id*="verify"]')].some(isVisible)
+  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
   const attachments = [];
   const attachmentSeen = new Set();
@@ -836,6 +853,7 @@ async function extractAlibabaDetailPage() {
     detailContentText: detailContentText.slice(0, 12000),
     detailContentReady,
     pageText: body.slice(0, 12000),
+    loginFormPresent,
     attachments: attachments.slice(0, 8),
     verificationRequired,
   };
@@ -902,8 +920,11 @@ function extractZcAuctionListPage() {
     });
   }
   const body = document.body?.innerText || "";
+  const loginFormPresent = [...document.querySelectorAll('input[type="password"]')].some(isVisible)
+    && [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
   const totalMatch = body.match(/共\s*([\d,]+)\s*(条|个|件)/);
-  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="slider"],[id*="slider"],[class*="verify"],[id*="verify"]')].some(isVisible)
+  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
   return {
     url: location.href,
@@ -911,6 +932,7 @@ function extractZcAuctionListPage() {
     total: totalMatch ? totalMatch[1] : "",
     items,
     pageText: clean(body.slice(0, 1200)),
+    loginFormPresent,
     verificationRequired,
   };
 }
@@ -1239,11 +1261,7 @@ function directSkipReason(detail, record, request) {
 }
 
 function directPageLooksBlocked(value) {
-  const text = `${value?.title || ""} ${value?.pageText || ""} ${value?.url || ""}`;
-  if (value?.verificationRequired === true) return "ALIBABA_VERIFICATION_REQUIRED";
-  if (/验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证|拖动.{0,8}(?:滑块|拼图)|captcha|punish|security\s*check/i.test(text)) return "ALIBABA_VERIFICATION_REQUIRED";
-  if (/登录淘宝|请登录|会员登录|扫码登录|登录页面|login\.taobao|\/login(?:[/?]|$)|login_jump/i.test(text)) return "ALIBABA_LOGIN_REQUIRED";
-  return "";
+  return getAlibabaBlockedErrorCode(classifyAlibabaPage(value), "auction");
 }
 
 function pageWaitState(value, expectedUrl, pageKind = "detail") {
@@ -1264,16 +1282,7 @@ function verificationWaitMessage(state, pageKind, description, elapsedSeconds) {
 }
 
 function isAlibabaVerificationUrl(value) {
-  try {
-    const url = new URL(String(value || ""));
-    const host = url.hostname.toLowerCase();
-    if (host !== "taobao.com" && !host.endsWith(".taobao.com")) return false;
-    const state = `${url.pathname} ${url.search} ${url.hash}`;
-    return /^(?:sec|login|passport|safe|verify|captcha|err|anti)\./.test(host)
-      || /captcha|verify|validate|punish|security|login|error/i.test(state);
-  } catch {
-    return false;
-  }
+  return isSharedAlibabaVerificationUrl(value);
 }
 
 function directListPageUrl(sourceUrl, page) {
@@ -1496,9 +1505,52 @@ async function synchronizeAlibabaAuctionStatus(requestedStatus) {
   const isTargetLabel = (value) => targetLabels.some((label) => compact(value) === compact(label));
   const pageText = () => clean(document.body?.innerText || document.body?.textContent || "");
   const pageHref = () => String(window.location?.href || "");
-  const loginPage = () => /login\.taobao|\/login(?:[/?]|$)|登录淘宝|请登录|会员登录|扫码登录/i.test(`${pageHref()} ${pageText()}`);
-  const verificationPage = () => /(?:^|[./_-])(captcha|verify|validate|punish|security|error)(?:[./?_-]|$)|验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证|拖动.{0,8}(?:滑块|拼图)/i.test(`${pageHref()} ${pageText()}`);
-  if (loginPage()) return { ok: false, changed: false, errorCode: "ALIBABA_LOGIN_REQUIRED", reason: "请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。" };
+  const loginUrl = () => {
+    const href = pageHref();
+    try {
+      const url = new URL(href);
+      if (["login.taobao.com", "passport.taobao.com"].includes(url.hostname.toLowerCase())
+        || /(?:^|\/)(?:login|passport)(?:[./]|\/|$)/i.test(url.pathname)
+        || [...url.searchParams.entries()].some(([key, value]) => /login_jump/i.test(`${key} ${value}`))) return true;
+    } catch {}
+    return false;
+  };
+  const verificationUrl = () => {
+    try {
+      const url = new URL(pageHref());
+      const host = url.hostname.toLowerCase();
+      const state = `${url.pathname} ${url.search} ${url.hash}`;
+      return /^(?:sec|safe|verify|captcha|punish|anti)(?:[-.]|$)/i.test(host)
+        || /(?:captcha|verify|validate|punish|security(?:[-_/]?check)?)/i.test(state);
+    } catch {
+      return false;
+    }
+  };
+  const loginFormPresent = () => {
+    const isVisible = (element) => {
+      if (!element) return false;
+      for (let current = element; current; current = current.parentElement) {
+        if (current.hasAttribute?.("hidden") || current.getAttribute?.("aria-hidden") === "true") return false;
+        const style = window.getComputedStyle?.(current) || {};
+        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") return false;
+      }
+      const rect = element.getBoundingClientRect?.();
+      return rect ? rect.width > 0 && rect.height > 0 : element.getClientRects?.().length > 0;
+    };
+    const hasVisiblePassword = [...document.querySelectorAll('input[type="password"]')].some(isVisible);
+    if (!hasVisiblePassword) return false;
+    return [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
+  };
+  const verificationPage = () => /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证|拖动.{0,8}(?:滑块|拼图)/i.test(pageText())
+    || [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some((element) => {
+      if (element.getAttribute?.("aria-hidden") === "true") return false;
+      const style = window.getComputedStyle?.(element) || {};
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    });
+  if (loginUrl()) return { ok: false, changed: false, errorCode: "ALIBABA_LOGIN_REQUIRED", reason: "请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。" };
+  if (verificationUrl()) return { ok: false, changed: false, errorCode: "ALIBABA_VERIFICATION_REQUIRED", reason: "请在当前浏览器标签页完成阿里拍卖验证，完成后点击重试。" };
+  if (loginFormPresent()) return { ok: false, changed: false, errorCode: "ALIBABA_LOGIN_REQUIRED", reason: "请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。" };
   if (verificationPage()) return { ok: false, changed: false, errorCode: "ALIBABA_VERIFICATION_REQUIRED", reason: "请在当前浏览器标签页完成阿里拍卖验证，完成后点击重试。" };
   const expectedAuctionStartSegment = desired === "finished" ? "0" : "-1";
   const isVisible = (element) => {
@@ -1614,7 +1666,7 @@ async function synchronizeAlibabaAuctionStatus(requestedStatus) {
       }
       return { ok: true, auctionStartSegment: actual, url: finalUrl.href };
     } catch (error) {
-      return { ok: false, reason: `无法将阿里页面 URL 状态统一为“${expectedAuctionStartSegment}”：${error?.message || String(error)}` };
+      return { ok: false, reason: `无法将阿里页面 URL 状态统一为“${expectedAuctionStartSegment}”：${userErrorMessage(error)}` };
     }
   };
   const success = (changed, current, eventSequence = []) => ({
@@ -1789,7 +1841,7 @@ async function synchronizeAlibabaAuctionStatusOnTab(chromeRef, tab, requestedSta
         throw failure;
       }
       const currentUrl = String(currentTab?.url || tab?.url || "");
-      if (/login\.taobao|\/login(?:[/?]|$)/i.test(currentUrl)) {
+      if (isSharedAlibabaLoginUrl(currentUrl)) {
         const failure = new Error("请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。");
         failure.code = "ALIBABA_LOGIN_REQUIRED";
         throw failure;
@@ -1910,15 +1962,74 @@ async function restoreAlibabaTargetTab(chromeRef, tab, expectedUrl) {
   }
 }
 
+async function waitForManualLogin(context, tab, extractor, emit, description, control, options = {}) {
+  const startedAt = Date.now();
+  const timeoutMs = Number.isFinite(options.loginTimeoutMs) ? Math.max(1, options.loginTimeoutMs) : MANUAL_VERIFICATION_TIMEOUT_MS;
+  const pollIntervalMs = Number.isFinite(options.loginPollIntervalMs) ? Math.max(1, options.loginPollIntervalMs) : 1000;
+  const expectedUrl = String(options.expectedUrl || tab?.url || "");
+  const pageKind = options.pageKind || "detail";
+  const deadline = options.waitDeadline || startedAt + timeoutMs;
+  options = { ...options, waitDeadline: deadline };
+  let expiredVerification = isAlibabaExpiredVerificationUrl(tab?.url);
+  let currentTab = tab;
+  let loginCompleted = false;
+  while (Date.now() < deadline) {
+    await waitForRunResume(control, emit);
+    emit({
+      phase: loginCompleted ? "opening" : "login_required",
+      percent: 2,
+      message: loginCompleted
+        ? `已检测到登录完成，正在等待${description}页面加载。`
+        : `请在当前浏览器标签页手动完成淘宝登录；${description}会在登录完成后自动继续。不要关闭此抓取面板。`,
+    });
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    currentTab = await resolveVerificationTab(context.chrome, currentTab, expectedUrl);
+    if (!currentTab?.id) {
+      const failure = new Error("ALIBABA_TAB_REPLACED");
+      failure.code = "ALIBABA_TAB_REPLACED";
+      throw failure;
+    }
+    if (isSharedAlibabaLoginUrl(currentTab.url)) continue;
+    if (isAlibabaVerificationUrl(currentTab.url)) {
+      return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
+    let value;
+    try {
+      value = await executeCurrentTab(context.chrome, currentTab.id, extractor);
+    } catch (error) {
+      if (error?.code === "ALIBABA_SCRIPT_EXECUTION_FAILED") continue;
+      throw error;
+    }
+    const blocked = directPageLooksBlocked(value);
+    if (blocked === "ALIBABA_LOGIN_REQUIRED") continue;
+    if (blocked === "ALIBABA_VERIFICATION_REQUIRED") {
+      return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
+    loginCompleted = true;
+    if (expectedUrl && !alibabaUrlsReferToSamePage(value?.url, expectedUrl)) {
+      currentTab = await restoreAlibabaTargetTab(context.chrome, currentTab, expectedUrl);
+      continue;
+    }
+    if (alibabaPageReady(value, expectedUrl, pageKind)) return { value, tab: currentTab };
+  }
+  const code = expiredVerification ? "ALIBABA_VERIFICATION_EXPIRED" : "ALIBABA_LOGIN_TIMEOUT";
+  const timeout = new Error(code);
+  timeout.code = code;
+  throw timeout;
+}
+
 async function waitForManualVerification(context, tab, extractor, emit, description, control, options = {}) {
   const startedAt = Date.now();
   const timeoutMs = Number.isFinite(options.timeoutMs) ? Math.max(1, options.timeoutMs) : MANUAL_VERIFICATION_TIMEOUT_MS;
   const pollIntervalMs = Number.isFinite(options.pollIntervalMs) ? Math.max(1, options.pollIntervalMs) : 1200;
   const expectedUrl = String(options.expectedUrl || tab?.url || "");
   const pageKind = options.pageKind || "detail";
+  const deadline = options.waitDeadline || startedAt + timeoutMs;
+  options = { ...options, waitDeadline: deadline };
+  let expiredVerification = isAlibabaExpiredVerificationUrl(tab?.url);
   let currentTab = tab;
-  let waitState = isAlibabaVerificationUrl(currentTab?.url) ? "verification" : "page_loading";
-  while (Date.now() - startedAt < timeoutMs) {
+  let waitState = classifyAlibabaPage(currentTab?.url) === "verification" ? "verification" : "page_loading";
+  while (Date.now() < deadline) {
     await waitForRunResume(control, emit);
     const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
     emit({
@@ -1933,13 +2044,20 @@ async function waitForManualVerification(context, tab, extractor, emit, descript
       failure.code = "ALIBABA_TAB_REPLACED";
       throw failure;
     }
+    expiredVerification = isAlibabaExpiredVerificationUrl(currentTab?.url);
+    if (isAlibabaVerificationUrl(currentTab?.url)) {
+      waitState = "verification";
+      if (expiredVerification) emit({ phase: "verification_required", percent: 35, message: "验证链接已过期。请手动重新打开列表页并完成验证；仍在5分钟等待范围内。" });
+      continue;
+    }
+    if (isSharedAlibabaLoginUrl(currentTab.url)) {
+      return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
     try {
       const current = await executeCurrentTab(context.chrome, currentTab.id, extractor);
       const blocked = directPageLooksBlocked(current);
       if (blocked === "ALIBABA_LOGIN_REQUIRED") {
-        const failure = new Error("请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。");
-        failure.code = blocked;
-        throw failure;
+        return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
       }
       if (blocked === "ALIBABA_VERIFICATION_REQUIRED") {
         waitState = "verification";
@@ -1953,12 +2071,13 @@ async function waitForManualVerification(context, tab, extractor, emit, descript
       if (alibabaPageReady(current, expectedUrl, pageKind)) return { value: current, tab: currentTab };
       waitState = pageWaitState(current, expectedUrl, pageKind);
     } catch (error) {
-      if (error?.code === "ALIBABA_LOGIN_REQUIRED" || error?.code === "ALIBABA_SCRIPT_EXECUTION_FAILED") throw error;
+      if (error?.code === "ALIBABA_SCRIPT_EXECUTION_FAILED") continue;
       throw error;
     }
   }
-  const timeout = new Error("ALIBABA_VERIFICATION_TIMEOUT");
-  timeout.code = "ALIBABA_VERIFICATION_TIMEOUT";
+  const code = expiredVerification ? "ALIBABA_VERIFICATION_EXPIRED" : "ALIBABA_VERIFICATION_TIMEOUT";
+  const timeout = new Error(code);
+  timeout.code = code;
   throw timeout;
 }
 
@@ -1971,10 +2090,8 @@ async function readAlibabaPageWithManualVerification(context, tab, extractor, em
     failure.code = "ALIBABA_TAB_REPLACED";
     throw failure;
   }
-  if (/login\.taobao\.com|\/login(?:[/?]|$)/i.test(String(currentTab?.url || ""))) {
-    const failure = new Error("请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。");
-    failure.code = "ALIBABA_LOGIN_REQUIRED";
-    throw failure;
+  if (isSharedAlibabaLoginUrl(currentTab?.url)) {
+    return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
   }
   if (isAlibabaVerificationUrl(currentTab?.url)) {
     return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
@@ -1991,9 +2108,7 @@ async function readAlibabaPageWithManualVerification(context, tab, extractor, em
   }
   const blocked = directPageLooksBlocked(value);
   if (blocked === "ALIBABA_LOGIN_REQUIRED") {
-    const failure = new Error("请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。");
-    failure.code = blocked;
-    throw failure;
+    return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
   }
   if (blocked === "ALIBABA_VERIFICATION_REQUIRED") {
     return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
@@ -2217,9 +2332,9 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       if (errorCode === "ALIBABA_SCRAPE_STOPPED") {
         return { ok: false, phase: "stopped", errorCode, reason, stopped: true, candidates: candidates.length, results, skipped, security: { credentialsReturned: false } };
       }
-      if (["ALIBABA_LOGIN_REQUIRED", "ALIBABA_VERIFICATION_REQUIRED", "ALIBABA_VERIFICATION_TIMEOUT", "ALIBABA_TAB_REPLACED", "ALIBABA_TARGET_MISMATCH", "ALIBABA_SCRIPT_EXECUTION_FAILED"].includes(errorCode)) {
-        const message = errorCode === "ALIBABA_LOGIN_REQUIRED"
-          ? "请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。"
+      if (["ALIBABA_LOGIN_REQUIRED", "ALIBABA_LOGIN_TIMEOUT", "ALIBABA_VERIFICATION_REQUIRED", "ALIBABA_VERIFICATION_TIMEOUT", "ALIBABA_VERIFICATION_EXPIRED", "ALIBABA_TAB_REPLACED", "ALIBABA_TARGET_MISMATCH", "ALIBABA_SCRIPT_EXECUTION_FAILED"].includes(errorCode)) {
+        const message = errorCode === "ALIBABA_LOGIN_REQUIRED" || errorCode === "ALIBABA_LOGIN_TIMEOUT"
+          ? getAlibabaFailureMessage(errorCode, reason, "auction")
           : errorCode === "ALIBABA_VERIFICATION_REQUIRED" || errorCode === "ALIBABA_VERIFICATION_TIMEOUT"
             ? "请在当前浏览器标签页完成阿里拍卖验证，完成后点击重试。"
             : reason;
@@ -2387,7 +2502,7 @@ export const alibabaAuctionModule = {
       const select = elements?.alibabaAuctionHistorySelect;
       if (!select) return;
       const selected = config.historyPath || "";
-      select.innerHTML = `<option value="">请选择历史抓取清单</option>${historyCatalog.map((item) => `<option value="${escapeHtml(item.path)}">${escapeHtml(item.label || item.name || item.path)}</option>`).join("")}`;
+      select.innerHTML = `<option value="">请选择历史抓取清单</option>${historyCatalog.map((item) => `<option value="${escapeHtml(item.path)}">${escapeHtml(localizeHistoryLabel(item))}</option>`).join("")}`;
       select.value = historyCatalog.some((item) => item.path === selected) ? selected : "";
     }
 
@@ -2471,25 +2586,8 @@ export const alibabaAuctionModule = {
       }
     }
 
-    function localPathToFileUrl(value) {
-      const normalized = String(value || "").trim().replace(/\\/g, "/");
-      if (!normalized) return "";
-      if (/^file:\/\//i.test(normalized)) return normalized;
-      const encoded = normalized.split("/").map((segment) => encodeURIComponent(segment)).join("/");
-      return normalized.startsWith("/") ? `file://${encoded}` : `file:///${encoded}`;
-    }
-
     async function openResultOrMapInCurrentBrowserTab(targetPath, label) {
-      const result = await context.sendNativeMessage({
-        action: "open_alibaba_auction_path",
-        path: targetPath,
-        outputDirectory: config.outputDirectory,
-        openInCurrentBrowserTab: true,
-      }, 15000);
-      if (!result?.ok || !result.path) throw new Error(result?.reason || `${label}打开失败`);
-      const url = localPathToFileUrl(result.path);
-      if (!url) throw new Error(`${label}路径无效`);
-      await context.chrome.tabs.create({ url, active: true });
+      await openHtmlResultInCurrentBrowser(context, "open_alibaba_auction_path", targetPath, config.outputDirectory);
     }
 
     async function openResultPage() {
@@ -2499,7 +2597,8 @@ export const alibabaAuctionModule = {
         setMessage(elements.alibabaAuctionResultMessage, "已在当前浏览器新标签页打开结果页。", "ok");
         context.setStatus("阿里拍卖结果页已在当前浏览器打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `结果页打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `结果页打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里拍卖结果页打开失败", "error");
       }
     }
@@ -2512,7 +2611,8 @@ export const alibabaAuctionModule = {
         setMessage(elements.alibabaAuctionResultMessage, "已打开本机 Excel 导出文件。", "ok");
         context.setStatus("阿里拍卖 Excel 已打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `Excel 打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `Excel 打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里拍卖 Excel 打开失败", "error");
       }
     }
@@ -2524,7 +2624,8 @@ export const alibabaAuctionModule = {
         setMessage(elements.alibabaAuctionResultMessage, "已在当前浏览器新标签页打开地图。", "ok");
         context.setStatus("阿里拍卖地图已在当前浏览器打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `地图打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `地图打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里拍卖地图打开失败", "error");
       }
     }
@@ -2544,14 +2645,15 @@ export const alibabaAuctionModule = {
           results,
           candidates: results.length,
         }, 180000);
-        if (!result?.ok || !result.excelPath) throw new Error(result?.reason || "ALIBABA_EXCEL_EXPORT_FAILED");
+        if (!result?.ok || !result.excelPath) throw nativeResponseError(result, "ALIBABA_EXCEL_EXPORT_FAILED");
         excelPath = String(result.excelPath).trim();
         await context.storage.save(storageState());
         renderResults();
         setMessage(elements.alibabaAuctionResultMessage, `Excel 已导出并完成校验，共 ${result.rowCount || results.length} 条；点击“打开 Excel”查看。`, "ok");
         context.setStatus("阿里拍卖 Excel 导出完成", "ok");
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `Excel 导出失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `Excel 导出失败：${userErrorMessage(error)}，可点“复制诊断详情”查看技术信息。`, "error");
         context.setStatus("阿里拍卖 Excel 导出失败", "error");
       } finally {
         exporting = false;
@@ -2601,7 +2703,7 @@ export const alibabaAuctionModule = {
         const result = await context.sendNativeMessage({ action: "select_alibaba_auction_output_directory" }, 130000);
         const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
         if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaAuctionParameterMessage, result?.reason || "未选择输出目录", "warn");
+          if (!result?.cancelled) setMessage(elements.alibabaAuctionParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
           return;
         }
         config.outputDirectory = selected;
@@ -2615,7 +2717,8 @@ export const alibabaAuctionModule = {
         const parameterMessage = parametersApplied() ? "" : "参数有改动，需重新应用。";
         setMessage(elements.alibabaAuctionParameterMessage, `${folderMessage}，结果页、Excel 和地图会保存到这里。${parameterMessage}`, parametersApplied() ? "ok" : "warn");
       } catch (error) {
-        setMessage(elements.alibabaAuctionParameterMessage, `选择目录失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionParameterMessage, `选择目录失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -2630,7 +2733,7 @@ export const alibabaAuctionModule = {
         const result = await context.sendNativeMessage({ action: "select_alibaba_auction_history_directory" }, 130000);
         const selected = result?.path || result?.paths?.[0] || "";
         if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaAuctionResultMessage, result?.reason || "未选择历史数据目录", "warn");
+          if (!result?.cancelled) setMessage(elements.alibabaAuctionResultMessage, userErrorMessage(result?.reason || "未选择历史数据目录"), "warn");
           return;
         }
         config.historyDirectory = selected;
@@ -2641,7 +2744,8 @@ export const alibabaAuctionModule = {
         await context.storage.save(storageState());
         await loadHistoryCatalog();
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `选择历史目录失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `选择历史目录失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -2653,7 +2757,7 @@ export const alibabaAuctionModule = {
       }
       try {
         const result = await context.sendNativeMessage({ action: "list_alibaba_auction_history", directory }, 30000);
-        if (!result?.ok) throw new Error(result?.reason || "ALIBABA_HISTORY_LIST_FAILED");
+        if (!result?.ok) throw nativeResponseError(result, "ALIBABA_HISTORY_LIST_FAILED");
         historyCatalog = Array.isArray(result.items) ? result.items : [];
         config.historyDirectory = directory;
         const selected = historyCatalog.find((item) => item.path === config.historyPath);
@@ -2663,9 +2767,10 @@ export const alibabaAuctionModule = {
         elements.alibabaAuctionHistoryStatus.dataset.kind = historyCatalog.length ? "ok" : "warn";
         await context.storage.save(storageState());
       } catch (error) {
+        showUserErrorDiagnostics(error, context.document);
         historyCatalog = [];
         renderHistoryOptions();
-        elements.alibabaAuctionHistoryStatus.textContent = `历史清单加载失败：${error?.message || String(error)}`;
+        elements.alibabaAuctionHistoryStatus.textContent = `历史清单加载失败：${userErrorMessage(error)}`;
         elements.alibabaAuctionHistoryStatus.dataset.kind = "error";
       }
     }
@@ -2678,7 +2783,7 @@ export const alibabaAuctionModule = {
       }
       try {
         const result = await context.sendNativeMessage({ action: "load_alibaba_auction_history", path: historyPath }, 30000);
-        if (!result?.ok) throw new Error(result?.reason || "ALIBABA_HISTORY_LOAD_FAILED");
+        if (!result?.ok) throw nativeResponseError(result, "ALIBABA_HISTORY_LOAD_FAILED");
         results = Array.isArray(result.results) ? result.results : [];
         htmlPath = String(result.htmlPath || "").trim();
         excelPath = String(result.excelPath || "").trim();
@@ -2687,24 +2792,28 @@ export const alibabaAuctionModule = {
         config = normalizeConfig({ ...config, ...(result.request || {}), outputDirectory: result.outputDirectory || config.outputDirectory, historyDirectory: pathDirectory(historyPath), historyPath, historyRefresh: historyCanRefresh && elements.alibabaAuctionRefreshHistory.checked });
         appliedConfig = { ...config };
         renderConfig();
-        setResultButtons(result);
+        renderNetworkGate();
+        renderResults();
         renderProgress({ phase: "completed", percent: 100, fetched: result.recordCount || results.length, verified: results.length, skipped: 0, message: `已加载历史数据：${results.length} 条` });
         setMessage(elements.alibabaAuctionResultMessage, "已加载历史结果；当前操作不会访问网络。需要更新详情时，请在历史数据区勾选并点击“重新抓取历史详情”。", "ok");
         await context.storage.save(storageState());
       } catch (error) {
-        setMessage(elements.alibabaAuctionResultMessage, `历史数据加载失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaAuctionResultMessage, `历史数据加载失败：${userErrorMessage(error)}`, "error");
       }
     }
 
     async function openSource() {
       if (opening || running) return;
       opening = true;
+      let pageOpened = false;
       renderNetworkGate();
       try {
         const requestConfig = requireAppliedParameters({ requireOutput: true });
         if (!requestConfig) return;
         let tab = await getCurrentBrowserTab(context.chrome);
         tab = await navigateCurrentTab(context.chrome, tab, buildSourceUrl(requestConfig));
+        pageOpened = true;
         if (requestConfig.entry !== "zc") {
           const settled = await synchronizeAlibabaAuctionStatusOnTab(context.chrome, tab, requestConfig.status);
           tab = settled.tab;
@@ -2714,9 +2823,11 @@ export const alibabaAuctionModule = {
           : `已打开阿里拍卖列表页，并同步“拍卖状态”为${requestConfig.status === "finished" ? "已结束" : "全部状态"}。等待结果加载完成后即可开始抓取。`, "ok");
         context.setStatus("阿里拍卖检索页已在当前浏览器打开", "ok");
       } catch (error) {
-        const errorCode = error?.code && error.code !== error?.message ? `${error.code}：` : "";
-        setMessage(elements.alibabaAuctionParameterMessage, `当前浏览器打开失败：${errorCode}${error?.message || String(error)}`, "error");
-        context.setStatus("阿里拍卖页面打开失败", "error");
+        const errorCode = String(error?.code || error?.message || "");
+        const gateBlocked = /_LOGIN_REQUIRED$|_VERIFICATION_REQUIRED$/.test(errorCode);
+        const message = getAlibabaFailureMessage(errorCode, error?.message || String(error), "auction", { opened: pageOpened && gateBlocked });
+        setMessage(elements.alibabaAuctionParameterMessage, pageOpened && gateBlocked ? message : `当前浏览器打开失败：${message}`, gateBlocked ? "warn" : "error");
+        context.setStatus(gateBlocked ? "阿里页面等待手动登录或验证" : "阿里拍卖页面打开失败", gateBlocked ? "warn" : "error");
       } finally {
         opening = false;
         renderNetworkGate();
@@ -2728,7 +2839,7 @@ export const alibabaAuctionModule = {
         const requestConfig = requireAppliedParameters({ requireOutput: true });
         if (!requestConfig) return { ok: false, errorCode: "ALIBABA_PARAMETERS_NOT_APPLIED", reason: "参数有改动，需重新应用。" };
         let tab = await getCurrentBrowserTab(context.chrome);
-        if (/login\.taobao|\/login(?:[/?]|$)/i.test(String(tab.url || ""))) {
+        if (isSharedAlibabaLoginUrl(tab.url)) {
           const failure = new Error("请在当前浏览器标签页完成阿里拍卖登录，完成后点击重试。");
           failure.code = "ALIBABA_LOGIN_REQUIRED";
           throw failure;
@@ -2745,9 +2856,10 @@ export const alibabaAuctionModule = {
         setMessage(elements.alibabaAuctionParameterMessage, `已同步阿里页面“拍卖状态”为${requestConfig.status === "finished" ? "已结束" : "全部状态"}。`, "ok");
         return settled.statusSync;
       } catch (error) {
-        const errorCode = error?.code && error.code !== error?.message ? `${error.code}：` : "";
-        setMessage(elements.alibabaAuctionParameterMessage, `网页状态同步失败：${errorCode}${error?.message || String(error)}`, "error");
-        return { ok: false, errorCode: error?.code || "ALIBABA_STATUS_READBACK_FAILED", reason: error?.message || String(error) };
+        const errorCode = String(error?.code || error?.message || "ALIBABA_STATUS_READBACK_FAILED");
+        const reason = getAlibabaFailureMessage(errorCode, error?.message || String(error), "auction");
+        setMessage(elements.alibabaAuctionParameterMessage, `网页状态同步失败：${reason}`, "error");
+        return { ok: false, errorCode: error?.code || "ALIBABA_STATUS_READBACK_FAILED", reason };
       }
     }
 
@@ -2843,8 +2955,8 @@ export const alibabaAuctionModule = {
         context.setStatus(`阿里拍卖抓取完成：${results.length} 条有效案例`, "ok");
       } catch (error) {
         renderProgress({ phase: "failed", message: "抓取失败，请按提示处理后重试" });
-        const errorCode = error?.code && error.code !== error?.message ? `${error.code}：` : "";
-        setMessage(elements.alibabaAuctionResultMessage, `抓取未完成：${errorCode}${error?.message || String(error)}`, "error");
+        const errorCode = String(error?.code || error?.message || "");
+        setMessage(elements.alibabaAuctionResultMessage, `抓取未完成：${getAlibabaFailureMessage(errorCode, error?.message || String(error), "auction")}`, "error");
         elements.alibabaAuctionResultStatus.textContent = "抓取失败，请按提示处理后重试";
         elements.alibabaAuctionResultStatus.dataset.kind = "error";
         context.setStatus("阿里拍卖抓取失败", "error");
@@ -2950,6 +3062,8 @@ export const alibabaAuctionModule = {
           config = { ...DEFAULT_CONFIG, outputDirectory: config.outputDirectory };
           excelPath = "";
           mapPath = "";
+          historyCanRefresh = false;
+          elements.runAlibabaAuctionHistory.disabled = true;
           await context.storage.save(storageState());
           renderConfig();
           setMessage(elements.alibabaAuctionParameterMessage, "已恢复默认参数；请点击“确认并应用参数”。", "warn");
@@ -2959,6 +3073,8 @@ export const alibabaAuctionModule = {
           htmlPath = "";
           excelPath = "";
           mapPath = "";
+          historyCanRefresh = false;
+          elements.runAlibabaAuctionHistory.disabled = true;
           await context.storage.save(storageState());
           renderResults();
           setMessage(elements.alibabaAuctionResultMessage, "已清空本地结果。", "");
@@ -3015,6 +3131,8 @@ export {
   directSkipReason,
   alibabaPageReady,
   alibabaUrlsReferToSamePage,
+  directPageLooksBlocked,
+  pageWaitState,
   readAlibabaPageWithManualVerification,
   waitForManualVerification,
   listPageMatchesRequest,

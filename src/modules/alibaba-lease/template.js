@@ -13,6 +13,7 @@ export const alibabaLeaseTemplate = `
     <div class="section-title-row">
       <div>
         <h2>检索参数</h2>
+        <p class="section-description">结束时间由工具按列表日期预筛，并以详情页结束时间复核；阿里列表不提供可靠的服务端日期筛选，范围外记录不会进入详情抓取。</p>
         <p class="section-description">按本栏参数生成阿里资产搜索网址（租赁/使用权，支持住宅与商业），再读取并核验详情。</p>
       </div>
       <span id="alibabaLeaseParameterState" class="badge" data-kind="pending">待确认参数</span>
@@ -42,10 +43,8 @@ export const alibabaLeaseTemplate = `
     </div>
     <label class="alibaba-lease-source-row"><span>检索网址</span><input id="alibabaLeaseSourceUrl" type="text" readonly></label>
     <div class="button-row alibaba-lease-parameter-actions">
-      <button id="saveAlibabaLeaseParams" type="button">确认并应用参数</button>
       <button id="resetAlibabaLeaseParams" type="button" class="secondary">恢复默认</button>
     </div>
-    <div id="alibabaLeaseParameterMessage" class="inline-feedback">请调整参数后先点击“确认并应用参数”。</div>
   </section>
 
   <section class="section alibaba-lease-output">
@@ -60,12 +59,17 @@ export const alibabaLeaseTemplate = `
       <button id="chooseAlibabaLeaseOutput" type="button" class="secondary">选择目录</button>
     </div>
     <label class="alibaba-lease-map-option"><input id="alibabaLeaseGenerateMap" type="checkbox" checked> 生成独立地图 HTML（使用详情页明确坐标）</label>
+    <div class="button-row alibaba-lease-parameter-actions">
+      <button id="saveAlibabaLeaseParams" type="button">确认并应用参数</button>
+    </div>
+    <div id="alibabaLeaseParameterMessage" class="inline-feedback">设置筛选条件并选择输出目录后，点击“确认并应用参数”。</div>
   </section>
 
   <section class="section alibaba-lease-network-action">
     <div class="section-title-row">
-      <div><h2>网络抓取</h2><p class="section-description">确认参数并选定输出位置后，只访问当前阿里资产搜索列表和详情页；不会读取历史文件。</p></div>
+    <div><h2>网络抓取</h2><p class="section-description">确认参数并选定输出位置后，只访问当前阿里资产搜索列表和日期范围内（或列表未提供日期、需详情复核）的详情页；不会读取历史文件。</p></div>
       <span class="badge">访问网络</span>
+      <p class="section-description">抓取将占用你当前的标签页，期间请勿关闭或切换该页。登录或安全验证请在该页手动完成。</p>
     </div>
     <div class="button-row"><button id="openAlibabaLeaseSource" type="button" class="secondary" disabled title="请先选择本机输出目录并确认参数">打开并登录</button><button id="runAlibabaLease" type="button" disabled title="请先选择本机输出目录并确认参数">开始网络抓取</button></div>
   </section>
@@ -105,5 +109,6 @@ export const alibabaLeaseTemplate = `
       </div>
     </div>
     <div id="alibabaLeaseResultMessage" class="inline-feedback">先选择本机输出目录，再点击“确认并应用参数”；抓取会逐页读取租赁列表并核验详情，流拍与进行中记录会被跳过并记录原因。</div>
+    <details id="alibabaLeaseDiagnostics" class="inline-feedback" hidden></details>
   </section>
 `;

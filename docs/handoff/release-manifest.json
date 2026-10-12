@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "product": "评估工具箱",
+  "productVersion": "0.2.1",
+  "extensionId": "aamfmhcbjgofhmannejoiilkkpchfkgm",
+  "target": "windows-x64",
+  "tag": "v0.2.1-windows.20261012",
+  "channel": "prerelease-handoff",
+  "buildId": "windows-e2e-round2.1",
+  "installerBuild": "windows-context-attested.6",
+  "archive": {
+    "name": "appraisal-toolbox-v0.2.1-windows-x64-full-20261012.zip",
+    "bytes": 54348085,
+    "sha256": "9cdf15366fe4711d03f8b34135d5dd4aaa7fbb08826e7678d7b45b2aa2a67a5c"
+  },
+  "nativeExe": {
+    "sha256": "2b31db5cca6e97a1aad8954e74bd68ded3718decb855b46e49edfc613cce8454",
+    "signing": "unsigned SEA",
+    "rebuiltThisPublication": false
+  },
+  "source": {
+    "branch": "codex/windows-mac-handoff-20261012",
+    "baseCommit": "46a67bc48766703e13a182f57a1ca5375a2a1aef",
+    "inventory": "source-inventory.json",
+    "inventorySha256": "fa5a27a6c51b26b3f7b1cb7b36721fdaa4442973ff3bc401f94da93df625f0b0",
+    "origin": "hash-verified official release recovery plus cumulative Windows fixes",
+    "artifactBuiltFromHandoffCommit": false,
+    "relationship": "Payload mapped byte-for-byte; artifact historically built from dirty source. Snapshot commit is recorded in the standalone Release manifest."
+  },
+  "acceptance": {
+    "summary": "ACCEPTANCE_STATUS.md",
+    "overall": "not-fully-accepted",
+    "newGuiTestsThisPublication": false,
+    "openDefects": [
+      "Z2"
+    ],
+    "uncovered": [
+      "complete-install-upgrade-rollback",
+      "real-MSIX",
+      "table-GUI-overwrite-confirm",
+      "natural-verification-expired"
+    ]
+  },
+  "publicationAudit": "package-audit.json",
+  "mac": {
+    "newPackageThisPublication": false,
+    "acceptance": "not-covered"
+  }
+}

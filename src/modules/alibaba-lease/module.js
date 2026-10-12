@@ -1,4 +1,14 @@
+import { userErrorMessage, nativeResponseError, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { alibabaLeaseTemplate } from "./template.js";
+import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
+import {
+  classifyAlibabaPage,
+  isAlibabaExpiredVerificationUrl,
+  getAlibabaBlockedErrorCode,
+  getAlibabaFailureMessage,
+  isAlibabaLoginUrl as isSharedAlibabaLoginUrl,
+  isAlibabaVerificationUrl as isSharedAlibabaVerificationUrl,
+} from "../../core/alibaba-page-state.js";
 // 区划目录来自共享数据层，与阿里司法拍卖模块使用同一份行政区划数据。
 import { ALIBABA_REGION_CATALOG } from "../../data/china-regions.js";
 
@@ -73,6 +83,7 @@ function elementMap(documentRef) {
     "clearAlibabaLeaseResults", "alibabaLeaseResultMessage", "alibabaLeaseProgressPhase",
     "alibabaLeaseProgressPercent", "alibabaLeaseProgressBar", "alibabaLeaseProgressFetched",
     "alibabaLeaseProgressVerified", "alibabaLeaseProgressSkipped",
+    "alibabaLeaseDiagnostics",
   ];
   return Object.fromEntries(ids.map((id) => [id, documentRef.getElementById(id)]));
 }
@@ -212,13 +223,17 @@ function extractLeaseListPage() {
       listedBidCount: Number(text.match(/(\d+)\s*次出价/i)?.[1] || 0),
       listedViewCount: Number(text.match(/(\d+)\s*次围观/i)?.[1] || 0),
       listedSignupCount: Number(text.match(/(\d+)\s*人报名/i)?.[1] || 0),
-      listedEndDate: text.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/)?.slice(1).map((part) => String(Number(part))).join("-") || "",
+      // 只取与结束/截止标签相邻的日期，不能把公告日、上架日等卡片中的首个日期当作成交结束日。
+      listedEndDate: text.match(/(?:结束时间|结束日期|截止时间|截止日期|结束)\s*[：:]?\s*(\d{4}\s*(?:年|[./-])\s*\d{1,2}\s*(?:月|[./-])\s*\d{1,2}\s*日?)/)?.[1].replace(/\s+/g, "") || "",
       listedHasEndedText: /已结束/.test(text),
     });
   }
   const body = document.body?.innerText || "";
+  const loginFormPresent = [...document.querySelectorAll('input[type="password"]')].some(isVisible)
+    && [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
   const totalMatch = body.match(/共\s*([\d,]+)\s*(条|个|件)/);
-  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="slider"],[id*="slider"],[class*="verify"],[id*="verify"]')].some(isVisible)
+  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
   return {
     url: location.href,
@@ -227,6 +242,7 @@ function extractLeaseListPage() {
     items,
     listContainerFound: Boolean(root),
     pageText: clean(body.slice(0, 1200)),
+    loginFormPresent,
     verificationRequired,
   };
 }
@@ -285,9 +301,12 @@ async function extractLeaseDetailPage() {
     }
   }
   const body = document.body?.innerText || "";
+  const loginFormPresent = [...document.querySelectorAll('input[type="password"]')].some(isVisible)
+    && [...document.querySelectorAll('button,[role="button"],input[type="submit"]')].some((control) =>
+      isVisible(control) && /登录|登陆/.test(clean(control.innerText || control.value || control.getAttribute?.("aria-label") || "")));
   const scriptText = [...document.scripts].map((script) => script.textContent || "").join("\n");
   const detailText = `${body}\n${scriptText}`;
-  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="slider"],[id*="slider"],[class*="verify"],[id*="verify"]')].some(isVisible)
+  const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
 
   const sectionBetween = (startLabel, endLabels) => {
@@ -346,19 +365,25 @@ async function extractLeaseDetailPage() {
   // 金额标签与数字之间只允许空白/货币符：中间夹“待说明”等占位文本时不得跨字段捕数
   // （实测“评估价 待说明 结束 2026年…”曾被误读为 0）。
   const pricePattern = (label) => new RegExp(`${label}\\s*[：:]?\\s*[¥￥]?\\s*([\\d,]+(?:\\.\\d+)?)\\s*(万|亿|元)?(?!\\s*年)`);
-  const soldPriceMatch = body.match(pricePattern("拍下价"));
-  const currentPriceMatch = body.match(pricePattern("当前价"));
-  const startPriceMatch = body.match(pricePattern("起始价"));
-  const valuationMatch = body.match(pricePattern("(?:评估价|市场价)"));
-  const depositMatch = body.match(pricePattern("保证金"));
-  const endTimeMatch = body.match(/结束时间\s*[：:]?\s*([0-9]{4}[\/-][0-9]{1,2}[\/-][0-9]{1,2}(?:\s+[0-9:]{4,8})?)/);
-  const bidCountMatch = body.match(/竞买记录\s*[（(]\s*(\d+)\s*[）)]/);
+  // 租赁详情常把首年租金标为“成交价”，而非司法拍卖常见的“拍下价”。
+  // 本场交易信息位于详情说明之前。公告中的“无人出价”条款和推荐标的的
+  // “成交价/竞价失败”不能用于判定当前标的；遇到相互冲突的本场信息仍拒收。
+  const summaryBoundary = body.search(/(?:^|\n)\s*(?:标的物属性|标的物详情描述|标的物位置|竞买公告|竞买须知|为您推荐|猜你喜欢)(?:\s|$)/);
+  const auctionSummary = summaryBoundary >= 0 ? body.slice(0, summaryBoundary) : body;
+  const soldPriceMatch = auctionSummary.match(pricePattern("(?:拍下价|成交价)"));
+  const currentPriceMatch = auctionSummary.match(pricePattern("当前价"));
+  const startPriceMatch = auctionSummary.match(pricePattern("起始价"));
+  const valuationMatch = auctionSummary.match(pricePattern("(?:评估价|市场价)"));
+  const depositMatch = auctionSummary.match(pricePattern("保证金"));
+  const endTimeMatch = auctionSummary.match(/结束时间\s*[：:]?\s*(\d{4}(?:年|[\/.-])\d{1,2}(?:月|[\/.-])\d{1,2}日?(?:\s+[0-9:]{4,8})?)/);
+  const bidCountMatch = auctionSummary.match(/竞买记录\s*[（(]\s*(\d+)\s*[）)]/);
   const signupMatch = body.match(/(\d+)\s*人报名/);
   const viewMatch = body.match(/(\d+)\s*次围观/);
   const reminderMatch = body.match(/(\d+)\s*人设置提醒/);
-  const hasEndedText = /本场已结束/.test(body);
-  const failedNoBids = /竞价失败|无人出价/.test(body);
+  const hasEndedText = /本场已结束|本场竞价已结束/.test(auctionSummary);
+  const failedNoBids = /竞价失败|无人出价/.test(auctionSummary);
   const hasExplicitSoldPrice = Boolean(soldPriceMatch?.[1]);
+  const outcomeConflict = failedNoBids && hasExplicitSoldPrice;
   const bidCount = Number(bidCountMatch?.[1] || 0);
   const locationMatch = body.match(/标的物位置\s*\n?([\s\S]{0,160}?)(?:为您推荐|标的物介绍|竞买公告|相关附件|竞买须知)/);
   const orgMatch = body.match(/([\u4e00-\u9fa5（）()]{4,40}(?:交易中心|公共资源|人民政府|管理局|交易所))\s*\n?\s*联系方式/);
@@ -426,6 +451,7 @@ async function extractLeaseDetailPage() {
     hasExplicitSoldPrice,
     hasEndedText,
     failedNoBids,
+    outcomeConflict,
     bidCount,
     signupCount: Number(signupMatch?.[1] || 0),
     viewCount: Number(viewMatch?.[1] || 0),
@@ -442,6 +468,7 @@ async function extractLeaseDetailPage() {
     coordinateSource: coordinates?.coordinateSource || "",
     description: description.slice(0, 12000),
     pageText: body.slice(0, 12000),
+    loginFormPresent,
     verificationRequired,
   };
 }
@@ -557,6 +584,8 @@ function mergeListingEvidence(detail = {}, candidate = {}) {
 
 function matchesRequest(record, request = {}) {
   const endDate = normalizeDate(record.endTime);
+  // 日期筛选是硬条件；详情页无法给出结束日时不能把案例当作范围内数据。
+  if ((request.startDate || request.endDate) && !endDate) return false;
   if (request.startDate && endDate && endDate < request.startDate) return false;
   if (request.endDate && endDate && endDate > request.endDate) return false;
   if (request.keyword) {
@@ -567,11 +596,13 @@ function matchesRequest(record, request = {}) {
 }
 
 function skipReason(detail, record, request = {}) {
+  if (detail.outcomeConflict) return "本场交易摘要同时出现成交价和流拍信息，需打开标的页面人工核对。";
   if (detail.failedNoBids) return "本场竞价失败（无人出价），属流拍记录。";
   if (!detail.hasEndedText) return "标的尚未结束，暂不满足成交判据。";
   if (!(detail.hasExplicitSoldPrice === true || Number(detail.bidCount || 0) > 0)) return "已结束但无拍下价且出价次数为 0。";
   if (!Number.isFinite(parseAmount(record.transactionAmount)) || Number(record.transactionAmount) <= 0) return "未读到有效成交金额。";
   const endDate = normalizeDate(record.endTime);
+  if ((request.startDate || request.endDate) && !endDate) return "详情页未读取到结束时间，无法按所选日期范围核验。";
   if (request.startDate && endDate && endDate < request.startDate) return `结束时间 ${endDate} 早于所选起始日。`;
   if (request.endDate && endDate && endDate > request.endDate) return `结束时间 ${endDate} 晚于所选截止日。`;
   if (request.keyword && !`${record.title || ""} ${record.community || ""}`.includes(String(request.keyword).trim())) return "标题/小区不含所选关键词。";
@@ -579,23 +610,20 @@ function skipReason(detail, record, request = {}) {
 }
 
 function pageLooksBlocked(value) {
-  const text = `${value?.pageText || ""} ${value?.url || ""}`;
-  if (/login\.taobao\.com|\/login(?:[/?]|$)/i.test(String(value?.url || ""))) return "ALIBABA_LEASE_LOGIN_REQUIRED";
-  if (/(?:^|[./_-])(captcha|verify|validate|punish|security|error)(?:[./?_-]|$)|验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证|拖动.{0,8}(?:滑块|拼图)/i.test(text)) {
-    return "ALIBABA_LEASE_VERIFICATION_REQUIRED";
-  }
-  return "";
+  return getAlibabaBlockedErrorCode(classifyAlibabaPage(value), "lease");
 }
 
 function pageWaitState(value, expectedUrl, pageKind = "detail") {
-  if (pageLooksBlocked(value)) return "verification";
+  const blocked = pageLooksBlocked(value);
+  if (blocked === "ALIBABA_LEASE_LOGIN_REQUIRED") return "login";
+  if (blocked === "ALIBABA_LEASE_VERIFICATION_REQUIRED") return "verification";
   if (pageKind === "list") {
     const hasItems = Array.isArray(value?.items) && value.items.length > 0;
     // 空结果也是合法就绪态：容器已渲染且没有加载占位文本时不再等待。
     const containerSettled = value?.listContainerFound === true && !/(?:加载中|loading)/i.test(value?.pageText || "");
     return hasItems || containerSettled ? "ready" : "list_loading";
   }
-  const hasPrice = /拍下价|当前价|起始价/.test(value?.pageText || "");
+  const hasPrice = /拍下价|成交价|当前价|起始价/.test(value?.pageText || "");
   return value?.title && hasPrice ? "ready" : "detail_loading";
 }
 
@@ -608,8 +636,7 @@ function verificationWaitMessage(state, pageKind, description, elapsedSeconds) {
 }
 
 function isLeaseVerificationUrl(value) {
-  return /(?:^|[./_-])(captcha|verify|validate|punish|security|error)(?:[./?_-]|$)/i.test(String(value || ""))
-    || /login\.taobao/i.test(String(value || ""));
+  return isSharedAlibabaVerificationUrl(value);
 }
 
 function isLeaseListPage(value) {
@@ -635,11 +662,9 @@ function listPageMatchesRequest(value, request = {}) {
   if (!isLeaseListPage(value)) return false;
   try {
     const url = new URL(String(value));
-    const expected = locationScopeCode(request);
-    if (!expected) return true;
-    const raw = url.searchParams.get("locationCodes") || "[]";
-    const codes = JSON.parse(raw);
-    return Array.isArray(codes) && codes.map(String).includes(expected);
+    const expected = new URL(buildSourceUrl(request));
+    return ["fcatV4Ids", "h_t_mode", "structFieldMap", "statusOrders", "locationCodes"]
+      .every((key) => url.searchParams.get(key) === expected.searchParams.get(key));
   } catch {
     return false;
   }
@@ -655,13 +680,12 @@ function listPageUrl(sourceUrl, page) {
   }
 }
 
-// 列表页日期早于起始日时停止翻页，避免向更旧的页面继续发请求。
-function pageBeforeRequestedRange(items, request = {}) {
-  if (!request.startDate) return false;
-  const dates = (Array.isArray(items) ? items : [])
-    .map((item) => normalizeDate(item.listedEndDate))
-    .filter(Boolean);
-  return dates.length > 0 && dates.every((date) => date < request.startDate);
+function listingDateMatchesRequest(item, request = {}) {
+  const endDate = normalizeDate(item?.listedEndDate);
+  if (!endDate) return true; // 列表卡片缺日期时留给详情页核验。
+  if (request.startDate && endDate < request.startDate) return false;
+  if (request.endDate && endDate > request.endDate) return false;
+  return true;
 }
 
 function candidateInScope(item, request = {}) {
@@ -786,15 +810,74 @@ async function restoreTargetTab(chromeRef, tab, expectedUrl) {
   }
 }
 
+async function waitForManualLogin(context, tab, extractor, emit, description, control, options = {}) {
+  const startedAt = Date.now();
+  const timeoutMs = Number.isFinite(options.loginTimeoutMs) ? Math.max(1, options.loginTimeoutMs) : MANUAL_VERIFICATION_TIMEOUT_MS;
+  const pollIntervalMs = Number.isFinite(options.loginPollIntervalMs) ? Math.max(1, options.loginPollIntervalMs) : 1000;
+  const expectedUrl = String(options.expectedUrl || tab?.url || "");
+  const pageKind = options.pageKind || "detail";
+  const deadline = options.waitDeadline || startedAt + timeoutMs;
+  options = { ...options, waitDeadline: deadline };
+  let expiredVerification = isAlibabaExpiredVerificationUrl(tab?.url);
+  let currentTab = tab;
+  let loginCompleted = false;
+  while (Date.now() < deadline) {
+    await waitForRunResume(control, emit);
+    emit({
+      phase: loginCompleted ? "opening" : "login_required",
+      percent: 2,
+      message: loginCompleted
+        ? `已检测到登录完成，正在等待${description}页面加载。`
+        : `请在当前浏览器标签页手动完成淘宝登录；${description}会在登录完成后自动继续。不要关闭此抓取面板。`,
+    });
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    currentTab = await resolveVerificationTab(context.chrome, currentTab, expectedUrl);
+    if (!currentTab?.id) {
+      const failure = new Error("ALIBABA_LEASE_TAB_REPLACED");
+      failure.code = "ALIBABA_LEASE_TAB_REPLACED";
+      throw failure;
+    }
+    if (isSharedAlibabaLoginUrl(currentTab.url)) continue;
+    if (isLeaseVerificationUrl(currentTab.url)) {
+      return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
+    let value;
+    try {
+      value = await executeCurrentTab(context.chrome, currentTab.id, extractor);
+    } catch (error) {
+      if (error?.code === "ALIBABA_LEASE_SCRIPT_EXECUTION_FAILED") continue;
+      throw error;
+    }
+    const blocked = pageLooksBlocked(value);
+    if (blocked === "ALIBABA_LEASE_LOGIN_REQUIRED") continue;
+    if (blocked === "ALIBABA_LEASE_VERIFICATION_REQUIRED") {
+      return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
+    loginCompleted = true;
+    if (expectedUrl && !urlsReferToSamePage(value?.url, expectedUrl)) {
+      currentTab = await restoreTargetTab(context.chrome, currentTab, expectedUrl);
+      continue;
+    }
+    if (pageReady(value, expectedUrl, pageKind)) return { value, tab: currentTab };
+  }
+  const code = expiredVerification ? "ALIBABA_LEASE_VERIFICATION_EXPIRED" : "ALIBABA_LEASE_LOGIN_TIMEOUT";
+  const timeout = new Error(code);
+  timeout.code = code;
+  throw timeout;
+}
+
 async function waitForManualVerification(context, tab, extractor, emit, description, control, options = {}) {
   const startedAt = Date.now();
   const timeoutMs = Number.isFinite(options.timeoutMs) ? Math.max(1, options.timeoutMs) : MANUAL_VERIFICATION_TIMEOUT_MS;
   const pollIntervalMs = Number.isFinite(options.pollIntervalMs) ? Math.max(1, options.pollIntervalMs) : 1200;
   const expectedUrl = String(options.expectedUrl || tab?.url || "");
   const pageKind = options.pageKind || "detail";
+  const deadline = options.waitDeadline || startedAt + timeoutMs;
+  options = { ...options, waitDeadline: deadline };
+  let expiredVerification = isAlibabaExpiredVerificationUrl(tab?.url);
   let currentTab = tab;
   let waitState = isLeaseVerificationUrl(currentTab?.url) ? "verification" : "page_loading";
-  while (Date.now() - startedAt < timeoutMs) {
+  while (Date.now() < deadline) {
     await waitForRunResume(control, emit);
     const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
     emit({
@@ -809,21 +892,29 @@ async function waitForManualVerification(context, tab, extractor, emit, descript
       failure.code = "ALIBABA_LEASE_TAB_REPLACED";
       throw failure;
     }
-    if (/login\.taobao\.com|\/login(?:[/?]|$)/i.test(String(currentTab?.url || ""))) {
-      const failure = new Error("请在当前浏览器标签页完成淘宝登录，完成后点击重试。");
-      failure.code = "ALIBABA_LEASE_LOGIN_REQUIRED";
-      throw failure;
+    expiredVerification = isAlibabaExpiredVerificationUrl(currentTab?.url);
+    if (isLeaseVerificationUrl(currentTab?.url)) {
+      waitState = "verification";
+      if (expiredVerification) emit({ phase: "verification_required", percent: 35, message: "验证链接已过期。请手动重新打开列表页并完成验证；仍在5分钟等待范围内。" });
+      continue;
     }
-    const current = await executeCurrentTab(context.chrome, currentTab.id, extractor);
+    if (isSharedAlibabaLoginUrl(currentTab?.url)) {
+      return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
+    }
+    let current;
+    try {
+      current = await executeCurrentTab(context.chrome, currentTab.id, extractor);
+    } catch (error) {
+      if (error?.code === "ALIBABA_LEASE_SCRIPT_EXECUTION_FAILED") continue;
+      throw error;
+    }
     const blocked = pageLooksBlocked(current);
     if (blocked === "ALIBABA_LEASE_VERIFICATION_REQUIRED") {
       waitState = "verification";
       continue;
     }
     if (blocked === "ALIBABA_LEASE_LOGIN_REQUIRED") {
-      const failure = new Error("请在当前浏览器标签页完成淘宝登录，完成后点击重试。");
-      failure.code = blocked;
-      throw failure;
+      return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
     }
     if (expectedUrl && !urlsReferToSamePage(current.url, expectedUrl)) {
       waitState = "navigation";
@@ -833,8 +924,9 @@ async function waitForManualVerification(context, tab, extractor, emit, descript
     if (pageReady(current, expectedUrl, pageKind)) return { value: current, tab: currentTab };
     waitState = pageWaitState(current, expectedUrl, pageKind);
   }
-  const timeout = new Error("ALIBABA_LEASE_VERIFICATION_TIMEOUT");
-  timeout.code = "ALIBABA_LEASE_VERIFICATION_TIMEOUT";
+  const code = expiredVerification ? "ALIBABA_LEASE_VERIFICATION_EXPIRED" : "ALIBABA_LEASE_VERIFICATION_TIMEOUT";
+  const timeout = new Error(code);
+  timeout.code = code;
   throw timeout;
 }
 
@@ -847,10 +939,8 @@ async function readPageWithManualVerification(context, tab, extractor, emit, des
     failure.code = "ALIBABA_LEASE_TAB_REPLACED";
     throw failure;
   }
-  if (/login\.taobao\.com|\/login(?:[/?]|$)/i.test(String(currentTab?.url || ""))) {
-    const failure = new Error("请在当前浏览器标签页完成淘宝登录，完成后点击重试。");
-    failure.code = "ALIBABA_LEASE_LOGIN_REQUIRED";
-    throw failure;
+  if (isSharedAlibabaLoginUrl(currentTab?.url)) {
+    return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
   }
   if (isLeaseVerificationUrl(currentTab?.url)) {
     return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
@@ -867,9 +957,7 @@ async function readPageWithManualVerification(context, tab, extractor, emit, des
   }
   const blocked = pageLooksBlocked(value);
   if (blocked === "ALIBABA_LEASE_LOGIN_REQUIRED") {
-    const failure = new Error("请在当前浏览器标签页完成淘宝登录，完成后点击重试。");
-    failure.code = blocked;
-    throw failure;
+    return waitForManualLogin(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
   }
   if (blocked === "ALIBABA_LEASE_VERIFICATION_REQUIRED") {
     return waitForManualVerification(context, currentTab, extractor, emit, description, control, { ...options, expectedUrl, pageKind });
@@ -896,6 +984,8 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   const candidates = [];
   const seen = new Set();
   let prefiltered = 0;
+  let datePrefiltered = 0;
+  let nonLeasePrefiltered = 0;
   const progress = (payload) => emit({ security: { credentialsReturned: false }, ...payload });
   progress({ phase: "opening", percent: 2, message: isLeaseListPage(tab.url) ? "正在读取当前阿里资产租赁筛选结果…" : "正在当前浏览器打开阿里资产租赁列表页…", fetched: 0, verified: 0, skipped: 0 });
 
@@ -920,6 +1010,12 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         newItems += 1;
         if (!candidateInScope(item, request)) {
           prefiltered += 1;
+          nonLeasePrefiltered += 1;
+          continue;
+        }
+        if (!listingDateMatchesRequest(item, request)) {
+          prefiltered += 1;
+          datePrefiltered += 1;
           continue;
         }
         candidates.push({
@@ -933,26 +1029,15 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       progress({
         phase: "listing",
         percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / maxPages) * 30)),
-        message: `已读取第 ${page} 页，共发现 ${candidates.length} 条租赁候选记录，准备详情核验…`,
+        message: `已读取第 ${page} 页：日期范围内/待详情核验 ${candidates.length} 条，日期范围外跳过 ${datePrefiltered} 条，非租赁条目跳过 ${nonLeasePrefiltered} 条。`,
         page,
         pages: maxPages,
-        fetched: candidates.length,
+        fetched: seen.size,
         verified: 0,
         skipped: prefiltered,
       });
-      if (pageBeforeRequestedRange(pageItems, request)) {
-        progress({
-          phase: "listing",
-          percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / maxPages) * 30)),
-          message: `第 ${page} 页结束日期已早于所选起始日，停止继续翻页。`,
-          page,
-          pages: maxPages,
-          fetched: candidates.length,
-          verified: 0,
-          skipped: prefiltered,
-        });
-        break;
-      }
+      // 未取得官网按结束时间排序的可靠依据，不能因当前页日期较早就停翻页。
+      // 始终执行用户选定的页数上限，逐条按明确的结束日期过滤。
       if (!pageItems.length || newItems === 0) break;
     } catch (error) {
       const reason = String(error?.message || error);
@@ -962,16 +1047,26 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   }
 
   if (!candidates.length) {
+    const dateRangeText = `${request.startDate || "不限"} 至 ${request.endDate || "不限"}`;
+    const dateOnly = datePrefiltered > 0 && nonLeasePrefiltered === 0;
     return {
       ok: false,
-      phase: "failed",
-      errorCode: "ALIBABA_LEASE_LIST_EMPTY",
-      reason: prefiltered
+      phase: "completed_empty",
+      empty: true,
+      errorCode: dateOnly ? "ALIBABA_LEASE_NO_CASES_IN_DATE_RANGE" : "ALIBABA_LEASE_LIST_EMPTY",
+      reason: dateOnly
+        ? `已读取 ${datePrefiltered} 条租赁列表记录，但其结束时间均不在所选范围（${dateRangeText}）内；日期范围已在详情页访问前过滤。请扩大日期范围、更换区域或增加抓取页数。`
+        : prefiltered
         ? "当前列表记录均不属于租赁/使用权条目，请确认页面筛选包含“h_t_mode”参数。"
         : "当前浏览器页面未读取到阿里资产租赁候选记录。请确认已登录且没有出现验证页。",
       candidates: 0,
+      listedCount: seen.size,
+      prefiltered,
+      nonLeasePrefiltered,
+      skippedReasons: [],
       results: [],
       skipped: prefiltered,
+      datePrefiltered,
       security: { credentialsReturned: false },
     };
   }
@@ -1005,7 +1100,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         phase: "verifying",
         percent: Math.min(98, 35 + Math.round(((index + 1) / candidates.length) * 63)),
         message: accepted ? `已核验租赁成交案例 ${results.length} 条。` : `已跳过记录 ${skipped} 条：${skippedReasons.at(-1)?.reason || "未通过核验"}。`,
-        fetched: candidates.length,
+        fetched: seen.size,
         verified: results.length,
         skipped,
         current: parsed.title || candidate.title,
@@ -1016,44 +1111,53 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       if (errorCode === "ALIBABA_LEASE_SCRAPE_STOPPED") {
         return { ok: false, phase: "stopped", errorCode, reason, stopped: true, candidates: candidates.length, results, skipped, security: { credentialsReturned: false } };
       }
-      if (["ALIBABA_LEASE_LOGIN_REQUIRED", "ALIBABA_LEASE_VERIFICATION_REQUIRED", "ALIBABA_LEASE_VERIFICATION_TIMEOUT", "ALIBABA_LEASE_TAB_REPLACED", "ALIBABA_LEASE_SCRIPT_EXECUTION_FAILED"].includes(errorCode)) {
-        const message = errorCode === "ALIBABA_LEASE_LOGIN_REQUIRED"
-          ? "请在当前浏览器标签页完成淘宝登录，完成后点击重试。"
+      if (["ALIBABA_LEASE_LOGIN_REQUIRED", "ALIBABA_LEASE_LOGIN_TIMEOUT", "ALIBABA_LEASE_VERIFICATION_REQUIRED", "ALIBABA_LEASE_VERIFICATION_TIMEOUT", "ALIBABA_LEASE_VERIFICATION_EXPIRED", "ALIBABA_LEASE_TAB_REPLACED", "ALIBABA_LEASE_SCRIPT_EXECUTION_FAILED"].includes(errorCode)) {
+        const message = errorCode === "ALIBABA_LEASE_LOGIN_REQUIRED" || errorCode === "ALIBABA_LEASE_LOGIN_TIMEOUT"
+          ? getAlibabaFailureMessage(errorCode, reason, "lease")
           : errorCode === "ALIBABA_LEASE_VERIFICATION_REQUIRED" || errorCode === "ALIBABA_LEASE_VERIFICATION_TIMEOUT"
             ? "请在当前浏览器标签页完成阿里验证，完成后点击重试。"
             : reason;
         return { ok: false, phase: "failed", errorCode, reason: message, candidates: candidates.length, results, skipped, security: { credentialsReturned: false } };
       }
       skipped += 1;
-      progress({ phase: "verifying", percent: Math.min(98, 35 + Math.round(((index + 1) / candidates.length) * 63)), message: `详情读取失败，已跳过 ${skipped} 条。`, fetched: candidates.length, verified: results.length, skipped, current: candidate.title });
+      skippedReasons.push({ title: candidate.title, url: candidate.url, reason: "详情读取失败，请打开标的页面核对页面是否加载完整。" });
+      progress({ phase: "verifying", percent: Math.min(98, 35 + Math.round(((index + 1) / candidates.length) * 63)), message: `详情读取失败，已跳过 ${skipped} 条。`, fetched: seen.size, verified: results.length, skipped, current: candidate.title });
     }
   }
 
+  const counts = { listedCount: seen.size, candidates: candidates.length, prefiltered, datePrefiltered, nonLeasePrefiltered, skipped, skippedReasons: skippedReasons.slice(-20) };
+  if (!results.length) {
+    const reason = noValidCasesReason(skippedReasons, candidates.length);
+    progress({ phase: "completed_empty", percent: 100, fetched: seen.size, verified: 0, skipped, message: reason });
+    return { ok: false, empty: true, phase: "completed_empty", errorCode: "ALIBABA_LEASE_NO_VALID_CASES", reason, ...counts, results: [], security: { credentialsReturned: false } };
+  }
   if (control) control.percent = 99;
   progress(resultGenerationProgress(results, request, {
-    fetched: candidates.length,
+    fetched: seen.size,
     verified: results.length,
     skipped,
+    datePrefiltered,
   }));
   const saved = await context.sendNativeMessage({
     action: "write_alibaba_lease_result",
     request,
     results,
-    candidates: candidates.length,
+    candidates: seen.size,
     skipped,
   }, 180000);
   const finalizedAfterStop = Boolean(control?.stopped);
+  const writeFailed = saved?.ok !== true;
   return {
-    ok: !finalizedAfterStop && results.length > 0 && saved?.ok !== false,
-    phase: finalizedAfterStop ? "stopped" : "completed",
+    ok: !finalizedAfterStop && !writeFailed,
+    phase: finalizedAfterStop ? "stopped" : writeFailed ? "failed" : "completed",
     stopped: finalizedAfterStop,
     finalized: finalizedAfterStop,
-    errorCode: results.length ? "" : "ALIBABA_LEASE_NO_VALID_CASES",
+    errorCode: writeFailed ? String(saved?.errorCode || "ALIBABA_LEASE_RESULT_WRITE_FAILED") : "",
     reason: finalizedAfterStop
       ? "本地结果写入完成，抓取已终止。"
-      : results.length
-        ? "阿里资产租赁成交案例已完成详情核验。"
-        : noValidCasesReason(skippedReasons, candidates.length),
+      : writeFailed ? String(saved?.reason || "本地结果写入失败，请检查输出目录后重试。")
+        : "阿里资产租赁成交案例已完成详情核验。",
+    ...counts,
     candidates: candidates.length,
     results: Array.isArray(saved?.results) ? saved.results : results,
     htmlPath: String(saved?.htmlPath || ""),
@@ -1066,7 +1170,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
 }
 
 
-// 页面没有服务端日期筛选（实测），默认按时间倒序；日期控制靠本地过滤+到页即停。
+// 页面没有可靠的服务端日期筛选；按用户选定页数逐页读取并在本地核验。
 // 当所有候选都因日期被跳过时，给出带候选日期区间与调整建议的明确原因，
 // 而不是看起来像程序失败的通用报错。
 function noValidCasesReason(skippedReasons = [], candidates = 0) {
@@ -1080,10 +1184,13 @@ function noValidCasesReason(skippedReasons = [], candidates = 0) {
     const earliest = dates.slice().sort()[0] || "";
     const latest = dates.slice().sort().at(-1) || "";
     const rangeText = earliest && latest && earliest !== latest ? `${earliest} 至 ${latest}` : earliest || latest || "未知";
-    return `候选 ${candidates} 条记录的结束时间（${rangeText}）均不在所选日期范围内。页面按时间倒序展示且无服务端日期筛选，通常说明所选区域在该时间段没有租赁成交案例：请扩大日期范围、更换区域，或改选“全部状态”。已撤并的区（如杭州江干区，2021 年并入上城区）名下只有并区前的旧记录。`;
+    return `本次核验的 ${candidates} 条候选结束时间（${rangeText}）均不在所选日期范围内。请核对日期范围，或增加抓取页数后重试。`;
   }
   if (reasons.length) {
-    return `候选记录中没有找到详情页可确认的租赁成交案例。首条跳过原因：${reasons[0].reason}。`;
+    const counts = new Map();
+    for (const item of reasons) counts.set(item.reason, (counts.get(item.reason) || 0) + 1);
+    const summary = [...counts].slice(0, 3).map(([reason, count]) => `${reason.replace(/[。.]$/, "")}（${count} 条）`).join("；");
+    return `本次已核验 ${candidates} 条详情候选，未找到符合条件的租赁成交。跳过原因：${summary}。`;
   }
   return "候选记录中没有找到详情页可确认的租赁成交案例。";
 }
@@ -1232,7 +1339,9 @@ export const alibabaLeaseModule = {
       elements.openAlibabaLeaseExcel.disabled = !excelPath;
       elements.openAlibabaLeaseMap.disabled = !mapPath;
       if (!running) {
-        elements.alibabaLeaseResultStatus.textContent = htmlPath && excelPath
+        elements.alibabaLeaseResultStatus.textContent = progressState.phase === "completed_empty"
+          ? progressState.message
+          : htmlPath && excelPath
           ? "结果页和 Excel 已生成，可在普通应用中打开。"
           : htmlPath
             ? "结果页已生成，可在普通浏览器中打开；需要表格时点击“导出 Excel”。"
@@ -1254,6 +1363,7 @@ export const alibabaLeaseModule = {
         paused: "已暂停",
         stopped: "已终止",
         completed: "抓取完成",
+        completed_empty: "核验完成，无符合条件的成交",
         failed: "抓取失败",
       };
       elements.alibabaLeaseProgressPhase.textContent = phaseLabels[progressState.phase] || "正在处理";
@@ -1269,25 +1379,21 @@ export const alibabaLeaseModule = {
       }
     }
 
-    function localPathToFileUrl(value) {
-      const normalized = String(value || "").trim().replace(/\\/g, "/");
-      if (!normalized) return "";
-      if (/^file:\/\//i.test(normalized)) return normalized;
-      const encoded = normalized.split("/").map((segment) => encodeURIComponent(segment)).join("/");
-      return normalized.startsWith("/") ? `file://${encoded}` : `file:///${encoded}`;
+    function renderScrapeDiagnostics(result = null) {
+      const panel = elements.alibabaLeaseDiagnostics;
+      if (!panel) return;
+      panel.hidden = !result;
+      if (!result) { panel.innerHTML = ""; return; }
+      const reasons = Array.isArray(result.skippedReasons) ? result.skippedReasons : [];
+      panel.innerHTML = `<summary>本次筛选与核验明细</summary><p>列表读取 ${Number(result.listedCount ?? result.candidates ?? 0)} 条；日期范围外 ${Number(result.datePrefiltered || 0)} 条；非租赁 ${Number(result.nonLeasePrefiltered || 0)} 条；进入详情核验 ${Number(result.candidates || 0)} 条。</p>${reasons.length ? `<ul>${reasons.map((item) => {
+        const url = canonicalDetailUrl(item.url);
+        const title = escapeHtml(item.title || "未读取到标题的标的");
+        return `<li>${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${title}</a>` : title}：${escapeHtml(item.reason)}</li>`;
+      }).join("")}</ul>` : ""}`;
     }
 
     async function openArtifactInCurrentBrowserTab(targetPath, label) {
-      const result = await context.sendNativeMessage({
-        action: "open_alibaba_lease_path",
-        path: targetPath,
-        outputDirectory: config.outputDirectory,
-        openInCurrentBrowserTab: true,
-      }, 15000);
-      if (!result?.ok || !result.path) throw new Error(result?.reason || `${label}打开失败`);
-      const url = localPathToFileUrl(result.path);
-      if (!url) throw new Error(`${label}路径无效`);
-      await context.chrome.tabs.create({ url, active: true });
+      await openHtmlResultInCurrentBrowser(context, "open_alibaba_lease_path", targetPath, config.outputDirectory);
     }
 
     async function openResultPage() {
@@ -1297,7 +1403,8 @@ export const alibabaLeaseModule = {
         setMessage(elements.alibabaLeaseResultMessage, "已在当前浏览器新标签页打开结果页。", "ok");
         context.setStatus("阿里资产租赁结果页已在当前浏览器打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaLeaseResultMessage, `结果页打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaLeaseResultMessage, `结果页打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里资产租赁结果页打开失败", "error");
       }
     }
@@ -1310,7 +1417,8 @@ export const alibabaLeaseModule = {
         setMessage(elements.alibabaLeaseResultMessage, "已打开本机 Excel 导出文件。", "ok");
         context.setStatus("阿里资产租赁 Excel 已打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaLeaseResultMessage, `Excel 打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaLeaseResultMessage, `Excel 打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里资产租赁 Excel 打开失败", "error");
       }
     }
@@ -1322,7 +1430,8 @@ export const alibabaLeaseModule = {
         setMessage(elements.alibabaLeaseResultMessage, "已在当前浏览器新标签页打开地图。", "ok");
         context.setStatus("阿里资产租赁地图已在当前浏览器打开", "ok");
       } catch (error) {
-        setMessage(elements.alibabaLeaseResultMessage, `地图打开失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaLeaseResultMessage, `地图打开失败：${userErrorMessage(error)}`, "error");
         context.setStatus("阿里资产租赁地图打开失败", "error");
       }
     }
@@ -1342,14 +1451,15 @@ export const alibabaLeaseModule = {
           results,
           candidates: results.length,
         }, 180000);
-        if (!result?.ok || !result.excelPath) throw new Error(result?.reason || "ALIBABA_LEASE_EXCEL_EXPORT_FAILED");
+        if (!result?.ok || !result.excelPath) throw nativeResponseError(result, "ALIBABA_LEASE_EXCEL_EXPORT_FAILED");
         excelPath = String(result.excelPath).trim();
         await context.storage.save(storageState());
         renderResults();
         setMessage(elements.alibabaLeaseResultMessage, `Excel 已导出并完成校验，共 ${result.rowCount || results.length} 条；点击“打开 Excel”查看。`, "ok");
         context.setStatus("阿里资产租赁 Excel 导出完成", "ok");
       } catch (error) {
-        setMessage(elements.alibabaLeaseResultMessage, `Excel 导出失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaLeaseResultMessage, `Excel 导出失败：${userErrorMessage(error)}，可点“复制诊断详情”查看技术信息。`, "error");
         context.setStatus("阿里资产租赁 Excel 导出失败", "error");
       } finally {
         exporting = false;
@@ -1399,7 +1509,7 @@ export const alibabaLeaseModule = {
         const result = await context.sendNativeMessage({ action: "select_alibaba_lease_output_directory" }, 130000);
         const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
         if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaLeaseParameterMessage, result?.reason || "未选择输出目录", "warn");
+          if (!result?.cancelled) setMessage(elements.alibabaLeaseParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
           return;
         }
         config.outputDirectory = selected;
@@ -1412,25 +1522,39 @@ export const alibabaLeaseModule = {
         const parameterMessage = parametersApplied() ? "" : "参数有改动，需重新应用。";
         setMessage(elements.alibabaLeaseParameterMessage, `${folderMessage}，结果页、Excel 和地图会保存到这里。${parameterMessage}`, parametersApplied() ? "ok" : "warn");
       } catch (error) {
-        setMessage(elements.alibabaLeaseParameterMessage, `选择目录失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.alibabaLeaseParameterMessage, `选择目录失败：${userErrorMessage(error)}`, "error");
       }
     }
 
     async function openSource() {
       if (opening || running) return;
       opening = true;
+      let pageOpened = false;
       renderNetworkGate();
       try {
         const requestConfig = requireAppliedParameters({ requireOutput: true });
         if (!requestConfig) return;
         let tab = await getCurrentBrowserTab(context.chrome);
         tab = await navigateCurrentTab(context.chrome, tab, buildSourceUrl(requestConfig));
+        pageOpened = true;
+        const page = await executeCurrentTab(context.chrome, tab.id, extractLeaseListPage);
+        const state = classifyAlibabaPage(page);
+        if (state) {
+          const errorCode = getAlibabaBlockedErrorCode(state, "lease");
+          const message = getAlibabaFailureMessage(errorCode, "", "lease", { opened: true });
+          setMessage(elements.alibabaLeaseParameterMessage, message, "warn");
+          context.setStatus("阿里页面等待手动登录或验证", "warn");
+          return;
+        }
         setMessage(elements.alibabaLeaseParameterMessage, "已在当前浏览器打开阿里资产租赁列表页。等待结果加载完成后即可开始抓取。", "ok");
         context.setStatus("阿里资产租赁检索页已在当前浏览器打开", "ok");
       } catch (error) {
-        const errorCode = error?.code && error.code !== error?.message ? `${error.code}：` : "";
-        setMessage(elements.alibabaLeaseParameterMessage, `当前浏览器打开失败：${errorCode}${error?.message || String(error)}`, "error");
-        context.setStatus("阿里资产租赁页面打开失败", "error");
+        const errorCode = String(error?.code || error?.message || "");
+        const gateBlocked = /_LOGIN_REQUIRED$|_VERIFICATION_REQUIRED$/.test(errorCode);
+        const message = getAlibabaFailureMessage(errorCode, error?.message || String(error), "lease", { opened: pageOpened && gateBlocked });
+        setMessage(elements.alibabaLeaseParameterMessage, pageOpened && gateBlocked ? message : `当前浏览器打开失败：${message}`, gateBlocked ? "warn" : "error");
+        context.setStatus(gateBlocked ? "阿里页面等待手动登录或验证" : "阿里资产租赁页面打开失败", gateBlocked ? "warn" : "error");
       } finally {
         opening = false;
         renderNetworkGate();
@@ -1444,6 +1568,7 @@ export const alibabaLeaseModule = {
       running = true;
       runControl = { paused: false, stopped: false, percent: 0, resumeResolvers: [] };
       renderProgress({ phase: "opening", percent: 0, fetched: 0, verified: 0, skipped: 0, message: "正在准备抓取…" });
+      renderScrapeDiagnostics();
       elements.runAlibabaLease.disabled = true;
       elements.openAlibabaLeaseSource.disabled = true;
       elements.pauseAlibabaLease.disabled = false;
@@ -1464,12 +1589,19 @@ export const alibabaLeaseModule = {
           }
           elements.alibabaLeaseResultStatus.dataset.kind = "";
         }, runControl);
+        renderScrapeDiagnostics(result);
+        if (result?.empty) {
+          renderProgress({ phase: "completed_empty", percent: 100, fetched: result.listedCount || 0, verified: 0, skipped: result.skipped || 0, message: result.reason });
+          setMessage(elements.alibabaLeaseResultMessage, `${result.reason} 已完成本次列表筛选和详情核验；${results.length ? "上次成果仍保留。" : "本次未生成成交成果文件。"}可展开下方明细核对标的。`, "warn");
+          context.setStatus("阿里资产租赁核验完成，本次无符合条件的成交", "warn");
+          return;
+        }
         if (result?.stopped && result?.finalized) {
           results = Array.isArray(result.results) ? result.results : [];
           htmlPath = String(result.htmlPath || "").trim();
           mapPath = String(result.mapPath || "").trim();
           excelPath = "";
-          renderProgress({ phase: "stopped", percent: 100, fetched: result.candidates || 0, verified: results.length, skipped: result.skipped || 0, message: "本地结果写入完成，抓取已终止。" });
+          renderProgress({ phase: "stopped", percent: 100, fetched: result.listedCount ?? result.candidates ?? 0, verified: results.length, skipped: result.skipped || 0, message: "本地结果写入完成，抓取已终止。" });
           await context.storage.save(storageState());
           renderResults();
           setMessage(elements.alibabaLeaseResultMessage, htmlPath
@@ -1493,17 +1625,17 @@ export const alibabaLeaseModule = {
         htmlPath = String(result.htmlPath || "").trim();
         mapPath = String(result.mapPath || "").trim();
         excelPath = "";
-        renderProgress({ phase: "completed", percent: 100, fetched: result.candidates || 0, verified: results.length, skipped: result.skipped || 0, message: "抓取完成，结果页正在打开…" });
+        renderProgress({ phase: "completed", percent: 100, fetched: result.listedCount ?? result.candidates ?? 0, verified: results.length, skipped: result.skipped || 0, message: "抓取完成，结果页正在打开…" });
         await context.storage.save(storageState());
         renderConfig();
         renderResults();
-        setMessage(elements.alibabaLeaseResultMessage, `抓取完成：页面记录 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。`, "ok");
+        setMessage(elements.alibabaLeaseResultMessage, `抓取完成：列表记录 ${result.listedCount ?? result.candidates ?? 0} 条，详情候选 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。`, "ok");
         await openResultPage();
         context.setStatus(`阿里资产租赁抓取完成：${results.length} 条有效案例`, "ok");
       } catch (error) {
         renderProgress({ phase: "failed", message: "抓取失败，请按提示处理后重试" });
-        const errorCode = error?.code && error.code !== error?.message ? `${error.code}：` : "";
-        setMessage(elements.alibabaLeaseResultMessage, `抓取未完成：${errorCode}${error?.message || String(error)}`, "error");
+        const errorCode = String(error?.code || error?.message || "");
+        setMessage(elements.alibabaLeaseResultMessage, `抓取未完成：${getAlibabaFailureMessage(errorCode, error?.message || String(error), "lease")}`, "error");
         context.setStatus("阿里资产租赁抓取失败", "error");
       } finally {
         running = false;
@@ -1644,20 +1776,24 @@ export {
   buildSourceUrl,
   candidateInScope,
   canonicalDetailUrl,
+  extractLeaseDetailPage,
+  extractLeaseListPage,
   listPageMatchesRequest,
   listPageUrl,
+  listingDateMatchesRequest,
   locationScopeCode,
   matchesRequest,
   mergeListingEvidence,
   noValidCasesReason,
   normalizeConfig,
-  pageBeforeRequestedRange,
   pageLooksBlocked,
   pageReady,
+  isLeaseVerificationUrl,
   pageWaitState,
   parameterSnapshotMatches,
   parseAmount,
   parseLeaseDetail,
+  runCurrentTabScrape,
   resultGenerationProgress,
   skipReason,
   usableDistricts,
