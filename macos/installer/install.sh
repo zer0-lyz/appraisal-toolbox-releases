@@ -106,6 +106,9 @@ done
 /usr/bin/ditto "$PACKAGE_ROOT/native-helper" "$STAGING_ROOT/native-helper"
 /usr/bin/ditto "$PACKAGE_ROOT/skills" "$STAGING_ROOT/skills"
 /usr/bin/ditto "$PACKAGE_ROOT/runtime/node" "$STAGING_ROOT/runtime/node"
+for metadata in BUILD-PROVENANCE.json release-inputs.lock.json SOURCE-INVENTORY.json VERSION.txt; do
+  cp -p "$PACKAGE_ROOT/$metadata" "$STAGING_ROOT/$metadata"
+done
 "$PYTHON_BOOTSTRAP" -m venv "$STAGING_ROOT/python"
 "$STAGING_ROOT/python/bin/python3" -m pip install \
   --disable-pip-version-check \
