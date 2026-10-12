@@ -1,3 +1,5 @@
+// This historical fixture explicitly exercises Shanghai local time, independent of runner timezone.
+process.env.TZ = "Asia/Shanghai";
 import { tableFormatModule } from "../../src/modules/table-format/module.js";
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

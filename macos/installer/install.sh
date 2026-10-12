@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 INSTALLER_BUILD="macos-transactional.1"
+# /bin/bash is SIP protected and drops inherited DYLD_*; disposable tests reassert their own framework path.
+if [[ -n "${APPRAISAL_TEST_FRAMEWORK_PATH:-}" ]]; then
+  [[ -n "${APPRAISAL_BROWSER_HOME:-}" && -n "${APPRAISAL_PYTHON_BOOTSTRAP:-}" && -n "${APPRAISAL_TOOLBOX_ROOT:-}" ]] || { echo "隔离测试环境不完整" >&2; exit 1; }
+  export DYLD_FRAMEWORK_PATH="$APPRAISAL_TEST_FRAMEWORK_PATH"
+fi
 
 PACKAGE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 INSTALL_ROOT="${APPRAISAL_TOOLBOX_ROOT:-$HOME/.appraisal-toolbox}"
