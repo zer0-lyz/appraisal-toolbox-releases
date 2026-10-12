@@ -8,11 +8,11 @@ function verifyTools(directory, lock) {
     const digest=crypto.createHash('sha512').update(fs.readFileSync(archive)).digest('base64');
     if(digest!==expected)throw Error('Tool archive integrity mismatch: '+item.name);
     // Check the module files against the locked tar bytes, not self-reported version metadata.
-    const names=execFileSync('tar.exe',['-tzf',archive],{encoding:'utf8'}).trim().split(/\r?\n/).filter(n=>!n.endsWith('/'));
+    const names=execFileSync(path.join(process.env.SystemRoot||'C:/Windows','System32','tar.exe'),['-tzf',archive],{encoding:'utf8'}).trim().split(/\r?\n/).filter(n=>!n.endsWith('/'));
     for(const name of names) {
       if(!name.startsWith('package/')||name.split('/').includes('..'))throw Error('Unsafe tool archive entry');
       const relative=name.slice(8),installed=path.join(directory,'node_modules',item.name,relative);
-      const data=execFileSync('tar.exe',['-xOzf',archive,name],{maxBuffer:30*1024*1024});
+      const data=execFileSync(path.join(process.env.SystemRoot||'C:/Windows','System32','tar.exe'),['-xOzf',archive,name],{maxBuffer:30*1024*1024});
       const want=crypto.createHash('sha256').update(data).digest('hex');
       if(hash(installed)!==want)throw Error('Tool module content mismatch: '+item.name+'/'+relative);
     }

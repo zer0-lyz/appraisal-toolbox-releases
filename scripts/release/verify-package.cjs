@@ -34,7 +34,7 @@ async function verify(root,evidence) {
     const row=type==='auction'?synthetic:{...synthetic,endTime:'2026-08-02',resultStatus:'成交',location:'合成路2号',houseUsage:'住宅',leaseTermYears:1,monthlyUnitPrice:25};
     const result=await run({action:`write_alibaba_${type}_result`,request,results:[row],candidates:1,skipped:0});assert(fs.existsSync(result.htmlPath));assert(fs.existsSync(result.historyPath));
     const excel=await run({action:`write_alibaba_${type}_excel`,request,results:[row],candidates:1,skipped:0});assert(fs.existsSync(excel.excelPath));
-    execFileSync(python,['-X','utf8','-c','import sys,zipfile;from openpyxl import load_workbook;p=sys.argv[1];assert zipfile.ZipFile(p).testzip() is None;w=load_workbook(p,read_only=True);assert len(list(w["成交案例"].iter_rows(values_only=True)))==2;w.close()',excel.excelPath],{env});
+    execFileSync(python,['-X','utf8','-c','import sys,zipfile;from openpyxl import load_workbook;p=sys.argv[1];assert zipfile.ZipFile(p).testzip() is None;w=load_workbook(p,read_only=True);assert len(list(w[sys.argv[2]].iter_rows(values_only=True)))==2;w.close()',excel.excelPath,type==='auction'?'成交案例':'租赁案例'],{env});
     const opened=await run({action:`open_alibaba_${type}_path`,path:result.htmlPath,outputDirectory:request.outputDirectory,openInCurrentBrowserTab:true});assert(opened.browserTab);assert(opened.fileUrl.startsWith('file:///'));
     checks.push(type+': synthetic HTML/history/Excel readback and validated current-browser URL via actual NM host');
   }
