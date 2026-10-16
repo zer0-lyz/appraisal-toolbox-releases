@@ -31,3 +31,5 @@ Windows source snapshot `65840987d9aea80586817ca63684f4df2953d5c2` 的 168 个�
 未触碰正式 Profile、真实地图 Key、凭据或天源系统；未更新 stable/latest、未合并 main。当前没有具体的新功能规格；基线交付后请用户确认首个功能范围。
 
 逐项采用/排除的文件、Mac与Windows影响、回滚和证据映射见 `CHANGE_REVIEW.md`。
+
+PR #11 双平台候选 CI 已通过；Mac隔离安装与Host协议、Windows x64 SEA入口与Native Messaging通过，Windows桌面GUI仍未覆盖。见 `evidence/dual-platform-ci.json`。

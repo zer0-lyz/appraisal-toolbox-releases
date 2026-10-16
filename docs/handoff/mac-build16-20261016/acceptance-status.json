@@ -39,5 +39,14 @@
     "realBusinessNetworkAndOfficeGui": "not-covered",
     "windowsDesktopAndUpdaterGui": "not-covered"
   },
-  "evidenceDirectory": "docs/handoff/mac-build16-20261016/evidence"
+  "evidenceDirectory": "docs/handoff/mac-build16-20261016/evidence",
+  "ci": {
+    "runId": 38880197994,
+    "headSha": "8cbc9dfeca78d8b56b8f6f9a2bc0671d0e290cb5",
+    "conclusion": "success",
+    "macCandidateBuildAndIsolatedInstall": "passed",
+    "windowsCandidateBuildSeaImportsAndNativeMessaging": "passed",
+    "windowsDesktopGui": "not-covered",
+    "publishedMacReleaseSourceSha": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9"
+  }
 }

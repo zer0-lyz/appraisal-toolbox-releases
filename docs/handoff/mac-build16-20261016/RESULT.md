@@ -47,3 +47,7 @@ Issue #1 最新指定的Windows状态是权威验收边界。先前用户口头�
 ## 下一次 Windows build 的防回归门槛
 
 具体检查点、失败阻断方式和仍需实机验证项目见 `WINDOWS_BUILD_GUARDRAILS.md`。下一包须从双方冻结的同一干净commit构建；先跑强制source-checks，包内用锁定Python检查7个入口，再做桌面安装、升级/回滚、真实浏览器连接与相关GUI。不得以Mac模拟结果代替Windows实机验收。
+
+## 双平台 CI
+
+PR #11 的 [双平台候选 CI](https://github.com/zer0-lyz/appraisal-toolbox-releases/actions/runs/38880197994) 已完成且两个 job success。CI HEAD 是 `8cbc9dfeca78d8b56b8f6f9a2bc0671d0e290cb5`，只比 Release 源 `fe41e9f5` 多文档提交。Mac job重建候选并通过隔离安装/升级/回滚和实际打包Host协议；Windows job重建x64候选并通过SEA入口导入、Native Messaging协议。CI没有Windows桌面安装/GUI，因此Windows build16实机状态仍未覆盖。逐job回读见 `evidence/dual-platform-ci.json`。
