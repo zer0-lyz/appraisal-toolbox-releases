@@ -1,6 +1,6 @@
 # Mac 接收 Windows build 16：开发基线与防回归
 
-日期：2026-10-16。关联 Issue #1 与 PR #4/#5/#9/#10。PR #5 的 Mac 基线分支 `codex/mac-main-handoff-20261012` / HEAD `76584a3410732cea93a26dd923a1a373619f7a0d`；新的独立分支 `codex/mac-build16-baseline-20261016` 当前 PR HEAD `22d0b70b98c2fbf7efc03904c79985b92bbb42e2`；Mac 候选包的干净构建源码为 `fe41e9f5cbc53265f662a3f9dc75788aadd33dc9`。原 Mac checkout 保持干净，折现率实验工作树 322 个文件状态保持原样。main 仍为 `46a67bc48766703e13a182f57a1ca5375a2a1aef`；#4/#5/#9/#10 均未合并 main。
+日期：2026-10-16。关联 Issue #1 与 PR #4/#5/#9/#10。PR #5 的 Mac 基线分支 `codex/mac-main-handoff-20261012` / HEAD `76584a3410732cea93a26dd923a1a373619f7a0d`；新的独立分支 `codex/mac-build16-baseline-20261016` 对应 draft PR #11；Mac 候选包的干净构建源码为 `fe41e9f5cbc53265f662a3f9dc75788aadd33dc9`。原 Mac checkout 保持干净，折现率实验工作树 322 个文件状态保持原样。main 仍为 `46a67bc48766703e13a182f57a1ca5375a2a1aef`；#4/#5/#9/#10 均未合并 main。
 
 ## Windows build 16 接收状态
 
