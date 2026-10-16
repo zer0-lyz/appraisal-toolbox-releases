@@ -11,13 +11,34 @@ test('same-version older official build never repairs a newer Mac or Windows bui
   assert.equal(checker.resultFromManifest({...m,buildNumber:2026101601},url,input).repairRequired,true);
  }
 });
-test('Mac update protocol completes once without loading Windows installer engine',async t=>{
- if(process.platform!=='darwin')return t.skip('Mac boundary checked on Mac runner');
- const updater=require('../../native-helper/platform/update.js'),frames=[];
- assert.equal(updater.capabilities().autoUpdateSupported,false);
- const r=await updater.downloadAndInstallUpdate({url:'https://fixture.invalid'},x=>frames.push(x),()=>assert.fail('must not fetch'));
- assert.equal(frames.length,1);assert.equal(r.event,'complete');assert.equal(r.reason,'PLATFORM_UPDATE_UNSUPPORTED');assert.equal(updater.isUpdating(),false);
- assert(!require.cache[path.join(root,'native-helper/update_engine.js')]);
+test('Mac one-click updater is available only on Apple Silicon and leaves Windows engine unloaded',async()=>{
+ const mac=require('../../native-helper/update_engine_macos.js');
+ assert.equal(mac.capabilitiesFor('darwin','arm64').autoUpdateSupported,true);
+ assert.equal(mac.capabilitiesFor('darwin','x64').autoUpdateSupported,false);
+ assert.equal(mac.capabilitiesFor('win32','x64').autoUpdateSupported,false);
+ const unsupported=mac.createMacOSUpdateEngine({platform:'darwin',architecture:'x64'}),frames=[];
+ const result=await unsupported.downloadAndInstallUpdate({},frame=>frames.push(frame),()=>assert.fail('unsupported Mac must stop before network'));
+ assert.equal(result.reason,'PLATFORM_UPDATE_UNSUPPORTED');assert.equal(frames.at(-1).event,'complete');assert.equal(unsupported.isUpdating(),false);
+ const updater=require('../../native-helper/platform/update.js');
+ if(process.platform==='darwin')assert.equal(updater.capabilities().autoUpdateSupported,process.arch==='arm64');
+ const windowsEngineLoaded=Boolean(require.cache[path.join(root,'native-helper/update_engine.js')]);
+ assert.equal(windowsEngineLoaded,process.platform==='win32'&&process.arch==='x64');
+});
+test('Mac updater stays alive through Native Messaging disconnect until its installer transaction ends',()=>{
+ const source=fs.readFileSync(path.join(root,'native-helper/native_host.js'),'utf8');
+ const start=source.indexOf('process.stdout.on("error"');assert.notEqual(start,-1);
+ const end=source.indexOf('\n});',start)+4;assert(end>start);
+ const handler=source.slice(start,end);
+ function exits(platform,updating){let listener,exitCount=0;vm.runInNewContext(handler,{process:{platform,stdout:{on:(_event,callback)=>listener=callback},exit:()=>exitCount++},updateChecker:{isUpdateInProgress:()=>updating}});listener({code:'EPIPE'});return exitCount;}
+ assert.equal(exits('darwin',true),0);assert.equal(exits('darwin',false),1);assert.equal(exits('win32',true),1);
+});
+
+test('Mac updater rejects non-release hosts and version downgrade targets',()=>{
+ const mac=require('../../native-helper/update_engine_macos.js');
+ assert.equal(mac.allowedAssetUrl('https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/download/v0.2.2/appraisal-toolbox-macos-arm64.zip').hostname,'github.com');
+ assert.throws(()=>mac.allowedAssetUrl('https://example.invalid/appraisal-toolbox.zip'),/UPDATE_URL_HOST_NOT_ALLOWED/);
+ assert.throws(()=>mac.allowedAssetUrl('http://github.com/zer0-lyz/appraisal-toolbox-releases/releases/download/v0.2.2/a.zip'),/UPDATE_URL_INVALID/);
+ assert.equal(mac.compareVersions('0.2.2','0.2.1'),1);assert.equal(mac.compareVersions('0.2.1','0.2.1'),0);assert.equal(mac.compareVersions('0.2.0','0.2.1'),-1);
 });
 test('actual shell stream settles legacy rejection and multi-frame progress/terminal responses',async()=>{
  const source=fs.readFileSync(path.join(root,'src/shell/shell.js'),'utf8');

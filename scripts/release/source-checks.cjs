@@ -6,4 +6,5 @@ const files=execFileSync('git',['-C',root,'ls-files','-z'],{encoding:'utf8'}).sp
 for(const file of files)if(/\.(?:js|mjs|cjs)$/.test(file))execFileSync(process.execPath,['--check',path.join(root,file)],{stdio:'inherit'});
 for(const file of ['windows/tests/alibaba-module-regression.mjs','windows/tests/result-buttons.test.mjs','windows/tests/lease-outcome-regression.mjs','windows/tests/current-browser-results.test.mjs','windows/tests/map-settings.test.mjs','windows/tests/round2-ui-regression.mjs'])execFileSync(process.execPath,[path.join(root,file),path.join(evidence,path.basename(file))],{stdio:'inherit'});
 execFileSync(process.execPath,['--test',path.join(root,'scripts/release/build.test.cjs'),path.join(root,'scripts/release/intake-contracts.test.cjs')],{stdio:'inherit'});
+execFileSync(process.execPath,['--test',path.join(root,'native-helper/update_engine_macos.test.cjs')],{stdio:'inherit'});
 console.log('Shared source checks passed; GUI and installer acceptance are separate. Evidence: '+evidence);

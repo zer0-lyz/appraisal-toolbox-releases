@@ -15,3 +15,15 @@
 ## 整体回滚
 
 Mac PR #11仍为draft。若review发现问题，关闭PR即可避免合入；若要回退分支上的代码提交，按时间倒序revert `fe41e9f5`、`20a6ed8e`、`08693a9a`，不改#5原分支。候选Release是独立prerelease，不会重写稳定资产或latest；若候选有问题，应发布修正版并在Issue标明，不复用旧包摘要。
+
+
+## 一键更新新增审查（Mac 优先，Windows 同提交适配）
+
+| 文件 | 采用决定与原因 | Mac 影响 | Windows 影响 | 回滚与证据 |
+|---|---|---|---|---|
+| `native-helper/update_engine_macos.js`、`native-helper/platform/update.js` | Mac 使用独立安装器：二次核对官方 release、SHA/包清单/provenance、防降级、有限下载重试、并发锁和事务结果核验 | 只在 arm64 提供自动更新；重用 `安装.command` 与原用户目录策略 | Windows 引擎不加载、不改变 | 撤回 Mac engine 与 router 配对改动；`native-helper/update_engine_macos.test.cjs` 与隔离真实安装器测试 |
+| `native-helper/native_host.js`、`macos/installer/install.sh` | Mac Native Host 在事务中忽略断连 EPIPE；安装器处理 INT/TERM/HUP 并回滚 | 面板提前关闭时仍完成安装及锁清理；可捕获中断恢复目录/注册 | Windows EPIPE 和安装器逻辑不变 | 撤回对应 EPIPE/trap；Native Host 合同测试、隔离 Edge 注册失败回滚 |
+| `src/modules/updates/{module.js,template.js}`、`scripts/release/update-ui-fixtures.cjs` | 共用能力协商/进度页；成功后按目标平台重载已更新扩展 | Mac 一键更新后自动重载 | Windows 继续走 Windows adapter，完成后同样自动重载 | 回退更新页与 fixture；Mac/Windows 合成 DOM 回归，不等同真实 GUI |
+| `scripts/release/{source-checks.cjs,test-macos-update-e2e.cjs,test-tools/*}`、`.github/workflows/dual-platform-candidate.yml` | 锁定 jsdom fixture 依赖；CI 两端都跑 UI platform fixture，并用同产品版本/buildNumber构建候选 | Mac CI 运行更新器真实包内安装器隔离回归 | Windows CI 验证现有 SEA/Native 接口；桌面 GUI 仍需实机 | 回退测试依赖/CI 步骤，不改产品数据；workflow artifact 与本地测试日志 |
+
+详细流程、支持范围、人工门槛和回滚边界见 [`MAC_ONE_CLICK_UPDATE.md`](MAC_ONE_CLICK_UPDATE.md)。本轮 Windows 专属更新引擎保持原样；真实 Windows 桌面更新尚未覆盖。

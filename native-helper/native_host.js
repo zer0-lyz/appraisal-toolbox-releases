@@ -125,6 +125,8 @@ const platformAdapter = (() => {
 
 process.stdout.on("error", (error) => {
   if (error?.code === "EPIPE") {
+    // macOS replaces this host in place; let its transaction finish if the panel closes.
+    if (process.platform === "darwin" && updateChecker.isUpdateInProgress()) return;
     process.exit(0);
   }
 });
