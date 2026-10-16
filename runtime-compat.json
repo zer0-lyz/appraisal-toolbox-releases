@@ -2,8 +2,8 @@
   "version": 2,
   "extensionVersion": "0.2.1",
   "bridgeProtocol": "connector-agent-binding-v3",
-  "buildId": "2026-10-09-toolbox-v0-2-1",
-  "runtimeBuildId": "7f15aa31f089514add978f84d861f02510d4e20520b61ba39dec491bb275c08b",
-  "runtimeBuildKind": "release",
-  "generatedAt": "2026-10-09T00:00:00.000Z"
+  "buildId": "windows-auto-update.16",
+  "runtimeBuildId": "b1438fe1294fbdf229de974d085fef9509b973decb3cdbb375c2216b9fea271a",
+  "runtimeBuildKind": "local",
+  "generatedAt": "2026-10-13T09:58:55.6266396Z"
 }

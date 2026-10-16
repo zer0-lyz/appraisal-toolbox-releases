@@ -14,6 +14,7 @@ import uuid
 
 OLD_HEADER = b'/* Official AMap JS API basemap. Leaflet retains the case/selection tools. */'
 NEW_HEADER = b"/* Official AMap JS API frames share Leaflet's moving pane with case overlays. */"
+CAMERA_HEADER = b'/* Official AMap JS API owns the camera and overlay pixel projection. */'
 FOOTER = b'})(window);'
 
 
@@ -26,19 +27,20 @@ def update_page(page, client, apply=False):
     if not page.is_file() or page.suffix.lower() not in ('.html', '.htm'):
         raise ValueError('请选择评估工具箱生成的地图 HTML 文件')
     old = page.read_bytes()
-    positions = [old.find(header) for header in (OLD_HEADER, NEW_HEADER)]
+    headers = (OLD_HEADER, NEW_HEADER, CAMERA_HEADER)
+    positions = [old.find(header) for header in headers]
     starts = [start for start in positions if start >= 0]
     if len(starts) != 1:
         raise ValueError('未找到唯一的评估工具箱地图组件，未修改文件')
     start = starts[0]
-    if old.count(OLD_HEADER) + old.count(NEW_HEADER) != 1:
+    if sum(old.count(header) for header in headers) != 1:
         raise ValueError('网页包含多个地图组件，未修改文件')
     end = old.find(FOOTER, start)
     if end < 0:
         raise ValueError('地图组件不完整，未修改文件')
     end += len(FOOTER)
     replacement = Path(client).read_bytes().strip()
-    if not replacement.startswith(NEW_HEADER) or not replacement.endswith(FOOTER):
+    if not replacement.startswith(CAMERA_HEADER) or not replacement.endswith(FOOTER):
         raise ValueError('修复组件格式不正确，未修改文件')
     prefix, suffix = old[:start], old[end:]
     new = prefix + replacement + suffix

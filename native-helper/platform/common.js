@@ -19,12 +19,11 @@ function pickerResult(stdout) {
 }
 
 function pickerFailure(error) {
+  const cancelled = Number(error?.code) === 2 || String(error?.message || "").includes("User canceled");
   return {
     ok: false,
-    cancelled: Number(error?.code) === 1
-      || Number(error?.code) === 2
-      || String(error?.message || "").includes("User canceled"),
-    reason: "FILE_SELECTION_CANCELLED",
+    cancelled,
+    reason: cancelled ? "FILE_SELECTION_CANCELLED" : "FILE_PICKER_FAILED",
     security: security(),
   };
 }

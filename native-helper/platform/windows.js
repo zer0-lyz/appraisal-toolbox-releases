@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const common = require("./common.js");
+const { buildRunnerDiagnostics } = require("../diagnostics.js");
 
 function createWindowsAdapter(options = {}) {
   const runFile = options.execFile || execFile;
@@ -53,8 +54,14 @@ function createWindowsAdapter(options = {}) {
         windowsHide: true,
         encoding: "utf8",
         env: { ...env, ...extraEnv },
-      }, (error, stdout) => {
-        resolve(error ? common.pickerFailure(error) : common.pickerResult(stdout));
+      }, (error, stdout, stderr) => {
+        if (!error) { resolve(common.pickerResult(stdout)); return; }
+        const failure = common.pickerFailure(error);
+        resolve(failure.cancelled ? failure : {
+          ok: false, cancelled: false, reason: "FILE_PICKER_FAILED",
+          diagnostics: buildRunnerDiagnostics(Number.isInteger(error.code) ? error.code : null, stderr || String(error.code || "文件选择进程未能完成")),
+          security: common.security(),
+        });
       });
     });
   }
@@ -64,6 +71,15 @@ function createWindowsAdapter(options = {}) {
       "$ErrorActionPreference = 'Stop'",
       "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)",
       "Add-Type -AssemblyName System.Windows.Forms",
+      "function Show-AppraisalDialog($dialog) {",
+      "  $owner = New-Object System.Windows.Forms.Form",
+      "  $owner.Text = 'Appraisal Toolbox file picker'",
+      "  $owner.ShowInTaskbar = $false; $owner.TopMost = $true; $owner.Opacity = 0",
+      "  $owner.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen",
+      "  $owner.Size = New-Object System.Drawing.Size(1, 1)",
+      "  try { $owner.Show(); $owner.Activate(); return $dialog.ShowDialog($owner) }",
+      "  finally { $owner.Dispose() }",
+      "}",
     ].join("\n");
   }
 
@@ -74,7 +90,7 @@ function createWindowsAdapter(options = {}) {
       "$dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
       `$dialog.Description = '${safePrompt}'`,
       "$dialog.ShowNewFolderButton = $true",
-      "if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
+      "if ((Show-AppraisalDialog $dialog) -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
       "[Console]::Out.WriteLine($dialog.SelectedPath)",
     ].join("\n"));
   }
@@ -119,7 +135,7 @@ function createWindowsAdapter(options = {}) {
       "$dialog.Title = '选择需要调整打印格式的 Excel 文件'",
       "$dialog.Filter = 'Excel 工作簿 (*.xlsx;*.xlsm)|*.xlsx;*.xlsm'",
       "$dialog.Multiselect = $true",
-      "if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
+      "if ((Show-AppraisalDialog $dialog) -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
       "$dialog.FileNames | ForEach-Object { [Console]::Out.WriteLine($_) }",
     ].join("\n"));
   }
