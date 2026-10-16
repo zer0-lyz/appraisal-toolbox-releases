@@ -11,7 +11,7 @@ import land_publicity_runner as runner
 out = Path(sys.argv[1]).resolve()
 out.mkdir(parents=True, exist_ok=True)
 shell = (source / "src" / "shell" / "index.html").read_text(encoding="utf-8")
-assert 'id="landPublicityHealth"' not in shell
+assert 'id="nativeHealth"' in shell  # Current home health capsule is intentional.
 rows = [{"sourceCode": "fixture-1", "districtName": "萧山区", "_location": "人工测试位置", "_use": "工矿仓储", "_coord": {"center": {"lat": 30.1, "lng": 120.2}}}]
 request = runner.validate_request({"district": "杭州市", "startDate": "2026-07-01", "endDate": "2026-10-09", "outputDirectory": str(out), "generateMap": True, "maxPages": 200})
 runner.write_result_html(out / "result.html", [{"公示编号": "fixture-1", "坐标纬度": 30.1, "坐标经度": 120.2}], request, {"written": 1}, {"excel": "result.xlsx", "map": "result_map.html"})

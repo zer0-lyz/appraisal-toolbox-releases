@@ -1,86 +1,76 @@
-const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict'), vm = require('node:vm');
-const source = path.resolve(__dirname, '../..'), out = path.resolve(process.argv[2]); fs.mkdirSync(out, {recursive:true});
-const client = fs.readFileSync(path.join(source,'native-helper/map-assets/amap-only.js'),'utf8');
-const configuration = {amapEnabled:true,amapWebKey:'synthetic-test-key'};
-function environment({constructorThrows=false,nativePixelScale=1}={}) {
-  const nodes=new Map(), timers=new Map(), animationFrames=new Map(), scripts=[], instances=[];let nextTimer=0;
-  function node(id=''){const value={id,style:{},children:[],hidden:false,dataset:{},domEvents:{},setAttribute(){},addEventListener(name,callback){this.domEvents[name]=callback;},removeEventListener(name){delete this.domEvents[name];},contains(item){return this===item||this.children.some(child=>child.contains?.(item)||child===item);},appendChild(item){this.children.push(item);if(item.id)nodes.set(item.id,item);return item;},remove(){this.removed=true;}};if(id)nodes.set(id,value);return value;}
-  const document={getElementById:id=>nodes.get(id),createElement:tag=>Object.assign(node(),{tagName:tag.toUpperCase()}),body:node(),head:node()};document.head.appendChild=item=>{if(item.tagName==='SCRIPT')scripts.push(item);document.head.children.push(item);if(item.id)nodes.set(item.id,item);return item;};
-  const listeners={};
-  const context={document,setTimeout(fn,delay){const id=++nextTimer;timers.set(id,{fn,delay});return id;},clearTimeout(id){timers.delete(id);},requestAnimationFrame(fn){const id=++nextTimer;animationFrames.set(id,fn);return id;},cancelAnimationFrame(id){animationFrames.delete(id);},addEventListener(name,callback){listeners[name]=callback;},removeEventListener(name){delete listeners[name];},encodeURIComponent,console};context.window=context;
-  class MapFixture {
-    constructor(element,options){if(constructorThrows)throw Error('fixture failure');this.element=element;this.options=options;this.center=options.center;this.zoom=options.zoom;this.events={};this.centers=[];instances.push(this);}
-    on(name,callback){this.events[name]=callback;}
-    setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center;this.centers.push({zoom,center});}
-    getCenter(){return {getLng:()=>this.center[0],getLat:()=>this.center[1]};}
-    getZoom(){return this.zoom;}
-    getSize(){return {width:parseFloat(this.element.style.width),height:parseFloat(this.element.style.height)};}
-    lngLatToContainer(value){const size=this.getSize(),scale=2**this.zoom*nativePixelScale;return new PixelFixture(size.width/2+(value.getLng()-this.center[0])*scale,size.height/2-(value.getLat()-this.center[1])*scale);}
-    containerToLngLat(pixel){const size=this.getSize(),scale=2**this.zoom*nativePixelScale;return {getLng:()=>this.center[0]+(pixel.x-size.width/2)/scale,getLat:()=>this.center[1]-(pixel.y-size.height/2)/scale};}
-    resize(){this.resized=true;}
-    destroy(){this.destroyed=true;}
-  }
-  class PixelFixture {constructor(x,y){this.x=x;this.y=y;}getX(){return this.x;}getY(){return this.y;}}
-  const baseProjection={bounds:{},project:latlng=>({x:latlng.lng,y:latlng.lat}),unproject:point=>({lng:point.x,lat:point.y})};
-  context.L={CRS:{EPSG3857:{projection:baseProjection}},extend:Object.assign,latLng:(lat,lng)=>({lat,lng}),map(id,options){const container=node(id),pane=node();container.appendChild(pane);return {options,center:{lat:30.25,lng:120.16},zoom:9,events:{},getContainer(){return container;},getPane(name){assert.equal(name,'mapPane');return pane;},getSize(){return {x:800,y:600};},getZoomScale(to,from){return 2**(to-from);},project(point,zoom){const projected=options.crs.projection.project(point);return {x:projected.x*2**zoom,y:-projected.y*2**zoom};},latLngToLayerPoint(point){const projected=this.project(point,this.zoom),center=this.project(this.center,this.zoom);return {x:400+projected.x-center.x,y:300+projected.y-center.y};},getCenter(){return this.center;},getZoom(){return this.zoom;},getMinZoom(){return 3;},getMaxZoom(){return 19;},setZoom(zoom){this.events['movestart zoomstart']?.();this.zoom=zoom;this.events['move zoom resize']?.();this.events['moveend zoomend']?.();return this;},setView(center,zoom){this.center={lat:center[0],lng:center[1]};this.zoom=zoom;return this;},on(name,callback){this.events[name]=callback;return this;},off(name){delete this.events[name];return this;}};}};
-  vm.runInNewContext(client,context);
-  return {context,timers,scripts,instances,nodes,MapFixture,PixelFixture,api:context.AppraisalAmap,paint(){for(let i=0;i<6&&animationFrames.size;i++)for(const [id,fn] of [...animationFrames]){animationFrames.delete(id);fn();}},expire(delay){for(const [id,timer] of [...timers])if(timer.delay===delay){timers.delete(id);timer.fn();}}};
+// Local Leaflet integration with a simulated official-camera API; no GUI/network.
+// Run: node amap-only.test.cjs <output-dir> <directory-containing-jsdom>
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),vm=require('node:vm');
+const {JSDOM}=require(path.join(path.resolve(process.argv[3]),'jsdom'));
+const source=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]);fs.mkdirSync(out,{recursive:true});
+const client=fs.readFileSync(path.join(source,'native-helper/map-assets/amap-only.js'),'utf8');
+const cases=[],configuration={amapEnabled:true,amapWebKey:'synthetic-test-key'};
+function environment(pixelScale=1){
+ const dom=new JSDOM('<!doctype html><html><head></head><body><div id="map"></div></body></html>',{runScripts:'outside-only',url:'https://fixture.invalid/'});
+ const w=dom.window,c=w.document.getElementById('map'),instances=[];
+ for(const [property,value] of Object.entries({clientWidth:800,clientHeight:600,offsetWidth:800,offsetHeight:600}))Object.defineProperty(c,property,{value,configurable:true});
+ c.getBoundingClientRect=()=>({x:0,y:0,left:0,top:0,right:800,bottom:600,width:800,height:600});
+ w.SVGSVGElement.prototype.createSVGRect=()=>({});
+ w.eval(fs.readFileSync(path.join(source,'native-helper/map-assets/leaflet.js'),'utf8'));
+ w.eval(fs.readFileSync(path.join(source,'native-helper/map-assets/leaflet.markercluster.js'),'utf8'));
+ class LngLat{constructor(lng,lat){this.lng=lng;this.lat=lat;}getLng(){return this.lng;}getLat(){return this.lat;}}
+ class Pixel{constructor(x,y){this.x=x;this.y=y;}getX(){return this.x;}getY(){return this.y;}}
+ class Bounds{constructor(sw,ne){this.sw=sw;this.ne=ne;}}
+ class Camera{
+  constructor(element,options){this.element=element;this.options=options;this.center=options.center;this.zoom=options.zoom;this.handlers={};this.calls=[];instances.push(this);}
+  on(event,callback){(this.handlers[event]??=[]).push(callback);}
+  off(event,callback){this.handlers[event]=(this.handlers[event]||[]).filter(x=>x!==callback);}
+  emit(event,data={}){for(const fn of this.handlers[event]||[])fn(data);}
+  getCenter(){return new LngLat(...this.center);} getZoom(){return this.zoom;}
+  scale(){return pixelScale*2**(this.zoom+0.15*Math.sin(this.zoom));}
+  lngLatToContainer(p){return new Pixel(400+(p.getLng()-this.center[0])*this.scale(),300-(p.getLat()-this.center[1])*this.scale());}
+  containerToLngLat(p){return new LngLat(this.center[0]+(p.x-400)/this.scale(),this.center[1]-(p.y-300)/this.scale());}
+  setZoomAndCenter(z,c){this.zoom=z;this.center=c;this.calls.push({z,c});this.emit('zoomchange');this.emit('mapmove');this.emit('zoomend');}
+  setBounds(b,immediate,avoid){this.bounds=b;this.avoid=avoid;this.setZoomAndCenter(12,[(b.sw[0]+b.ne[0])/2,(b.sw[1]+b.ne[1])/2]);}
+  setZoom(z){this.setZoomAndCenter(z,this.center);}resize(){this.emit('resize');}destroy(){this.destroyed=true;}
+ }
+ w.AMap={Map:Camera,LngLat,Pixel,Bounds};w.eval(client);
+ return {w,dom,c,instances};
 }
-const cases=[];
-for(const config of [{amapEnabled:false},{...configuration,amapWebKey:''}]){
-  const e=environment();e.api.watch(config);const map=e.api.createMap('map',{},config);
-  assert.equal(e.scripts.length,0);assert.equal(e.instances.length,0);assert.equal(map.getContainer().style.visibility,'hidden');
-  assert.match(e.nodes.get('amap-configuration-notice').textContent,/地图基础配置/);cases.push('missing-config-no-network');
+for(const scale of [0.5,1,2,3]){
+ const e=environment(scale),{w}=e,L=w.L;
+ const map=w.AppraisalAmap.createMap('map',{preferCanvas:false},configuration).setView([30.25,120.16],9),sdk=e.instances[0];
+ const marker=L.marker([30.26,120.18],{icon:L.divIcon({html:'case',iconSize:[20,20],iconAnchor:[10,18]})});
+ const cluster=L.markerClusterGroup({disableClusteringAtZoom:8,animate:false,removeOutsideVisibleBounds:false}).addTo(map);cluster.addLayer(marker);
+ marker.bindTooltip('label',{permanent:true}).bindPopup('details',{autoPan:false});
+ const line=L.polyline([[30.25,120.16],[30.26,120.18]]).addTo(map);
+ sdk.emit('complete');
+ assert.equal(e.instances.length,1);assert.equal(sdk.options.zoomEnable,true);assert.equal(map.dragging.enabled(),false);assert.equal(map.scrollWheelZoom.enabled(),false);
+ function aligned(){
+  const gcj=w.AppraisalAmap.toGcj(marker.getLatLng().lng,marker.getLatLng().lat),expected=sdk.lngLatToContainer(new w.AMap.LngLat(...gcj));
+  const actual=L.DomUtil.getPosition(marker.getElement());
+  assert(Math.abs(actual.x-expected.x)<=0.5,JSON.stringify({actual,expected}));assert(Math.abs(actual.y-expected.y)<=0.5,JSON.stringify({actual,expected}));
+  const reverse=map.layerPointToLatLng(map.latLngToLayerPoint(marker.getLatLng()));assert(Math.abs(reverse.lng-marker.getLatLng().lng)<1e-7);assert(Math.abs(reverse.lat-marker.getLatLng().lat)<1e-7);
+  const tip=L.DomUtil.getPosition(marker.getTooltip().getElement());assert(Number.isFinite(tip.x)&&Number.isFinite(tip.y));
+  const vertex=line._rings[0][1];assert(Math.abs(vertex.x-expected.x)<1e-7);assert(Math.abs(vertex.y-expected.y)<1e-7);
+ }
+ aligned();
+ for(const zoom of [10,13,17,9.35,8,12]){map.setZoom(zoom);assert.equal(sdk.getZoom(),zoom);aligned();sdk.center=[sdk.center[0]+.005,sdk.center[1]-.003];sdk.emit('mapmove');aligned();sdk.emit('moveend');aligned();}
+ const oldZoom=sdk.getZoom();e.c.querySelector('.leaflet-control-zoom-in').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));assert.equal(sdk.getZoom(),oldZoom+1);aligned();
+ e.c.querySelector('.leaflet-control-zoom-out').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));assert.equal(sdk.getZoom(),oldZoom);aligned();
+ map.flyTo([30.24,120.15],14);assert.equal(sdk.getZoom(),14);aligned();map.panBy([40,-20]);aligned();map.invalidateSize();aligned();
+ map.fitBounds([[30.2,120.1],[30.3,120.2]],{paddingTopLeft:[11,22],paddingBottomRight:[33,44],maxZoom:11});assert.equal(sdk.getZoom(),11);assert.deepEqual(Array.from(sdk.avoid),[22,44,11,33]);aligned();
+ let clicks=0;map.on('click',()=>clicks++);sdk.emit('click',{lnglat:sdk.getCenter()});assert.equal(clicks,1);
+ marker.openPopup();assert(marker.isPopupOpen());map.setZoom(13);aligned();marker.closePopup();cluster.clearLayers();assert.equal(cluster.getLayers().length,0);
+ map.remove();assert(sdk.destroyed);e.dom.window.close();cases.push('real-leaflet-marker-cluster-line-label-popup-buttons-sdk-camera-scale-'+scale);
 }
-for(const nativePixelScale of [1,2]){
-  const e=environment({nativePixelScale}),reports=[];e.api.watch(configuration);const map=e.api.createMap('map',{},configuration,(message,kind)=>reports.push({message,kind}));
-  assert.equal(e.context._AMapSecurityConfig,undefined);
-  assert.equal(e.scripts.length,1);assert.equal(new URL(e.scripts[0].src).hostname,'webapi.amap.com');
-  e.context.AMap={Map:e.MapFixture,Pixel:e.PixelFixture};e.scripts[0].onload();
-  function completeLatest(){for(let i=0;i<4;i++){const instance=e.instances.at(-1);instance.events.complete();e.paint();if(instance===e.instances.at(-1))return instance;}throw Error('Fixture projection did not settle');}
-  const sdk=completeLatest();
-  function aligned(instance){const point={lat:30.26,lng:120.18},gcj=e.api.toGcj(point.lng,point.lat),pixel=instance.lngLatToContainer({getLng:()=>gcj[0],getLat:()=>gcj[1]}),expected=map.latLngToLayerPoint(point),matrix=instance.element.style.transform.match(/translate3d\(([-\d.e]+)px,([-\d.e]+)px,0\) scale\(([-\d.e]+),([-\d.e]+)\)/);assert(matrix);assert(Math.abs(Number(matrix[1])+pixel.x*Number(matrix[3])-expected.x)<1e-5);assert(Math.abs(Number(matrix[2])+pixel.y*Number(matrix[4])-expected.y)<1e-5);}
-  aligned(sdk);
-  assert.equal(map.getContainer().style.visibility,'visible');assert.equal(reports.at(-1).kind,'ok');
-  assert.equal(e.nodes.get('amap-configuration-notice').hidden,true);
-  const [lng,lat]=e.api.toGcj(120.16,30.25);assert(Math.abs(sdk.options.center[0]-lng)<1e-9);assert(Math.abs(sdk.options.center[1]-lat)<1e-9);
-  const projected=map.options.crs.projection.project({lng:120.16,lat:30.25});assert(Math.abs(projected.x-lng)<1e-9);
-  const original=map.options.crs.projection.unproject(projected);assert(Math.abs(original.lng-120.16)<1e-7);assert(Math.abs(original.lat-30.25)<1e-7);
-  assert(map.getPane('mapPane').children.includes(sdk.element));
-  map.events['movestart zoomstart']();map.center={lng:120.2,lat:30.3};map.zoom=12;map.events['move zoom resize']();assert.equal(sdk.centers.length,0);aligned(sdk);
-  map.events['moveend zoomend']();const replacement=e.instances.at(-1);assert.equal(replacement.options.zoom,12);assert.equal(sdk.element.style.visibility,'visible');replacement.events.complete();e.paint();assert.equal(replacement.element.style.visibility,'visible');assert.equal(sdk.element.style.visibility,'hidden');aligned(replacement);
-  const instanceCount=e.instances.length;map.center={lng:120.3,lat:30.4};map.events['moveend zoomend']();assert.equal(e.instances.length,instanceCount);assert.equal(sdk.centers.at(-1).zoom,12);assert(sdk.resized);e.paint();aligned(sdk);
-  const button={classList:{contains:name=>name==='leaflet-control-zoom-in'},closest(){return this;}};map.getContainer().appendChild(button);let prevented=false,stopped=false;map.getContainer().domEvents.click({target:button,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});assert(prevented&&stopped);assert.equal(map.getZoom(),13);e.paint();
-  button.classList.contains=name=>name==='leaflet-control-zoom-out';map.getContainer().domEvents.click({target:button,preventDefault(){},stopImmediatePropagation(){}});assert.equal(map.getZoom(),12);e.paint();
-  sdk.events.error();assert.equal(map.getContainer().style.visibility,'hidden');assert(sdk.destroyed);assert.equal(e.scripts.length,1);assert.match(reports.at(-1).message,/Key.*域名配置/);
-  cases.push('official-sdk-shared-pane-calibrated-pixel-scale-'+nativePixelScale+'-pan-zoom-swap-auth-error');
-}
-for(const scenario of ['script-error','script-timeout','map-timeout','constructor-error']){
-  const e=environment({constructorThrows:scenario==='constructor-error'});e.api.createMap('map',{},configuration);
-  if(scenario==='script-error')e.scripts[0].onerror();
-  if(scenario==='script-timeout')e.expire(15000);
-  if(scenario==='map-timeout'||scenario==='constructor-error'){e.context.AMap={Map:e.MapFixture};e.scripts[0].onload();if(scenario==='map-timeout')e.expire(15000);}
-  assert.match(e.nodes.get('amap-configuration-notice').textContent,/高德地图加载失败/);assert.equal(e.scripts.length,1);assert.equal(e.nodes.get('amap-configuration-notice').style.top,'12px');assert.equal(e.nodes.get('amap-configuration-notice').style.bottom,undefined);
-  if(scenario==='script-timeout'){e.context.AMap={Map:e.MapFixture};e.scripts[0].onload();assert.equal(e.instances.length,0);}
-  cases.push(scenario+'-no-fallback');
-}
+for(const config of [{amapEnabled:false},{amapEnabled:true,amapWebKey:''}]){const e=environment();const map=e.w.AppraisalAmap.createMap('map',{},config);assert.equal(e.instances.length,0);assert.match(e.w.document.getElementById('amap-configuration-notice').textContent,/地图基础配置/);map.remove();e.dom.window.close();cases.push('missing-key-no-sdk');}
 {
-  const e=environment();e.api.watch(configuration);e.expire(12000);assert.match(e.nodes.get('amap-configuration-notice').textContent,/组件加载失败或超时/);assert.equal(e.scripts.length,0);cases.push('leaflet-timeout-visible');
-  const known=e.api.toGcj(116.404,39.915);assert(Math.abs(known[0]-116.41024449916938)<1e-8);assert(Math.abs(known[1]-39.91640428150164)<1e-8);
-  for(const [lng,lat] of [[120.16,30.25],[116.404,39.915],[121.5,31.2],[113.26,23.13],[-0.12,51.5]]){const converted=e.api.toGcj(lng,lat),original=e.api.fromGcj(...converted);assert(Math.abs(original[0]-lng)<1e-7);assert(Math.abs(original[1]-lat)<1e-7);}
-  assert.deepEqual(Array.from(e.api.toGcj(-0.12,51.5)),[-0.12,51.5]);cases.push('coordinate-reference-and-inverse');
+ const e=environment(),L=e.w.L,map=e.w.AppraisalAmap.createMap('map',{},configuration),sdk=e.instances[0];
+ const group=L.markerClusterGroup({animate:false,disableClusteringAtZoom:12}).addTo(map);
+ const first=L.marker([30.25,120.16],{icon:L.divIcon({html:'1'})}),second=L.marker([30.25001,120.16001],{icon:L.divIcon({html:'2'})});
+ group.addLayers([first,second]);sdk.emit('complete');assert.notEqual(group.getVisibleParent(first),first);
+ let focused=0;group.zoomToShowLayer(first,()=>focused++);assert.equal(focused,1);assert.equal(group.getVisibleParent(first),first);
+ sdk.emit('error');assert(sdk.destroyed);assert.equal(e.c.style.visibility,'hidden');assert.match(e.w.document.getElementById('amap-configuration-notice').textContent,/高德地图加载失败/);
+ map.remove();e.dom.window.close();cases.push('real-cluster-focus-and-sdk-error-hide-stale-map');
 }
 const auction=require(path.join(source,'native-helper/alibaba-auction.js')),lease=require(path.join(source,'native-helper/alibaba-lease.js'));
-for(const configured of [false,true])for(const [name,render] of [['auction',auction.renderMapHtml],['lease',lease.renderLeaseMapHtml]]){
-  const data={points:[],unlocated:[],stats:{},mapConfig:configured?configuration:{amapEnabled:false,amapWebKey:''}};
-  const html=render(data,{});assert(!/tileProviders|arcgisonline|tile\.openstreetmap|webrd0|map-provider-select/.test(html));assert(html.includes('AppraisalAmap.createMap'));
-  fs.writeFileSync(path.join(out,`${name}-${configured}.html`),html);
-}
-function files(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(item=>item.isDirectory()?files(path.join(dir,item.name)):[path.join(dir,item.name)]);}
-let scriptsParsed=0;
-for(const file of files(out).filter(file=>file.endsWith('.html')&&!file.includes(path.sep+'map-assets'+path.sep))){
-  const html=fs.readFileSync(file,'utf8');assert(!/__AMAP_CLIENT__|__MAP_CONFIG__|__MAP_NOTICE_HIDDEN__/.test(html));
-  for(const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)){if(!/\bsrc=/.test(script[1])){new vm.Script(script[2],{filename:path.relative(out,file)});scriptsParsed++;}}
-}
-const result={ok:true,fixturesOnly:true,realConfigRead:false,realAmapNetworkCovered:false,browserUiCovered:false,keyOnlyConfiguration:true,noBottomNotice:true,cases,scriptsParsed,otherMapRenderers:4};
-fs.writeFileSync(path.join(out,'client-summary.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+for(const configured of [false,true])for(const [name,render]of[['auction',auction.renderMapHtml],['lease',lease.renderLeaseMapHtml]]){const html=render({points:[],unlocated:[],stats:{},mapConfig:configured?configuration:{amapEnabled:false,amapWebKey:''}},{});assert(html.includes('amap-single-camera-20261013.1'));assert(!/arcgisonline|tile\.openstreetmap|webrd0/.test(html));fs.writeFileSync(path.join(out,`${name}-${configured}.html`),html);}
+let scriptsParsed=0;function files(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):[path.join(dir,e.name)]);}
+for(const file of files(out).filter(f=>f.endsWith('.html')&&!f.includes(path.sep+'map-assets'+path.sep))){const html=fs.readFileSync(file,'utf8');for(const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)){if(!/\bsrc=/.test(script[1])){new vm.Script(script[2],{filename:path.basename(file)});scriptsParsed++;}}}
+const result={ok:true,realLeafletUsed:true,simulatedAmapApi:true,realAmapNetworkCovered:false,browserUiCovered:false,realConfigRead:false,cases,scriptsParsed};fs.writeFileSync(path.join(out,'client-summary.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));

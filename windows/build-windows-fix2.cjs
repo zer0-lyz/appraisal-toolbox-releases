@@ -9,8 +9,8 @@ const source = path.resolve(__dirname, '..');
 const installerBuild = fs.readFileSync(path.join(source, 'windows', 'installer', 'install.ps1'), 'utf8').match(/\$InstallerBuild = "([^"]+)"/)?.[1];
 if (!installerBuild) throw new Error('Installer build metadata is missing');
 const buildSuffix = process.argv[5] || 'fix2';
-if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync'].includes(buildSuffix)) throw new Error('Unknown build suffix');
-const buildId = buildSuffix === 'mapsync' ? 'windows-amap-shared-pane.12' : buildSuffix === 'round2' ? 'windows-e2e-round2.1' : buildSuffix === 'mapui' ? 'windows-map-ui.8' : buildSuffix === 'amap' ? 'windows-amap-only.7' : buildSuffix === 'layout' ? 'windows-responsive-map.6' : buildSuffix === 'inplace' ? 'windows-original-directory.5' : buildSuffix === 'fix4' ? 'windows-result-buttons.4' : buildSuffix === 'fix3' ? 'windows-current-browser.3' : 'windows-seven-fixes.2';
+if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix)) throw new Error('Unknown build suffix');
+const buildId = buildSuffix === 'autoupd' ? 'windows-auto-update.16' : buildSuffix === 'mapcamera' ? 'windows-amap-single-camera.14' : buildSuffix === 'workbooks' ? 'windows-workbook-development.13' : buildSuffix === 'mapsync' ? 'windows-amap-shared-pane.12' : buildSuffix === 'round2' ? 'windows-e2e-round2.1' : buildSuffix === 'mapui' ? 'windows-map-ui.8' : buildSuffix === 'amap' ? 'windows-amap-only.7' : buildSuffix === 'layout' ? 'windows-responsive-map.6' : buildSuffix === 'inplace' ? 'windows-original-directory.5' : buildSuffix === 'fix4' ? 'windows-result-buttons.4' : buildSuffix === 'fix3' ? 'windows-current-browser.3' : 'windows-seven-fixes.2';
 const reuseBuildResult = process.argv[6] ? path.resolve(process.argv[6]) : '';
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const expectedBaseHash = 'a71aabe5008d06e4ba519a0abfb7c84fcdf6e53085a8eb54100313e626366a28';
@@ -28,7 +28,7 @@ const basePackageFiles = new Set(fs.readFileSync(path.join(original, 'SHA256SUMS
   if (!match) throw new Error(`Malformed verified base checksum: ${line}`);
   return match[1].replaceAll('\\', '/');
 }));
-const packageName = ['inplace', 'layout', 'amap', 'round2', 'mapsync'].includes(buildSuffix) ? 'appraisal-toolbox-v0.2.1-windows-x64' : `appraisal-toolbox-v0.2.1-windows-x64-${buildSuffix}`;
+const packageName = ['inplace', 'layout', 'amap', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix) ? 'appraisal-toolbox-v0.2.1-windows-x64' : `appraisal-toolbox-v0.2.1-windows-x64-${buildSuffix}`;
 const packageRoot = path.join(outputDirectory, packageName);
 fs.cpSync(original, packageRoot, { recursive: true });
 function files(directory) {
@@ -103,7 +103,7 @@ async function build() {
   removeGeneratedPythonCaches(packageRoot);
   const sourceInventory = files(source).filter(file => !file.includes(path.sep + '.git' + path.sep) && !/(__pycache__|\.py[co]$)/.test(file)).map(file => ({ path: path.relative(source, file).replaceAll('\\', '/'), sha256: hash(file) }));
   fs.writeFileSync(path.join(outputDirectory, 'source-inventory.json'), JSON.stringify(sourceInventory, null, 2));
-  const provenance = { schemaVersion: 2, productVersion: '0.2.1', buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(), sourceHasUncommittedFixes: true, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
+  const provenance = { schemaVersion: 2, productVersion: '0.2.1', buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: (() => { try { return execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(); } catch { return null; } })(), sourceHasUncommittedFixes: true, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
   if (reuse) { provenance.nativeHelperRebuilt = false; provenance.nativeExeReuseBuild = reuse.provenance.buildId; provenance.nativeBundleMatchVerified = true; }
   fs.writeFileSync(path.join(packageRoot, 'BUILD-PROVENANCE.json'), JSON.stringify(provenance, null, 2));
   fs.copyFileSync(path.join(source, 'RECOVERED_SOURCE_PROVENANCE.md'), path.join(packageRoot, 'RECOVERED_SOURCE_PROVENANCE.md'));

@@ -1,0 +1,6 @@
+.workbook-tool-panel { min-width: 0; }
+.workbook-tool-panel .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.workbook-tool-panel .workbook-file-list { padding-left: 20px; max-height: 260px; overflow: auto; }
+.workbook-tool-panel .workbook-file-list li { overflow-wrap: anywhere; margin-bottom: 8px; }
+.workbook-tool-panel .workbook-file-list button { margin: 5px 6px 0 0; }
+.workbook-tool-panel input, .workbook-tool-panel select { max-width: 100%; min-width: 0; }

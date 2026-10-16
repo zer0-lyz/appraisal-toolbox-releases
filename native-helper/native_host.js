@@ -416,6 +416,7 @@ const DEPRECIATION_CAPEX_ACTIONS = Object.freeze({
 });
 const TOOLBOX_NATIVE_ACTIONS = new Set([
   "health",
+  "download_and_install_update",
   "check_github_update",
   "get_map_config",
   "save_map_config",
@@ -423,6 +424,12 @@ const TOOLBOX_NATIVE_ACTIONS = new Set([
   "select_table_format_word_files",
   "select_table_format_output_directory",
   "run_table_format",
+  "select_print_workbook_files",
+  "select_print_workbook_directory",
+  "select_print_output_directory",
+  "run_print_format",
+  "run_link_restore",
+  "open_print_workbook_path",
   "list_land_publicity_regions",
   "select_land_publicity_history_directory",
   "list_land_publicity_history",
@@ -2884,14 +2891,18 @@ async function runLinkRestore(message, emit) {
           path.dirname(tempInput),
           `${path.basename(tempInput, path.extname(tempInput))}_链接恢复对比报告.xlsx`,
         );
-        const reportFinalPath = path.join(
+        let reportFinalPath = path.join(
           destinationDirectory,
           `${path.basename(sourcePath, path.extname(sourcePath))}_链接恢复对比报告.xlsx`,
         );
+        const reportStem = path.basename(reportFinalPath, ".xlsx");
+        let reportIndex = 2;
+        while (fs.existsSync(reportFinalPath)) {
+          reportFinalPath = path.join(destinationDirectory, `${reportStem} (${reportIndex++}).xlsx`);
+        }
         fs.renameSync(generatedPath, tempInput);
         await verifyWorkbookArchive(tempInput);
         if (fs.existsSync(reportTempPath)) {
-          if (fs.existsSync(reportFinalPath)) fs.unlinkSync(reportFinalPath);
           fs.renameSync(reportTempPath, reportFinalPath);
         }
         replaceProcessedFile(tempInput, finalPath);
@@ -2918,8 +2929,8 @@ async function runLinkRestore(message, emit) {
       } catch (error) {
         for (const candidate of [
           tempInput,
-          `${tempInput}_链接恢复.xlsx`,
-          `${tempInput}_链接恢复对比报告.xlsx`,
+          path.join(path.dirname(tempInput), `${path.basename(tempInput, path.extname(tempInput))}_链接恢复.xlsx`),
+          path.join(path.dirname(tempInput), `${path.basename(tempInput, path.extname(tempInput))}_链接恢复对比报告.xlsx`),
         ]) {
           if (fs.existsSync(candidate)) fs.unlinkSync(candidate);
         }
@@ -4581,6 +4592,14 @@ async function handle(message) {
   if (message?.action === "select_print_output_directory") {
     return await choosePrintOutputDirectory(message);
   }
+  if (message?.action === "open_print_workbook_path") {
+    const rawPath = String(message.path || "");
+    if (!path.isAbsolute(rawPath) || rawPath.includes("\0")) throw new Error("PRINT_INPUT_INVALID");
+    const resolved = fs.realpathSync(rawPath);
+    if (!isWorkbookPath(resolved) || !fs.statSync(resolved).isFile()) throw new Error("PRINT_INPUT_INVALID");
+    const opened = await platformAdapter.openPath(resolved);
+    return { ...opened, action: "open_print_workbook_path", path: resolved, security: { credentialsReturned: false } };
+  }
   if (message?.action === "list_land_publicity_regions") {
     return await listLandPublicityRegions();
   }
@@ -4892,6 +4911,9 @@ async function runSelfTest() {
       tableFormat: fs.existsSync(TABLE_FORMAT_SCRIPT),
       landPublicity: fs.existsSync(LAND_PUBLICITY_SCRIPT),
       anjukeProperty: fs.existsSync(ANJUKE_PROPERTY_SCRIPT),
+      detailPrint: fs.existsSync(PRINT_FORMAT_SCRIPTS.detail),
+      declarationPrint: fs.existsSync(PRINT_FORMAT_SCRIPTS.declaration),
+      formulaRestore: fs.existsSync(LINK_RESTORE_SCRIPT),
     },
     pythonSkillImportSmoke: imports,
     depreciationCapexForecast: depreciation,
@@ -4904,6 +4926,9 @@ async function runPythonSkillImportSmokeTest() {
     ["landPublicity", LAND_PUBLICITY_SCRIPT],
     ["anjukeProperty", ANJUKE_PROPERTY_SCRIPT],
     ["tableFormat", TABLE_FORMAT_SCRIPT],
+    ["detailPrint", PRINT_FORMAT_SCRIPTS.detail],
+    ["declarationPrint", PRINT_FORMAT_SCRIPTS.declaration],
+    ["formulaRestore", LINK_RESTORE_SCRIPT],
     ["depreciation", path.join(depreciationCapexForecast.selfTest().skillRoot, "scripts", "workflow.py")],
   ];
   const importCode = String.raw`import importlib.util
@@ -4972,6 +4997,10 @@ if (process.argv.includes("--self-test")) {
     });
 } else {
   readMessages((message) => {
+    if (updateChecker.isUpdateInProgress() && message?.action !== "download_and_install_update") {
+      writeMessage({ ok: false, action: message?.action, reason: "UPDATE_ALREADY_RUNNING" });
+      return;
+    }
     if (!toolboxActionAllowed(message)) {
       writeMessage(toolboxActionRejected(message));
       return;
@@ -4993,6 +5022,9 @@ if (process.argv.includes("--self-test")) {
     }
     if (message?.action === "run_link_restore") {
       return runLinkRestore(message, writeMessage);
+    }
+    if (message?.action === "download_and_install_update") {
+      return updateChecker.downloadAndInstallUpdate(message, writeMessage);
     }
     if (message?.action === "run_land_publicity") {
       return runLandPublicity(message, writeMessage);

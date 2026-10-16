@@ -1,5 +1,3 @@
-> 2026-10-12：本文件保留历史阶段记录。用户现已授权 GitHub 交接/发布，当前完整提示词及边界请使用 [docs/handoff/MAC_AGENT_PROMPT.md](../docs/handoff/MAC_AGENT_PROMPT.md)，协调 Issue #1。下文旧“禁止推送/需再次授权”不适用于此次交接。
-
 # Mac Codex handoff prompt — Native Messaging installer review
 
 Please review the public `zer0-lyz/appraisal-toolbox-releases` repository and the Windows installer incident/packaging checklist linked below. This is a Mac-side audit and handoff for preventing a repeat of the Windows v0.2.1 packaging failure during future macOS development and release work.

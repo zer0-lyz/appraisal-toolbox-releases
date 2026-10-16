@@ -1,3 +1,7 @@
+## 2026-10-16 最新候选
+
+最新 Windows .16 / 地图 .3 预发布交接见 [windows-reviewfix-20261016](windows-reviewfix-20261016/README.md)。以下为 10-12 历史交接；当前候选仍待实机验收，未合并main。
+
 # Windows / Mac 双端交接入口（2026-10-12）
 
 产品仍为评估工具箱 0.2.1，扩展 ID aamfmhcbjgofhmannejoiilkkpchfkgm，业务 build windows-e2e-round2.1。

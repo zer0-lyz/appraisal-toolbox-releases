@@ -1,0 +1,5 @@
+interface:
+  display_name: "评估申报表打印格式"
+  short_description: "批量将评估明细表转换为申报表并统一隐藏字段与打印版式"
+  default_prompt: "Use $appraisal-declaration-print-format to convert and format this appraisal declaration workbook for printing."
+

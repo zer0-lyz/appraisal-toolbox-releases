@@ -5,9 +5,7 @@ const TOOLBOX_UPDATE_MANIFEST_URLS = [
   "https://gitee.com/zer0_y/appraisal-toolbox-releases/raw/master/update-manifest.json",
   "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/latest/download/update-manifest.json",
 ];
-// 工具箱与主工作台共用同一个本机运行组件。Helper 的页内安装/自测动作
-// 目标写死为主工作台运行副本，工具箱绝不调用（本文件不出现任何此类
-// action），更新一律经发布页下载安装。
+// Windows 一键安装通过独立助手驱动，安装器保留上下文核验；其他平台提供手动入口。
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const AUTO_CHECK_TIMER_MS = 30 * 60 * 1000;
 
@@ -155,9 +153,10 @@ export const updatesModule = {
         platform: String(result?.platform || ""),
         phase: String(status?.phase || result?.phase || "idle"),
         stage: String(status?.stage || result?.stage || ""),
-        errorCode: String(status?.errorCode || result?.errorCode || result?.reason || ""),
-        currentVersionUnchanged: status?.currentVersionUnchanged !== false
-          && result?.currentVersionUnchanged !== false,
+        errorCode: String(status?.reason || status?.errorCode || result?.errorCode || result?.reason || ""),
+        currentVersionUnchanged: status?.currentVersionUnchanged ?? null,
+        diagnostics: status?.diagnostics || null,
+        installerLogPath: String(status?.installerLogPath || ""),
         downloadChannel: String(status?.downloadChannel || result?.preferredDownloadChannel || ""),
         channelAttempts: attempts,
         checkedAt: String(result?.checkedAt || ""),
@@ -190,6 +189,21 @@ export const updatesModule = {
 
     function updateFailureText(reason) {
       const messages = {
+        UPDATE_URL_INVALID: "更新地址无效，已停止处理。",
+        UPDATE_URL_NOT_HTTPS: "更新地址未使用安全连接，已停止处理。",
+        UPDATE_URL_HOST_NOT_ALLOWED: "更新地址不属于官方发布渠道，已停止处理。",
+        UPDATE_SHA256_REQUIRED: "官方安装包缺少有效校验值，已停止安装。",
+        UPDATE_DOWNLOAD_SHA256_MISMATCH: "安装包校验失败，已删除下载文件，请重试。",
+        UPDATE_PACKAGE_FILE_MISSING: "安装包文件不完整，已停止安装。",
+        UPDATE_STAGING_PATH_INVALID: "更新暂存位置无效，请使用桌面更新入口。",
+        UPDATE_DOWNLOAD_REDIRECTS_EXHAUSTED: "下载地址跳转过多，请使用其他官方通道。",
+        UPDATE_TARGET_CHANGED: "发布记录发生变化，请重新检查更新。",
+        UPDATE_EXTENSION_PATH_REQUIRED: "本机尚未登记原插件目录，请先运行原桌面更新入口一次。",
+        UPDATE_PROCESS_TIMEOUT: "安装或解压超时，请查看安装日志并确认进程已结束。",
+        UPDATE_PROCESS_TERMINATION_UNCONFIRMED: "更新进程未确认结束，已阻止再次安装，请查看诊断日志。",
+        UPDATE_LOCK_RELEASE_FAILED: "更新锁未能释放，请查看诊断日志后处理。",
+        APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED: "本地助手尚不支持此动作，请使用原桌面更新入口。",
+        NATIVE_STREAM_IDLE_TIMEOUT: "更新响应超时，请查看诊断详情与安装日志。",
         UPDATE_NOT_REQUIRED: "当前已经是最新版本。",
         UPDATE_ASSET_NOT_FOUND: "未找到适用于当前系统的安装包。",
         UPDATE_SHA256_MISSING: "官方发布包缺少 SHA-256，已停止安装。",
@@ -211,14 +225,14 @@ export const updatesModule = {
         UPDATE_PARENT_PROCESS_NOT_EXITED: "旧版本服务没有及时退出，已停止更新以保护当前版本。",
         UPDATE_FILE_LOCKED: "工具箱文件仍被占用，当前版本已保留；请关闭相关浏览器窗口后重试。",
         UPDATE_ALREADY_RUNNING: "已有更新正在执行，请等待当前更新结束。",
-        UPDATE_COMPLETION_STATUS_MISSING: "安装程序未返回完成状态，当前版本已保留。",
+        UPDATE_COMPLETION_STATUS_MISSING: "安装程序未返回完成状态，请查看诊断日志确认当前安装状态。",
         WORKBENCH_UPDATE_TIMEOUT: "更新等待超时，当前版本已保留；请查看诊断日志后重试。",
         PLATFORM_UPDATE_UNSUPPORTED: "当前系统暂不支持一键更新。",
         UNKNOWN_ACTION: "当前 Native Helper 版本较旧，需要手动安装一次新版。",
       };
       if (String(reason || "").startsWith("UPDATE_DOWNLOAD_NETWORK_")) {
         const code = String(reason).slice("UPDATE_DOWNLOAD_NETWORK_".length);
-        return `安装包下载网络连接失败（${code}），请检查网络后重试。`;
+        return "安装包下载网络连接失败，请检查网络后重试。";
       }
       if (String(reason || "").startsWith("UPDATE_PYTHON_RUNTIME_UNAVAILABLE")) {
         return messages.UPDATE_PYTHON_RUNTIME_UNAVAILABLE;
@@ -228,16 +242,16 @@ export const updatesModule = {
       }
       if (String(reason || "").startsWith("UPDATE_DOWNLOAD_HTTP_")) {
         const code = String(reason).slice("UPDATE_DOWNLOAD_HTTP_".length);
-        return `安装包下载失败（HTTP ${code}），请打开发布页重试。`;
+        return "安装包下载失败，请打开发布页或稍后重试。";
       }
       if (String(reason || "").startsWith("UPDATE_PACKAGE_FILE_MISSING:")) {
         return "安装包文件不完整，已停止处理。";
       }
       if (String(reason || "").startsWith("UPDATE_INSTALLER_EXIT_")) {
         const code = String(reason).slice("UPDATE_INSTALLER_EXIT_".length);
-        return `Windows 安装脚本失败（退出码 ${code}），当前版本已保留。`;
+        return "Windows 安装脚本未完成，请查看诊断日志确认当前安装状态。";
       }
-      return messages[reason] || reason || "更新失败";
+      return messages[reason] || "更新未完成，请复制诊断详情或查看安装日志。";
     }
 
     function progressMessage(status) {
@@ -264,6 +278,7 @@ export const updatesModule = {
     }
 
     function renderProgress(status = operationStatus) {
+      if (status?.event === "complete") status = { ...status, phase: status.ok ? "complete" : "failed", percent: status.ok ? 100 : status.percent };
       operationStatus = status;
       const normalizedPhase = status?.normalizedPhase || status?.phase;
       const active = checking || (
@@ -371,7 +386,7 @@ export const updatesModule = {
 
       const assetUrl = safeReleaseUrl(preferredCandidate?.url || result?.asset?.url);
       const releaseUrl = safeReleaseUrl(result?.releaseUrl);
-      const operationBusy = checking;
+      const operationBusy = autoUpdating || checking;
       if (elements.downloadUpdate) {
         elements.downloadUpdate.disabled = operationBusy || !assetUrl;
         elements.downloadUpdate.dataset.url = assetUrl;
@@ -382,15 +397,15 @@ export const updatesModule = {
       }
       if (elements.updatePrimaryAction) {
         elements.updatePrimaryAction.disabled = operationBusy;
-        // 页内不安装：发现新版本/需修复时主按钮直接打开发布页。
+        // 发现新版本/需修复时主按钮一键自动更新；其余场景保持检查行为。
         elements.updatePrimaryAction.textContent = result?.updateAvailable || result?.repairRequired
-          ? "打开发布页"
+          ? (result.autoUpdateSupported === true ? "自动下载并更新" : "打开发布页")
           : "检查更新";
       }
 
       if (!result) {
         elements.updateHeadline.textContent = `评估工具箱 v${currentVersion}`;
-        elements.updateDescription.textContent = "检查不使用任何凭据；工具箱更新经发布页下载安装，不在页内覆盖组件。";
+        elements.updateDescription.textContent = "Windows 可自动校验安装并更新原插件目录；其他平台请从发布页安装。";
         elements.updateBadge.textContent = "未检查";
         elements.updateFeedback.textContent = "尚未检查工具箱专属发布源";
         elements.updateFeedback.dataset.kind = "";
@@ -401,7 +416,7 @@ export const updatesModule = {
         elements.updateHeadline.textContent = "暂时无法检查更新";
         elements.updateDescription.textContent = "当前版本可以继续使用，稍后可重新检查。";
         elements.updateBadge.textContent = "检查失败";
-        elements.updateFeedback.textContent = result.reason || "发布源更新检查失败";
+        elements.updateFeedback.textContent = updateFailureText(result.reason);
         elements.updateFeedback.dataset.kind = "error";
         setTopStatus("检查失败", "warn");
         return;
@@ -441,10 +456,10 @@ export const updatesModule = {
         elements.updateHeadline.textContent = `发现新版本 v${result.latestVersion}`;
         elements.updateDescription.textContent = result.mandatory
           ? "当前版本低于最低支持版本，需要更新后再继续使用。"
-          : "工具箱只更新扩展本体；请从发布页下载安装包后覆盖加载目录。";
+          : (result.autoUpdateSupported === true ? "点击“自动下载并更新”，本机将下载、校验并安装最新组件。" : "请打开发布页下载并安装当前平台的更新包。");
         elements.updateBadge.textContent = result.mandatory ? "必须更新" : "有新版本";
         elements.updateFeedback.textContent = assetUrl
-          ? `已找到适用于 ${result.platform} 的安装包，请打开发布页下载`
+          ? `已找到适用于 ${result.platform} 的安装包（${formatBytes(asset.size || preferredCandidate?.size)}），${result.autoUpdateSupported === true ? "可直接一键更新" : "请从发布页下载安装"}`
           : "未找到当前平台安装包，请打开发布页查看";
         elements.updateFeedback.dataset.kind = result.mandatory ? "error" : "ok";
         setTopStatus(
@@ -475,7 +490,7 @@ export const updatesModule = {
     }
 
     async function check({ automatic = false } = {}) {
-      if (checking) return latestResult;
+      if (checking || autoUpdating) return latestResult;
       checking = true;
 
       elements.downloadUpdate.disabled = true;
@@ -520,7 +535,7 @@ export const updatesModule = {
         };
         render(latestResult);
         if (!automatic) {
-          context.setStatus(`更新检查失败：${latestResult.reason}`, "warn");
+          context.setStatus(`更新检查失败：${updateFailureText(latestResult.reason)}`, "warn");
         }
         return latestResult;
       } finally {
@@ -532,6 +547,7 @@ export const updatesModule = {
     async function maybeAutoCheck() {
       if (
         checking
+        || autoUpdating
         || context.isBusy()
         || context.document.visibilityState !== "visible"
       ) return;
@@ -547,6 +563,70 @@ export const updatesModule = {
         return;
       }
       await context.chrome.tabs.create({ url });
+    }
+
+    let autoUpdating = false;
+
+    // 一键更新：本机下载 → SHA-256 校验 → 解压 → 运行包内安装器（真实桌面上下文）。
+    // 安装器自带备份/原子替换/报告与上下文门禁；本函数只驱动与呈现结果。
+    async function autoDownloadInstall() {
+      if (autoUpdating || checking) return;
+      const result = latestResult;
+      if (!result?.updateAvailable && !result?.repairRequired) {
+        context.setStatus("当前没有需要安装的更新", "warn");
+        return;
+      }
+      if (result?.autoUpdateSupported !== true) { await openUrl(elements.openReleasePage); return; }
+      const preferred = (Array.isArray(result?.downloadCandidates) && result.downloadCandidates[0]) || null;
+      const assetUrl = safeReleaseUrl(preferred?.url || result?.asset?.url);
+      const sha256 = String(result?.asset?.sha256 || preferred?.sha256 || "");
+      const assetName = String(result?.asset?.name || preferred?.name || "appraisal-toolbox-update.zip");
+      if (!assetUrl || !/^[0-9a-f]{64}$/i.test(sha256)) {
+        context.setStatus("发布源缺少下载地址或 SHA-256，无法一键更新；请打开发布页手动下载。", "warn");
+        return;
+      }
+      autoUpdating = true;
+      render(result);
+      elements.updatePrimaryAction.disabled = true;
+      renderProgress({ phase: "downloading", percent: 1, message: "正在准备一键更新…" });
+      try {
+        const final = await context.streamNativeMessage({
+          action: "download_and_install_update",
+          url: assetUrl,
+          sha256: sha256,
+          assetName: assetName,
+          sizeBytes: Number(result?.asset?.size || preferred?.size || 0),
+        }, (progress) => renderProgress(progress));
+        operationStatus = final;
+        renderProgress(final);
+        if (final?.ok) {
+          elements.updateHeadline.textContent = "自动更新已完成";
+          elements.updateBadge.textContent = "已完成";
+          elements.updateFeedback.textContent = "本机运行组件已更新为最新版本。请重启浏览器，并在扩展管理页重新加载评估工具箱。";
+          elements.updateFeedback.dataset.kind = "ok";
+          context.setStatus("一键更新完成：本机组件已安装最新版。", "ok");
+        } else {
+          operationStatus = final;
+          const reason = final?.reason || "UPDATE_FAILED";
+          elements.updateBadge.textContent = "更新未完成";
+          elements.updateFeedback.textContent = updateFailureText(reason);
+          elements.updateFeedback.dataset.kind = "error";
+          context.setStatus(`一键更新未完成：${updateFailureText(reason)}`, "error");
+        }
+      } catch (error) {
+        const reason = error?.message || String(error);
+        operationStatus = { ok: false, phase: "failed", reason };
+        renderProgress(operationStatus);
+        elements.updateBadge.textContent = "更新未完成";
+        elements.updateFeedback.textContent = updateFailureText(reason);
+        elements.updateFeedback.dataset.kind = "error";
+        context.setStatus(`一键更新未完成：${updateFailureText(reason)}`, "error");
+      } finally {
+        autoUpdating = false;
+        elements.updatePrimaryAction.disabled = false;
+        if (elements.downloadUpdate) elements.downloadUpdate.disabled = !elements.downloadUpdate.dataset.url;
+        if (elements.openReleasePage) elements.openReleasePage.disabled = !elements.openReleasePage.dataset.url;
+      }
     }
 
     return {
@@ -582,7 +662,7 @@ export const updatesModule = {
         );
         context.scope.on(elements.updatePrimaryAction, "click", () => (
           latestResult?.updateAvailable || latestResult?.repairRequired
-            ? openUrl(elements.openReleasePage)
+            ? autoDownloadInstall()
             : check({ automatic: false })
         ));
         context.scope.on(elements.downloadUpdate, "click", () =>
