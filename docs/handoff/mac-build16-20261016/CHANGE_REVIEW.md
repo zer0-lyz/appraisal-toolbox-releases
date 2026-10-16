@@ -27,3 +27,13 @@ Mac PR #11仍为draft。若review发现问题，关闭PR即可避免合入；若
 | `scripts/release/{source-checks.cjs,test-macos-update-e2e.cjs,test-tools/*}`、`.github/workflows/dual-platform-candidate.yml` | 锁定 jsdom fixture 依赖；CI 两端都跑 UI platform fixture，并用同产品版本/buildNumber构建候选 | Mac CI 运行更新器真实包内安装器隔离回归 | Windows CI 验证现有 SEA/Native 接口；桌面 GUI 仍需实机 | 回退测试依赖/CI 步骤，不改产品数据；workflow artifact 与本地测试日志 |
 
 详细流程、支持范围、人工门槛和回滚边界见 [`MAC_ONE_CLICK_UPDATE.md`](MAC_ONE_CLICK_UPDATE.md)。本轮 Windows 专属更新引擎保持原样；真实 Windows 桌面更新尚未覆盖。
+
+## Mac 一键更新最终源码候选（2026-10-16）
+
+- 功能源码提交：`85683681fbfc5661fc765c54d96cec6d0dfe5d18`，分支 `codex/mac-one-click-update-20261016-pr`，基于 `6249f0bf7e92547f35afd0ec7420ab2bfd8f6506`。版本 `0.2.1`、全局 `buildNumber=2026101602`、Mac `buildId=mac-one-click-update.20261016.5`。
+- Mac ZIP：`/Users/lin/Downloads/appraisal-toolbox-mac-update-candidate-20261016-pr-8568368/appraisal-toolbox-v0.2.1-macos-arm64-mac-one-click-update.20261016.5.zip`；SHA-256 `dd96a51117fa4453a2d43dd9103affa48cb48b2cb0e0e6226af62a4eac948a45`。此为本机候选包路径；GitHub 候选下载地址待双平台 PR 构建与审核后确定。
+- 构建命令：`bash scripts/release/build.sh --target macos-arm64 --version 0.2.1 --build-id mac-one-click-update.20261016.5 --build-number 2026101602 --output <new-path> --cache <cache-path>`。锁定 Mac 基础资产 SHA `4570d0fa51a0284fbee1f5157731fc7bd311fae9402da4cbe896f2acdeaa792c`，runtime cache hash 校验命中。
+- 构建环境为 macOS `27.0.1` arm64、Node `v24.14.0`、组包 Python `/usr/bin/python3` `3.9.6`；安装包内 Python `3.14.6`、Node `v24.14.0`。包内 Node `codesign --verify --deep --strict` 通过，官方 Python `.pkg` 具有 Apple Developer ID Installer 签名且 Apple notarization 状态为 trusted。产品 ZIP 与 launcher 未签名，产品未 notarize。
+- 测试：`node scripts/release/source-checks.cjs` 通过（更新协议 `11/11`、Mac 更新引擎 `2/2` 及共享业务检查）；更新页合成 DOM 在 Mac/Windows 均通过。`bash macos/test-isolated-install.sh <package-root> /tmp/appraisal-toolbox-mac-update-e2e-20261016-pr-8568368` 通过实际隔离安装器初装/升级、合成用户数据保留、Chrome/Edge Native Host 清单核验、Edge 写入失败回滚；包内 Host 自检、四项 Python 导入、阿里拍卖/租赁及 `table-format` 三种 Native 协议操作通过。证据：`/tmp/appraisal-toolbox-mac-update-e2e-20261016-pr-8568368/{installer-summary.json,one-click-update.json,protocol/offline-summary.json}`。
+- 未覆盖：真实桌面安装及系统 Python 安装授权、Chrome/Edge Native Messaging 真实连接、扩展 GUI 重载、对正式 Release 的真实网络下载更新、真实 Excel/WPS GUI、产品 Gatekeeper 放行；Windows build `.16` 的 `fullAcceptancePassed=false` 不变，真实 Windows 桌面更新仍须另验。测试没有使用真实 Profile、凭据、地图 Key、天源系统或业务网络。
+- 回滚：关闭 draft PR，或 revert 功能提交 `8568368`；候选包不触碰 stable、共享 latest 或 `main`。本节证据可随文档提交独立回退。
