@@ -1,4 +1,5 @@
 import os
+import json
 import sys
 import unittest
 from unittest.mock import patch
@@ -7,6 +8,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from land_publicity_runner import _list_record_matches_request, _list_server_filters, filter_records, validate_request
 from scrape_zj_land import fetch_records, fetch_region_codes
+
+
+class JSONResponseFixture:
+    status_code = 200
+    headers = {"Content-Type": "application/json"}
+
+    def raise_for_status(self):
+        pass
+
+    @property
+    def text(self):
+        payload = {"code": 0, **self.json()}
+        if isinstance(payload.get("data"), dict) and "records" in payload["data"]:
+            payload["data"].setdefault("total", 1000)
+        return json.dumps(payload, ensure_ascii=False)
 
 
 class LandPublicityDateTests(unittest.TestCase):
@@ -19,7 +35,7 @@ class LandPublicityDateTests(unittest.TestCase):
         self.assertEqual(filters["nowTime"], 1738339199999)
 
     def test_region_tree_resolves_all_descendant_codes(self):
-        class Response:
+        class Response(JSONResponseFixture):
             def json(self):
                 return {"data": [{"districtName": "浙江省", "districtCode": "330000", "children": [
                     {"districtName": "宁波市", "districtCode": "330200", "children": [
@@ -33,7 +49,7 @@ class LandPublicityDateTests(unittest.TestCase):
     def test_server_filters_are_sent_to_publicity_list(self):
         calls = []
 
-        class Response:
+        class Response(JSONResponseFixture):
             def json(self):
                 return {"data": {"records": []}}
 
@@ -55,7 +71,7 @@ class LandPublicityDateTests(unittest.TestCase):
     def test_county_region_takes_precedence_over_city_fallback(self):
         calls = []
 
-        class Response:
+        class Response(JSONResponseFixture):
             def json(self):
                 return {"data": {"records": []}}
 
@@ -87,7 +103,7 @@ class LandPublicityDateTests(unittest.TestCase):
         ]
         calls = []
 
-        class Response:
+        class Response(JSONResponseFixture):
             def __init__(self, records):
                 self.records = records
 

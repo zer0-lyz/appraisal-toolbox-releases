@@ -1,0 +1,13 @@
+test_manifest_lists_required_files_and_matches_digest (test_workbook.BundleManifestTests.test_manifest_lists_required_files_and_matches_digest) ... ok
+test_perpetual_values_are_not_reannualized_on_export (test_workbook.PerpetualOutputTests.test_perpetual_values_are_not_reannualized_on_export) ... ok
+test_read_existing_input_returns_rows_with_row_index (test_workbook.ReadExistingInputTests.test_read_existing_input_returns_rows_with_row_index) ... ok
+test_read_existing_input_section_filter (test_workbook.ReadExistingInputTests.test_read_existing_input_section_filter) ... ok
+test_custom_workbook_path_is_run_in_place (test_workbook.WorkbookInputTests.test_custom_workbook_path_is_run_in_place) ... ok
+test_formula_cells_work_without_cached_values (test_workbook.WorkbookInputTests.test_formula_cells_work_without_cached_values) ... ok
+test_min_variant_uses_the_formula_operator (test_workbook.WorkbookInputTests.test_min_variant_uses_the_formula_operator) ... ok
+test_unsupported_numeric_formula_fails_validation (test_workbook.WorkbookInputTests.test_unsupported_numeric_formula_fails_validation) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 47.003s
+
+OK

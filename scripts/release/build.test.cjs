@@ -6,7 +6,7 @@ const {buildRunnerDiagnostics,pythonExportFailure}=require('../../native-helper/
 test('build requires explicit identity and rejects unsafe/unknown parameters',()=>{
   assert.throws(()=>argumentsFor(['--target','windows-x64']),/Required/);
   assert.throws(()=>argumentsFor(['--target','macos-arm64','--version','0.2.1','--build-id','../../other','--build-number','2026101201','--output','out']),/Invalid/);
-  assert.equal(installerBuild('windows-x64'),'windows-context-attested.6');assert.equal(installerBuild('macos-arm64'),'macos-transactional.1');
+  assert.equal(installerBuild('windows-x64'),'windows-context-attested.7');assert.equal(installerBuild('macos-arm64'),'macos-transactional.1');
 });
 test('cache rejects changed or extra runtime bytes',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'toolbox-cache-test-'));fs.mkdirSync(path.join(dir,'runtime'));fs.writeFileSync(path.join(dir,'runtime','x'),'original');

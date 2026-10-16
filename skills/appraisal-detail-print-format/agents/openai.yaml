@@ -1,0 +1,5 @@
+interface:
+  display_name: "评估明细表打印格式"
+  short_description: "智能整理评估明细表打印版式"
+  default_prompt: "Use $appraisal-detail-print-format to adjust this appraisal detail workbook print layout."
+

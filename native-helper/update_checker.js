@@ -374,6 +374,7 @@ function resultFromManifest(manifest, manifestUrl, input, sourceHealth = null) {
   const latestRuntimeBuildKind = normalizeRuntimeBuildKind(manifest?.runtimeBuildKind);
   const repairRequired = versionComparison === 0
     && currentRuntimeBuildKind !== "local"
+    && latestBuildNumber >= currentBuildNumber
     && Boolean(latestRuntimeBuildId && currentRuntimeBuildId && latestRuntimeBuildId !== currentRuntimeBuildId);
   const key = platformKey(input.platform, input.architecture);
   const requestedAsset = manifest?.assets?.[key] || null;
@@ -816,6 +817,7 @@ async function checkGithubUpdateInternal(input = {}, options = {}) {
   const latestRuntimeBuildKind = normalizeRuntimeBuildKind(manifest?.runtimeBuildKind);
   const repairRequired = versionComparison === 0
     && currentRuntimeBuildKind !== "local"
+    && latestBuildNumber >= currentBuildNumber
     && Boolean(latestRuntimeBuildId && currentRuntimeBuildId && latestRuntimeBuildId !== currentRuntimeBuildId);
 
   return {
@@ -863,13 +865,19 @@ async function checkGithubUpdate(input = {}, options = {}) {
     timeout = setTimeout(() => reject(new Error("UPDATE_CHECK_TIMEOUT")), timeoutMs);
   });
   try {
-    return await Promise.race([
+    const result = await Promise.race([
       checkGithubUpdateInternal(input, options),
       timeoutPromise,
     ]);
+    return { ...result, ...platformUpdate.capabilities() };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+const platformUpdate = require("./platform/update.js");
+function downloadAndInstallUpdate(message, emit) {
+  return platformUpdate.downloadAndInstallUpdate(message, emit, checkGithubUpdate);
 }
 
 module.exports = {
@@ -885,4 +893,6 @@ module.exports = {
   isAuthoritativeLatestManifestUrl,
   checkGithubUpdate,
   resultFromManifest,
+  downloadAndInstallUpdate,
+  isUpdateInProgress: () => platformUpdate.isUpdating(),
 };
