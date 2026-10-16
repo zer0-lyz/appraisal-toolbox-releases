@@ -25,8 +25,8 @@ Windows snapshot `65840987d9aea80586817ca63684f4df2953d5c2`，168 文件逐项 S
 
 ```bash
 node scripts/release/source-checks.cjs
-node scripts/release/build.cjs --target macos-arm64 --version 0.2.1 --build-id mac-build16-20261016.2 --build-number 2026101601 --output /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-candidate-final --cache /tmp/toolbox-build-cache-20261012 --base-archive '/Users/lin/Downloads/评估工具箱-v0.2.1-双平台完整安装包/appraisal-toolbox-v0.2.1-macos-arm64-full.zip'
-bash macos/test-isolated-install.sh /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-candidate-final/appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.2 /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-validation
+node scripts/release/build.cjs --target macos-arm64 --version 0.2.1 --build-id mac-build16-20261016.3 --build-number 2026101601 --output /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-candidate-final --cache /tmp/toolbox-build-cache-20261012 --base-archive '/Users/lin/Downloads/评估工具箱-v0.2.1-双平台完整安装包/appraisal-toolbox-v0.2.1-macos-arm64-full.zip'
+bash macos/test-isolated-install.sh /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-candidate-final/appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.3 /Users/lin/Projects/appraisal-toolbox-intake-20261016/mac-validation
 ```
 
 组包在新输出目录，源码必须 clean；runtime/cache 在树外。Mac 交付 Node v24.14.0、Python 3.14.6、wheels 摘要均用根锁，组包 `/usr/bin/python3` 独立记录。本机 macOS 27.0.1 (26A434)/arm64。构建器仅有 Mac arm64 与 Windows x64 目标，无 Intel Mac 支持声明；其他 macOS 版本本轮未测。完整安装运行 `安装.command`，缺精确 Python 时要求正常系统安装，本轮仅做独立 root/browser-home 的真实脚本安装，不更改系统 Python/正式 Profile。
@@ -47,3 +47,5 @@ Windows 下次从双方冻结的同一新 commit 用统一入口 `--target windo
 不发布 stable、不改共享 latest、不合并 main。新功能继续沿原折现率需求，但本轮无新的明确实现规格；基线完成后只确认首个功能范围，不自行扩大需求。
 
 本轮附带修复 #7 的旧 HTTP Response 测试夹具：补齐 status/header/body/total 与生产严格接口一致；生产校验逻辑不变。折旧 bundle 声明摘要按实际载荷重新计算，未改计算规则。最终结果以 RESULT.md 为准。
+
+Windows 旧直接 builder 入口也强制执行相同 source-checks，避免绕过统一入口而遗漏回归。三个工具的安装提示统一使用“当前平台完整安装包”，Mac 不出现 Windows 专属桌面脚本指引。

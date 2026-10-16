@@ -9,6 +9,7 @@ const source = path.resolve(__dirname, '..');
 const buildSuffix = process.argv[5];
 if (!buildSuffix) throw new Error('Explicit build suffix required; use unified scripts/release/build.cjs');
 const sourceState = require('../scripts/release/build-common.cjs').sourceState();
+execFileSync(process.execPath,[path.join(source,'scripts/release/source-checks.cjs')],{stdio:'inherit'});
 const productVersion = process.env.APPRAISAL_PRODUCT_VERSION || '0.2.1';
 const installerBuild = require('../scripts/release/build-common.cjs').installerBuild('windows-x64');
 if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix)) throw new Error('Unknown build suffix');

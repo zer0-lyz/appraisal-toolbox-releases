@@ -13,7 +13,7 @@ const definitions = [
 
 function failureText(error) {
   const reason = String(error?.reason || error?.message || error || "");
-  if (/APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED|UNKNOWN_ACTION/.test(reason)) return "本机助手尚未更新，不支持此功能。请在桌面运行“更新评估工具箱（含三个开发模块）”，确认安装完成后重新加载原插件。";
+  if (/APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED|UNKNOWN_ACTION/.test(reason)) return "本机助手尚未更新，不支持此功能。请安装当前平台的完整安装包，确认本机助手更新后重新加载原插件。";
   if (/FILE_PICKER_FAILED/.test(reason)) return "系统文件选择窗口未能打开，请复制诊断详情检查本机助手。";
   if (/SCRIPT_NOT_FOUND|PYTHON_DEPENDENCY_MISSING|No module named/.test(reason)) return "本机处理组件不完整，请安装含这三个开发模块的完整包。";
   if (/NO_PRINT_WORKBOOKS_FOUND/.test(reason)) return "没有找到可处理的 Excel 文件，请检查所选文件或文件夹。";
