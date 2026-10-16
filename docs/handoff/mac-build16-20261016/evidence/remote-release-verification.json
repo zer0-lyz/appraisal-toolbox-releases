@@ -1,0 +1,41 @@
+{
+  "release": {
+    "tag": "v0.2.1-macos.20261016.3",
+    "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/tag/v0.2.1-macos.20261016.3",
+    "id": 414756737,
+    "prerelease": true,
+    "tagTarget": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9"
+  },
+  "latestAfterPublish": {
+    "id": 407436756,
+    "tag": "v0.2.1",
+    "unchanged": true
+  },
+  "assets": [
+    {
+      "name": "appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.3.zip",
+      "size": 126364409,
+      "sha256": "6816b2c8ddaf8b597fcb41bb7a99062c0c1817f229b25d224abd5e5dc855d0df"
+    },
+    {
+      "name": "appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.3.zip.sha256",
+      "size": 130,
+      "sha256": "6d6815d0807d79bfcf131f3c97441cf63993d683e3029f6caa511b4cc00ddc28"
+    },
+    {
+      "name": "BUILD-PROVENANCE.json",
+      "size": 1445,
+      "sha256": "4dcb35616a77daca3c91c4ce5d3c6c2e0179fee653b0d3f5451f172121519254"
+    },
+    {
+      "name": "MAC_ACCEPTANCE_STATUS.json",
+      "size": 1541,
+      "sha256": "238676b925b8638751245139d8a7b983f7f6b5e32551af54e60590f2e12dcc11"
+    },
+    {
+      "name": "release-manifest.json",
+      "size": 27137,
+      "sha256": "4e269161c959883622e28de65134c602b7fec20695c7b9da7a65cf696ceb5b97"
+    }
+  ]
+}
