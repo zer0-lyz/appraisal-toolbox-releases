@@ -19,7 +19,10 @@ class JSONResponseFixture:
 
     @property
     def text(self):
-        return json.dumps({"code": 0, **self.json()}, ensure_ascii=False)
+        payload = {"code": 0, **self.json()}
+        if isinstance(payload.get("data"), dict) and "records" in payload["data"]:
+            payload["data"].setdefault("total", 1000)
+        return json.dumps(payload, ensure_ascii=False)
 
 
 class LandPublicityDateTests(unittest.TestCase):
