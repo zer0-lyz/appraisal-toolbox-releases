@@ -37,3 +37,9 @@ Mac PR #11仍为draft。若review发现问题，关闭PR即可避免合入；若
 - 测试：`node scripts/release/source-checks.cjs` 通过（更新协议 `11/11`、Mac 更新引擎 `2/2` 及共享业务检查）；更新页合成 DOM 在 Mac/Windows 均通过。`bash macos/test-isolated-install.sh <package-root> /tmp/appraisal-toolbox-mac-update-e2e-20261016-pr-8568368` 通过实际隔离安装器初装/升级、合成用户数据保留、Chrome/Edge Native Host 清单核验、Edge 写入失败回滚；包内 Host 自检、四项 Python 导入、阿里拍卖/租赁及 `table-format` 三种 Native 协议操作通过。证据：`/tmp/appraisal-toolbox-mac-update-e2e-20261016-pr-8568368/{installer-summary.json,one-click-update.json,protocol/offline-summary.json}`。
 - 未覆盖：真实桌面安装及系统 Python 安装授权、Chrome/Edge Native Messaging 真实连接、扩展 GUI 重载、对正式 Release 的真实网络下载更新、真实 Excel/WPS GUI、产品 Gatekeeper 放行；Windows build `.16` 的 `fullAcceptancePassed=false` 不变，真实 Windows 桌面更新仍须另验。测试没有使用真实 Profile、凭据、地图 Key、天源系统或业务网络。
 - 回滚：关闭 draft PR，或 revert 功能提交 `8568368`；候选包不触碰 stable、共享 latest 或 `main`。本节证据可随文档提交独立回退。
+
+## Mac 包与双平台同源候选（PR head `c69009f`）
+
+此前列出的 `8568368` 包是功能提交候选。为满足同一源码 commit 分别构建两端，已从 PR head `c69009f3fafacdde5c3485e4a7976d058a14fe63` 重新构建并复验 Mac 候选：版本 `0.2.1`、全局 `buildNumber=2026101602`、Mac `buildId=mac-one-click-update.20261016.6`；ZIP 位于 `/Users/lin/Downloads/appraisal-toolbox-mac-update-candidate-20261016-pr-c69009f/appraisal-toolbox-v0.2.1-macos-arm64-mac-one-click-update.20261016.6.zip`，SHA-256 `24d6e7a5a0c9e508c4f01ceab6475d830ecc67cb5dc5e4f283b39b0fffd8a45f`。这与 Windows 候选工作流的目标源码 commit `c69009f` 相同，平台 buildId 各自独立。
+
+同源包 `bash scripts/release/build.sh ...`、source-checks、更新页 Mac/Windows 合成 DOM、隔离安装/更新/数据保留/Edge 注册失败回滚及 Native/Python/业务协议回归均通过。最终证据目录：`/tmp/appraisal-toolbox-mac-update-e2e-20261016-pr-c69009f/`；UI fixture：`/tmp/appraisal-toolbox-mac-update-ui-fixture-20261016-pr-c69009f.json`。GitHub 双平台 workflow run `38902716917` 针对同一 commit；截至本记录时两个 runner 仍为 queued，Windows 包级结果待 CI 启动后读取。Windows `.16` 桌面验收仍未覆盖。
