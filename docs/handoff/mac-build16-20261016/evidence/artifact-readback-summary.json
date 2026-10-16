@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "sourceCommit": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9",
+  "buildId": "mac-build16-20261016.3",
+  "productVersion": "0.2.1",
+  "archiveSha256": "6816b2c8ddaf8b597fcb41bb7a99062c0c1817f229b25d224abd5e5dc855d0df",
+  "payloadFilesVerified": 144,
+  "zipIntegrity": true,
+  "launcherExecutableBits": true,
+  "runtimeContract": {
+    "version": 2,
+    "extensionVersion": "0.2.1",
+    "bridgeProtocol": "connector-agent-binding-v3",
+    "buildId": "mac-build16-20261016.3",
+    "runtimeBuildId": "0431d86f3b94baea15d7ab2e6c6f6ab79ccd7d1277de4a4a760c47477855198e",
+    "runtimeBuildKind": "local",
+    "generatedAt": "2026-10-16T09:04:15.308Z"
+  },
+  "originalWorkspaces": [
+    {
+      "path": "/Users/lin/.codex/.chatgpt-projects/g-p-6ac741e8cbd88191a769c18faf282675/mac-handoff-20261012",
+      "commit": "76584a3410732cea93a26dd923a1a373619f7a0d",
+      "unchangedFiles": 196,
+      "statusUnchanged": true
+    },
+    {
+      "path": "/Users/lin/Projects/Codex/评估工具箱-折现率-v0.1",
+      "commit": "328acaca898ab16cd234df0f8c25a6f3120db3cc",
+      "unchangedFiles": 322,
+      "statusUnchanged": true
+    }
+  ],
+  "nativeSha256": "5511bdf1d8aeeae0332603b26b6efa91dc11e08159b2a6dceb173035d3bd71d3",
+  "lockSha256": "d52bd4e01dfc10d0e31ca82f98f332ad1681a91c8bc197627abe4593bb84b689"
+}
