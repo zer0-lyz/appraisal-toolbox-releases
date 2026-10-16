@@ -13,6 +13,8 @@ function argumentsFor(argv) {
   return result;
 }
 async function build(o) {
+  // Every target must carry and recheck the inherited Windows fixes.
+  execFileSync(process.execPath,[path.join(root,'scripts/release/source-checks.cjs')],{stdio:'inherit'});
   const state=sourceState(),lockfile=path.join(root,'release-inputs.lock.json'),lock=JSON.parse(fs.readFileSync(lockfile)),targetLock=lock.targets[o.target];
   const expectedPlatform=o.target==='macos-arm64'?'darwin':'win32',expectedArch=o.target==='macos-arm64'?'arm64':'x64';
   if(process.platform!==expectedPlatform||process.arch!==expectedArch)throw Error('Build on the actual target OS/architecture');
@@ -60,6 +62,10 @@ async function build(o) {
   }
   const extensionVersion=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/version.json')));extensionVersion.productVersion=o.version;extensionVersion.chromeVersion=o.version;extensionVersion.versionName=o.version;extensionVersion.buildNumber=Number(o['build-number']);extensionVersion.platformBuildId=o['build-id'];extensionVersion.channel='candidate';
   fs.writeFileSync(path.join(packageRoot,'extension/version.json'),JSON.stringify(extensionVersion,null,2)+'\n');
+  // A candidate must not carry the historical release's runtime fingerprint.
+  const contract=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/runtime-compat.json')));
+  Object.assign(contract,{extensionVersion:o.version,buildId:o['build-id'],runtimeBuildKind:'local',runtimeBuildId:require('node:crypto').createHash('sha256').update(JSON.stringify(sourceInventory.filter(x=>/^(?:src|native-helper|skills)\//.test(x.path)))).digest('hex'),generatedAt:new Date().toISOString()});
+  fs.writeFileSync(path.join(packageRoot,'extension/runtime-compat.json'),JSON.stringify(contract,null,2)+'\n');
   const manifest=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/manifest.json')));manifest.version=o.version;manifest.version_name=o.version;fs.writeFileSync(path.join(packageRoot,'extension/manifest.json'),JSON.stringify(manifest,null,2)+'\n');
   const builtProvenance=JSON.parse(fs.readFileSync(path.join(packageRoot,'BUILD-PROVENANCE.json')));
   Object.assign(builtProvenance,{target:o.target,sourceCommit:state.commit,sourceDirty:false,productVersion:o.version,buildId:o['build-id'],buildNumber:Number(o['build-number']),lockSha256:hash(lockfile),installerBuild:installerBuild(o.target)});

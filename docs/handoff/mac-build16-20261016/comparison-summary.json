@@ -1,0 +1,18 @@
+{
+  "macBaseline": "76584a3410732cea93a26dd923a1a373619f7a0d",
+  "windowsSnapshot": "65840987d9aea80586817ca63684f4df2953d5c2",
+  "files": 221,
+  "differentFiles": 79,
+  "categories": {
+    "共享业务/core与构建证据": 177,
+    "Mac专属": 5,
+    "平台无关Native协议": 15,
+    "Windows专属": 24
+  },
+  "decisionsForDifferences": {
+    "保留Mac权威实现": 40,
+    "保留外部历史资料，不纳入运行载荷": 2,
+    "采用Windows文件（按平台隔离执行）": 30,
+    "选择性合并，保留Mac构建与协议": 7
+  }
+}

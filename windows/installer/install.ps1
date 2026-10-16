@@ -1,6 +1,7 @@
 param(
   [string]$InstallRoot = "",
-  [string]$RegistryTestRoot = ""
+  [string]$RegistryTestRoot = "",
+  [string]$OriginalExtensionPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,6 +22,7 @@ if ($TestMode) {
     $RegistryTestRoot = $env:APPRAISAL_TOOLBOX_INSTALLER_TEST_REGISTRY_ROOT
   }
 }
+if (-not $InstallRoot -and $env:TB_UPDATE_INSTALL_ROOT) { $InstallRoot = $env:TB_UPDATE_INSTALL_ROOT }
 if (-not $InstallRoot) {
   $InstallRoot = Join-Path $env:LOCALAPPDATA "AppraisalToolbox"
 }
@@ -32,7 +34,16 @@ $InstallSnapshotPath = Join-Path $env:TEMP "AppraisalToolbox-install-snapshot-$U
 $HostName = "com.appraisal.toolbox.helper"
 $ExtensionId = "aamfmhcbjgofhmannejoiilkkpchfkgm"
 $ProductVersion = ""
-$InstallerBuild = "windows-context-attested.6"
+$InstallerBuild = "windows-context-attested.7"
+$BuildMetadata = $null
+$ExtensionLoadPath = Join-Path $InstallRoot "extension"
+$ExtensionMoved = $false
+$ExtensionReplaced = $false
+$ExtensionStaging = ""
+$ExtensionBackup = ""
+$ExtensionSnapshotPath = Join-Path $env:TEMP "AppraisalToolbox-extension-snapshot-$UniqueSuffix.json"
+$UpdateNonce = [string]$env:TB_UPDATE_NONCE
+if ($UpdateNonce -and $UpdateNonce -notmatch "^[a-f0-9-]{36}$") { throw "Invalid update nonce." }
 $VersionFile = Join-Path $PackageRoot "VERSION.txt"
 if (Test-Path -LiteralPath $VersionFile -PathType Leaf) {
   foreach ($Line in Get-Content -LiteralPath $VersionFile -Encoding UTF8) {
@@ -386,6 +397,21 @@ try {
   $RegistrationExecutionContext = Get-RegistrationContext
   Assert-RegistrationContext $RegistrationExecutionContext
   $InstallContext = Assert-OrdinaryUserContext
+  . (Join-Path $PackageRoot "extension-deployment.ps1")
+  $OldConfigPath = Join-Path $InstallRoot "native-helper\runtime-config.json"
+  if (Test-Path -LiteralPath $OldConfigPath) {
+    $OldConfig = Get-Content -LiteralPath $OldConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($OldConfig.extensionLoadPath -and $OldConfig.toolboxExtensionId -eq $ExtensionId) { $ExtensionLoadPath = [string]$OldConfig.extensionLoadPath }
+  }
+  if ($env:TB_UPDATE_EXTENSION_PATH) {
+    if (-not $OldConfig -or $env:TB_UPDATE_EXTENSION_PATH -cne $OldConfig.extensionLoadPath) { throw "Untrusted original extension path." }
+    $ExtensionLoadPath = $env:TB_UPDATE_EXTENSION_PATH
+  }
+  if ($OriginalExtensionPath) { $ExtensionLoadPath = $OriginalExtensionPath }
+  $ExtensionLoadPath = [IO.Path]::GetFullPath($ExtensionLoadPath)
+  if ($ExtensionLoadPath -ine (Join-Path $InstallRoot "extension")) {
+    $null = Assert-ToolboxExtensionPath $ExtensionLoadPath (Join-Path $PackageRoot "extension")
+  }
   Save-RegistrySnapshots
 
   Write-Host "[1/7] Unblocking and verifying package"
@@ -410,6 +436,11 @@ try {
       -Destination (Join-Path $StagingRoot "native-helper\depreciation-capex-forecast-state.json") -Force
   }
 
+  foreach ($PrivateFile in @("update-sources.json")) {
+    $OldFile = Join-Path $InstallRoot "native-helper\$PrivateFile"
+    if (Test-Path -LiteralPath $OldFile) { Copy-Item -LiteralPath $OldFile -Destination (Join-Path $StagingRoot "native-helper\$PrivateFile") -Force }
+  }
+
   Write-Host "[3/7] Writing runtime configuration"
   $RuntimeConfig = [ordered]@{
     pythonBin = Join-Path $InstallRoot "runtime\python-portable\python.exe"
@@ -417,6 +448,7 @@ try {
     depreciationSkillDir = Join-Path $InstallRoot "skills\depreciation-capex-forecast"
     toolboxExtensionId = $ExtensionId
     nativeHostName = $HostName
+    extensionLoadPath = $ExtensionLoadPath
   }
   [IO.File]::WriteAllText(
     (Join-Path $StagingRoot "native-helper\runtime-config.json"),
@@ -500,6 +532,7 @@ try {
     }
   }
 
+  Update-OriginalExtension
   Write-Host "[7/7] Writing installation report"
   # Re-query both keys immediately before success, catching deletion after the
   # first key was checked. A report is a timestamped observation, not a promise
@@ -532,7 +565,11 @@ try {
     "installerBuild=$InstallerBuild",
     "extensionId=$ExtensionId",
     "nativeHost=$HostName",
-    "extensionPath=$(Join-Path $InstallRoot 'extension')",
+    "extensionPath=$ExtensionLoadPath",
+    "extensionBackup=$ExtensionBackup",
+    "updateNonce=$UpdateNonce",
+    "buildId=$($BuildMetadata.buildId)",
+    "nativeExeSha256=$(Get-PackageSha256 $NativeHostExe)",
     "nativeHelper=passed",
     "pythonDependencies=passed",
     "registryReadBack=independent-powershell-process-win32-and-regexe-both-views",
@@ -572,7 +609,7 @@ try {
   Write-Host ""
   Write-Host "Installation completed. No browser profile or Explorer window was opened."
   Write-Host "In Chrome and Edge, use Load unpacked to select:"
-  Write-Host (Join-Path $InstallRoot "extension")
+  Write-Host $ExtensionLoadPath
   Write-Host "Expected extension ID: $ExtensionId"
   exit 0
 }
@@ -580,6 +617,7 @@ catch {
   $InstallError = $_.Exception.Message
   [Console]::Error.WriteLine("Installation failed: " + $InstallError)
   $RollbackErrors = @()
+  try { if (Get-Command Restore-OriginalExtension -ErrorAction SilentlyContinue) { Restore-OriginalExtension } } catch { $RollbackErrors += "Original extension rollback failed: $($_.Exception.Message)" }
   if ($InstalledNewRoot -and (Test-Path -LiteralPath $InstallRoot)) {
     try {
       Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction Stop

@@ -11,7 +11,7 @@ if (!buildSuffix) throw new Error('Explicit build suffix required; use unified s
 const sourceState = require('../scripts/release/build-common.cjs').sourceState();
 const productVersion = process.env.APPRAISAL_PRODUCT_VERSION || '0.2.1';
 const installerBuild = require('../scripts/release/build-common.cjs').installerBuild('windows-x64');
-if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2'].includes(buildSuffix)) throw new Error('Unknown build suffix');
+if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix)) throw new Error('Unknown build suffix');
 const buildId = process.env.APPRAISAL_BUILD_ID || (buildSuffix === 'round2' ? 'windows-e2e-round2.1' : buildSuffix === 'mapui' ? 'windows-map-ui.8' : buildSuffix === 'amap' ? 'windows-amap-only.7' : buildSuffix === 'layout' ? 'windows-responsive-map.6' : buildSuffix === 'inplace' ? 'windows-original-directory.5' : buildSuffix === 'fix4' ? 'windows-result-buttons.4' : buildSuffix === 'fix3' ? 'windows-current-browser.3' : 'windows-seven-fixes.2');
 const reuseBuildResult = process.argv[6] ? path.resolve(process.argv[6]) : '';
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');

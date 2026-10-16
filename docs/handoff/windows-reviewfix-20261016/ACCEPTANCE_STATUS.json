@@ -1,0 +1,24 @@
+{
+  "localChecks": true,
+  "scope": "component-protocol-file-fixtures-not-real-GUI",
+  "nativeExeSha256": "aa2c39a96f3168862cb867be187041499aa771f1e18e418d41485a9cbafdb824",
+  "packageChecksumFiles": 799,
+  "zipEntries": 800,
+  "checks": [
+    "compiled import smoke",
+    "deployed E runtime self-test with Python env overrides removed",
+    "download failure/concurrency fixtures",
+    "map SDK simulation",
+    "frontend DOM fixtures",
+    "original extension backup/rollback fixture",
+    "multi-frame protocol/legacy rejection/downgrade contracts",
+    "ZIP hashes and source mapping"
+  ],
+  "pending": [
+    "ordinary desktop install/registry/browser chain",
+    "real AMap gestures/console",
+    "complete Native auto-update GUI chain",
+    "new Mac build"
+  ],
+  "fullAcceptancePassed": false
+}
