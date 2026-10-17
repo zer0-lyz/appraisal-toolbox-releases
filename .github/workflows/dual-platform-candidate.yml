@@ -9,6 +9,11 @@ on:
       - 'macos/**'
       - 'windows/**'
       - 'scripts/release/**'
+      - 'manifest.json'
+      - 'version.json'
+      - 'runtime-compat.json'
+      - 'README.md'
+      - 'LICENSE'
       - 'release-inputs.lock.json'
       - '.github/workflows/**'
 permissions:
@@ -44,6 +49,15 @@ jobs:
           key: toolbox-${{ matrix.target }}-${{ hashFiles('release-inputs.lock.json') }}
       - name: Shared source regressions
         run: node scripts/release/source-checks.cjs
+      - name: Mac updater engine tests
+        if: matrix.target == 'macos-arm64'
+        run: node --test native-helper/update_engine_macos.test.cjs
+      - name: Install locked DOM fixture dependency
+        shell: bash
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools
+      - name: Update UI platform fixtures
+        shell: bash
+        run: node scripts/release/update-ui-fixtures.cjs scripts/release/test-tools/node_modules "$RUNNER_TEMP/update-ui-summary.json"
       - name: Bootstrap locked Windows tools
         if: matrix.target == 'windows-x64'
         shell: pwsh
@@ -55,7 +69,7 @@ jobs:
           TARGET='${{ matrix.target }}'
           TOOLS=()
           if [[ "$TARGET" == windows-x64 ]]; then TOOLS=(--tools "$RUNNER_TEMP/toolbox-cache/tools"); fi
-          node scripts/release/build.cjs --target "$TARGET" --version 0.2.1 --build-id "ci-${GITHUB_RUN_ID}" --build-number 2026101201 --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
+          node scripts/release/build.cjs --target "$TARGET" --version 0.2.2 --build-id "ci-$TARGET-$GITHUB_RUN_ID" --build-number 2026101701 --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
       - name: Mac isolated install, upgrade, rollback, and actual host protocol
         if: matrix.target == 'macos-arm64'
         shell: bash
@@ -82,4 +96,5 @@ jobs:
             ${{ runner.temp }}/toolbox-output/release-manifest.json
             ${{ runner.temp }}/toolbox-output/source-inventory.json
             ${{ runner.temp }}/toolbox-validation/**/*summary.json
+            ${{ runner.temp }}/update-ui-summary.json
           if-no-files-found: warn

@@ -5,7 +5,7 @@ const TOOLBOX_UPDATE_MANIFEST_URLS = [
   "https://gitee.com/zer0_y/appraisal-toolbox-releases/raw/master/update-manifest.json",
   "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/latest/download/update-manifest.json",
 ];
-// Windows 一键安装通过独立助手驱动，安装器保留上下文核验；其他平台提供手动入口。
+// 更新界面和协议两端共用；Native Helper 按平台加载独立安装适配器。
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const AUTO_CHECK_TIMER_MS = 30 * 60 * 1000;
 
@@ -195,10 +195,10 @@ export const updatesModule = {
         UPDATE_SHA256_REQUIRED: "官方安装包缺少有效校验值，已停止安装。",
         UPDATE_DOWNLOAD_SHA256_MISMATCH: "安装包校验失败，已删除下载文件，请重试。",
         UPDATE_PACKAGE_FILE_MISSING: "安装包文件不完整，已停止安装。",
-        UPDATE_STAGING_PATH_INVALID: "更新暂存位置无效，请使用桌面更新入口。",
+        UPDATE_STAGING_PATH_INVALID: "更新暂存路径不可用，请检查用户目录权限后重试。",
         UPDATE_DOWNLOAD_REDIRECTS_EXHAUSTED: "下载地址跳转过多，请使用其他官方通道。",
         UPDATE_TARGET_CHANGED: "发布记录发生变化，请重新检查更新。",
-        UPDATE_EXTENSION_PATH_REQUIRED: "本机尚未登记原插件目录，请先运行原桌面更新入口一次。",
+        UPDATE_EXTENSION_PATH_REQUIRED: "原插件目录与 Native Host 配置未登记，请先使用正式 Mac 完整安装包修复。",
         UPDATE_PROCESS_TIMEOUT: "安装或解压超时，请查看安装日志并确认进程已结束。",
         UPDATE_PROCESS_TERMINATION_UNCONFIRMED: "更新进程未确认结束，已阻止再次安装，请查看诊断日志。",
         UPDATE_LOCK_RELEASE_FAILED: "更新锁未能释放，请查看诊断日志后处理。",
@@ -213,7 +213,7 @@ export const updatesModule = {
         UPDATE_DOWNLOAD_NETWORK_FAILED: "安装包下载网络连接失败，请检查网络后重试。",
         UPDATE_DOWNLOAD_CHANNELS_FAILED: "所有下载通道均失败，当前版本未改变；请检查网络或打开发布页手动下载。",
         UPDATE_PYTHON_RUNTIME_UNAVAILABLE: "当前 macOS 没有可复用且兼容的 Python 运行时；当前版本未改变，请先运行 macOS 安装包。",
-        UPDATE_PYTHON_RUNTIME_ABI_UNSUPPORTED: "当前 macOS Python 缺少更新所需依赖，且版本不在轻量包支持范围内；当前版本未改变，请安装 Python 3.9/3.14 或运行 macOS 安装包。",
+        UPDATE_PYTHON_RUNTIME_ABI_UNSUPPORTED: "当前安装中的 Python 运行时不是锁定的 3.14.6，或缺少 venv/ensurepip；当前版本未改变，请用完整 Mac 安装包修复。",
         UPDATE_PREFLIGHT_FAILED: "更新环境预检未通过，当前版本未改变，请按提示修复后重试。",
         UPDATE_DOWNLOAD_TIMEOUT: "安装包下载超时，请检查网络稳定性后重试。",
         UPDATE_CHECK_TIMEOUT: "更新源响应超时，当前版本可以继续使用，请稍后重试。",
@@ -249,7 +249,7 @@ export const updatesModule = {
       }
       if (String(reason || "").startsWith("UPDATE_INSTALLER_EXIT_")) {
         const code = String(reason).slice("UPDATE_INSTALLER_EXIT_".length);
-        return "Windows 安装脚本未完成，请查看诊断日志确认当前安装状态。";
+        return "平台安装程序未完成，请查看诊断日志确认当前安装状态。";
       }
       return messages[reason] || "更新未完成，请复制诊断详情或查看安装日志。";
     }
@@ -405,7 +405,7 @@ export const updatesModule = {
 
       if (!result) {
         elements.updateHeadline.textContent = `评估工具箱 v${currentVersion}`;
-        elements.updateDescription.textContent = "Windows 可自动校验安装并更新原插件目录；其他平台请从发布页安装。";
+        elements.updateDescription.textContent = "Mac 与 Windows 可一键校验、安装并配置原插件目录。";
         elements.updateBadge.textContent = "未检查";
         elements.updateFeedback.textContent = "尚未检查工具箱专属发布源";
         elements.updateFeedback.dataset.kind = "";
@@ -567,8 +567,7 @@ export const updatesModule = {
 
     let autoUpdating = false;
 
-    // 一键更新：本机下载 → SHA-256 校验 → 解压 → 运行包内安装器（真实桌面上下文）。
-    // 安装器自带备份/原子替换/报告与上下文门禁；本函数只驱动与呈现结果。
+    // 一键更新由平台 Native Helper 下载、校验并调用原生安装器；页面只呈现进度与结果。
     async function autoDownloadInstall() {
       if (autoUpdating || checking) return;
       const result = latestResult;
@@ -602,9 +601,22 @@ export const updatesModule = {
         if (final?.ok) {
           elements.updateHeadline.textContent = "自动更新已完成";
           elements.updateBadge.textContent = "已完成";
-          elements.updateFeedback.textContent = "本机运行组件已更新为最新版本。请重启浏览器，并在扩展管理页重新加载评估工具箱。";
+          elements.updateFeedback.textContent = "本机运行组件已更新为最新版本。";
           elements.updateFeedback.dataset.kind = "ok";
           context.setStatus("一键更新完成：本机组件已安装最新版。", "ok");
+          const updatedPlatform = final?.platform || result?.platform;
+          if (["macos-arm64", "windows-x64"].includes(updatedPlatform)
+            && typeof context.chrome?.runtime?.reload === "function") {
+            elements.updateFeedback.textContent = "更新完成，正在重新加载评估工具箱扩展。";
+            window.setTimeout(() => {
+              try { context.chrome.runtime.reload(); }
+              catch {
+                elements.updateFeedback.textContent = "组件已更新，请在扩展管理页重新加载评估工具箱。";
+              }
+            }, 900);
+          } else {
+            elements.updateFeedback.textContent = "本机运行组件已更新。请在扩展管理页重新加载评估工具箱。";
+          }
         } else {
           operationStatus = final;
           const reason = final?.reason || "UPDATE_FAILED";

@@ -64,6 +64,13 @@ on_error() {
   exit "$code"
 }
 trap 'on_error $?' ERR
+on_signal() {
+  code="$1"
+  trap - ERR INT TERM HUP
+  on_error "$code"
+}
+trap 'on_signal 130' INT
+trap 'on_signal 143' TERM HUP
 
 fail() {
   echo "安装失败：$1" >&2

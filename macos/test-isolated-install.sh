@@ -27,6 +27,10 @@ printf '{"amap":{"enabled":false}}\n' > "$APPRAISAL_TOOLBOX_ROOT/map-config.json
 for task_file in history/preserve.txt cache/preserve.txt projects/fixture/workbooks/preserve.txt map-config.json; do
   [[ -f "$APPRAISAL_TOOLBOX_ROOT/$task_file" ]] || { echo "Upgrade lost $task_file" >&2; exit 1; }
 done
+TASK_SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$PACKAGE_ROOT/runtime/node/bin/node" "$TASK_SOURCE_ROOT/scripts/release/test-macos-update-e2e.cjs" \
+  "$PACKAGE_ROOT" "$APPRAISAL_TOOLBOX_ROOT" "$TASK_TEST_ROOT" "$TASK_SOURCE_ROOT" \
+  > "$TASK_TEST_ROOT/one-click-update.json"
 # Inject a real Edge write failure in the disposable browser-home only.
 TASK_EDGE_ROOT="$APPRAISAL_BROWSER_HOME/Library/Application Support/Microsoft Edge/NativeMessagingHosts"
 mv "$TASK_EDGE_ROOT" "$TASK_TEST_ROOT/edge-before"
@@ -37,7 +41,6 @@ fi
 [[ "$(cat "$APPRAISAL_TOOLBOX_ROOT/history/preserve.txt")" == 'synthetic-history' ]] || exit 1
 rm "$TASK_EDGE_ROOT"
 mv "$TASK_TEST_ROOT/edge-before" "$TASK_EDGE_ROOT"
-TASK_SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 node "$TASK_SOURCE_ROOT/scripts/release/verify-package.cjs" "$APPRAISAL_TOOLBOX_ROOT" "$TASK_TEST_ROOT/protocol"
 node - "$TASK_TEST_ROOT/installer-summary.json" <<'NODE'
 const fs=require('node:fs');

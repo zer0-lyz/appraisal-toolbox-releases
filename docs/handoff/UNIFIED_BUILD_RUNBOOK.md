@@ -1,11 +1,11 @@
 # 同一 commit 双端候选构建
 
-入口已实现，正式发布不属于本入口。输出与缓存必须在源码树外、输出必须新建。构建拒绝 tracked/untracked 脏树；锁文件 hash、sourceCommit、installerBuild、载荷 SHA 与候选 ZIP SHA 自动生成。产品版本仍 0.2.1，ID/host 不变。没有改变共享 Latest。
+入口已实现，正式发布不属于本入口。输出与缓存必须在源码树外、输出必须新建。构建拒绝 tracked/untracked 脏树；锁文件 hash、sourceCommit、installerBuild、载荷 SHA 与候选 ZIP SHA 自动生成。当前候选版本为 0.2.2（buildNumber 2026101701），stable 与共享 Latest 仍为 0.2.1；ID/host 不变。本入口只生成候选，不发布 Release。
 
 ## Mac arm64
 
 ```bash
-node scripts/release/build.cjs --target macos-arm64 --version 0.2.1 --build-id mac-handoff-20261012 --build-number 2026101201 --output /tmp/toolbox-mac-candidate --cache /tmp/toolbox-build-cache --base-archive /path/appraisal-toolbox-v0.2.1-macos-arm64-full.zip
+node scripts/release/build.cjs --target macos-arm64 --version 0.2.2 --build-id mac-candidate-20261017 --build-number 2026101701 --output /tmp/toolbox-mac-candidate --cache /tmp/toolbox-build-cache --base-archive /path/appraisal-toolbox-v0.2.1-macos-arm64-full.zip
 ```
 
 `--base-archive` 可省略，入口从根锁的指定发行资产下载并校验 SHA；已命中按 target+lock+baseSHA 缓存也逐文件核验，拒绝额外文件。仅复用官方 runtime（Node/Python pkg/全部离线 wheels）；业务每轮取 Git tracked 源码。`--python` 指定组包标准库解释器，默认 `/usr/bin/python3`，实际版本/摘要记录于 provenance；它不是交付 Python，不能代替四入口/Excel 验收。
@@ -23,7 +23,7 @@ bash macos/test-isolated-install.sh /tmp/toolbox-mac-candidate/<manifest.package
 ```powershell
 # 官方 v24.18.1 node.exe 必须与锁 SHA 一致；不可用其他 Node 替代。
 ./windows/bootstrap-build-tools.ps1 -ToolsDirectory C:/ToolboxBuildCache/tools
-node scripts/release/build.cjs --target windows-x64 --version 0.2.1 --build-id windows-handoff-20261012 --build-number 2026101201 --output C:/ToolboxCandidate --cache C:/ToolboxBuildCache --tools C:/ToolboxBuildCache/tools --base-archive C:/Inputs/appraisal-toolbox-v0.2.1-windows-x64-full.zip
+node scripts/release/build.cjs --target windows-x64 --version 0.2.2 --build-id windows-candidate-20261017 --build-number 2026101701 --output C:/ToolboxCandidate --cache C:/ToolboxBuildCache --tools C:/ToolboxBuildCache/tools --base-archive C:/Inputs/appraisal-toolbox-v0.2.1-windows-x64-full.zip
 ```
 
 工具下载只信根锁固定 URL/SHA512，不动态接受 registry 改变的 integrity；缓存 tar 核验后逐文件对已解模块，拒绝额外模块文件。Windows 全量 adapter 使用同一 clean source commit，自动读取 `.6`。旧 wrapper 改为 mandatory BuildSuffix，取消静默 fix2。不全局变更执行策略。Windows suffix仅兼容旧命令，统一参数才是新入口。

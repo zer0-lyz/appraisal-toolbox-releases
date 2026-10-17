@@ -3,7 +3,7 @@
 独立于天源底稿系统运行的 Chrome 侧边栏扩展，收录评估业务中不依赖天源页面绑定的数据采集与测算工具。
 
 - 扩展 ID（由 manifest key 固定）：`aamfmhcbjgofhmannejoiilkkpchfkgm`
-- 当前版本：`0.2.1`（构建 `2026100902`）
+- 当前候选源码版本：`0.2.2`（buildNumber `2026101701`）；已发布 stable 仍为 `0.2.1`
 - 许可：MIT
 
 ## 功能模块
@@ -35,8 +35,8 @@
 
 扩展只检查本仓库的更新清单
 （`https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/latest/download/update-manifest.json`），
-与主工作台的更新通道完全隔离；页内不做组件覆盖安装，检测到新版本时引导到发布页下载。
-正式 Release 发布前，更新页显示「尚未发布」属预期。
+与主工作台的更新通道完全隔离。macOS Apple Silicon 与 Windows x64 提供 Native Host 协助的一键更新；其他环境或不支持自动更新时引导到发布页。
+当前 `0.2.2` 是候选版本，稳定版与共享 Latest 仍为 `0.2.1`；真实 Windows 桌面安装和更新链须由 Windows 实机验收。
 
 ## 架构
 
