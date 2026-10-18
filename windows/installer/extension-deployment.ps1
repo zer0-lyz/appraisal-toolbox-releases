@@ -23,7 +23,9 @@ function Update-OriginalExtension {
   $null = Assert-ToolboxExtensionPath $ExtensionLoadPath (Join-Path $PackageRoot 'extension')
   $script:ExtensionStaging = "$ExtensionLoadPath.staging-$UniqueSuffix"
   $script:ExtensionBackup = "$ExtensionLoadPath.previous-$UniqueSuffix"
+  Write-UpdateTransactionJournal "preparing-original-extension"
   Save-InstallTreeSnapshot $ExtensionLoadPath $ExtensionSnapshotPath
+  Write-UpdateTransactionJournal "original-extension-snapshotted"
   Copy-Tree (Join-Path $PackageRoot 'extension') $ExtensionStaging
   # Verify all staged bytes before touching the original directory.
   $SourceSnapshot = "$ExtensionSnapshotPath.package.json"
@@ -31,8 +33,10 @@ function Update-OriginalExtension {
   $null = Verify-ExternalTree $ExtensionStaging $SourceSnapshot
   Move-Item -LiteralPath $ExtensionLoadPath -Destination $ExtensionBackup
   $script:ExtensionMoved = $true
+  Write-UpdateTransactionJournal "original-extension-moved"
   Move-Item -LiteralPath $ExtensionStaging -Destination $ExtensionLoadPath
   $script:ExtensionReplaced = $true
+  Write-UpdateTransactionJournal "new-original-extension-installed"
   $null = Verify-ExternalTree $ExtensionLoadPath $SourceSnapshot
 }
 

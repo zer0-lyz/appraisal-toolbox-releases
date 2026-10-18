@@ -35,3 +35,19 @@ Mac 历史生产输入：官方 v0.2.1 Mac ZIP `4570d0fa51a0284fbee1f5157731fc7b
 | 源未归档/浏览器agent故障 | 本仓库全部共享源+平台安装器；固定 Issue #1 | 下次双方仅同一共同 commit 构建；agent能力故障与产品缺陷分开 | 本 PR/sourceCommit/manifest为接续入口；GUI不给协议证据冒名 |
 
 Windows 历史已验业务规则不回改。Windows 发布 `.6` 的历史 ZIP/EXE 与脏源码构建事实保持原记录，新候选不冒用旧 SHA。平台专属修改与新共享 decoder 需要 Windows 对受影响项目复验后才能提出合并/发布。
+
+## Windows 自动更新事务补强（2026-10-18）
+
+针对 PR #12 的 Windows 候选复审，补充以下 Windows 事务保护：`native-helper/update_engine.js` 对安装器失败报告按 update nonce 和安装根绑定；只有安装器明确报告回滚成功且旧 Native EXE/原扩展版本指纹匹配，才释放更新锁。安装结果缺少成功证明时尝试使用原安装器、原上下文门禁及持久 journal 恢复；journal 缺失、回滚证据无效或安装进程树未确认结束时失败关闭并保留锁。`windows/installer/install.ps1` 的失败报告携带 nonce，回滚失败时保留旧安装快照。UI 对恢复状态不明的失败显示中文修复指引，并在当前模块生命周期内禁用再次更新。
+
+Mac 的 `native-helper/update_engine_macos.js`、`native-helper/platform/macos.js`、Mac 安装器及签名流程未改。共享 `src/modules/updates/module.js` 的安装路径错误文案依据返回平台区分；新增阻断状态仅对事务不确定、Native 更新锁仍占用等结果生效。Mac 与 Windows 的合成 DOM 状态均在本机回归；真实 GUI 与 Mac 实机仍需各自验收。
+
+构建环节在 PowerShell `-NoProfile` 子进程中曾遇到可选 `Microsoft.PowerShell.Archive` 模块自动加载失败。Windows 包构建器现对 SHA-256 已核验的基础 ZIP 使用 .NET `ZipFile` API，并在写入前校验每个条目都落在解压目标目录内；该修改只影响开发/打包工具，不改变用户更新时的安装解压路径。
+
+新的 Native 自测还发现，扩展模块随附的折旧模板存在于 `src/modules/depreciation-capex-forecast/assets/`，但源码技能目录缺少运行时要求的文件名，导致从源码构建的 `skills/depreciation-capex-forecast` 不完整。已将模板按原字节放入技能目录，SHA-256 与扩展资源及 v0.2.1 锁定基础包一致；构建测试现在要求扩展与技能目录都含精确文件名 `折旧摊销预测输入模板.xlsx`，且两个模板字节完全相同。
+
+统一 Windows 构建在重打最终 ZIP 后曾只刷新顶层 `release-manifest.json`，adapter 内 `build-result.json` 仍保留预封装 ZIP 摘要。现在两处摘要都会跟随最终 ZIP 更新，回归测试覆盖 adapter 结果摘要与最终 ZIP 一致。
+
+更新引擎在校验下载 SHA 后启动解压器时，漏传 `commandLaunchSpec` 的参数数组，导致更新在解压前以 `args is not iterable` 失败。调用方现显式传空数组，跨平台命令启动器也将省略参数默认为空数组；Native 隔离夹具覆盖有效 SHA 后确实进入解压器启动步骤。
+
+本轮本地分支为 `codex/windows-update-acceptance-fix-20261018`，初始提交是 PR #12 候选源码快照，不带 PR 上游 Git 历史或远端；本地提交和包只作为隔离修复证据，不得声称已更新 PR head。CI 产物使用独立 buildId/ZIP SHA；未发布 stable、未改共享 Latest。历史最终夹具记录见 `C:\AppraisalToolboxAcceptance\v0.2.1\evidence\updates-v022-20261017\repair-validation-20261018-final\`，完整修复报告见 `C:\AppraisalToolboxAcceptance\v0.2.1\evidence\updates-v022-20261017\repair-validation-20261018-continuation\版本更新模块修复与隔离验收-20261018.md`。

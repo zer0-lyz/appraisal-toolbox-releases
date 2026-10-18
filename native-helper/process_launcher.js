@@ -65,7 +65,7 @@ function selfLaunchSpec(args, {
   };
 }
 
-function commandLaunchSpec(command, args, {
+function commandLaunchSpec(command, args = [], {
   platform = process.platform,
   env = process.env,
 } = {}) {

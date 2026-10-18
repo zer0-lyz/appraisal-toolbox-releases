@@ -1,7 +1,10 @@
 param(
   [string]$InstallRoot = "",
   [string]$RegistryTestRoot = "",
-  [string]$OriginalExtensionPath = ""
+  [string]$OriginalExtensionPath = "",
+  [switch]$RecoverUpdateTransaction,
+  [string]$RecoveryJournalPath = "",
+  [string]$RecoveryNonce = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,7 +37,7 @@ $InstallSnapshotPath = Join-Path $env:TEMP "AppraisalToolbox-install-snapshot-$U
 $HostName = "com.appraisal.toolbox.helper"
 $ExtensionId = "aamfmhcbjgofhmannejoiilkkpchfkgm"
 $ProductVersion = ""
-$InstallerBuild = "windows-context-attested.7"
+$InstallerBuild = "windows-context-attested.8"
 $BuildMetadata = $null
 $ExtensionLoadPath = Join-Path $InstallRoot "extension"
 $ExtensionMoved = $false
@@ -44,6 +47,7 @@ $ExtensionBackup = ""
 $ExtensionSnapshotPath = Join-Path $env:TEMP "AppraisalToolbox-extension-snapshot-$UniqueSuffix.json"
 $UpdateNonce = [string]$env:TB_UPDATE_NONCE
 if ($UpdateNonce -and $UpdateNonce -notmatch "^[a-f0-9-]{36}$") { throw "Invalid update nonce." }
+$TransactionJournalPath = [string]$env:TB_UPDATE_JOURNAL_PATH
 $VersionFile = Join-Path $PackageRoot "VERSION.txt"
 if (Test-Path -LiteralPath $VersionFile -PathType Leaf) {
   foreach ($Line in Get-Content -LiteralPath $VersionFile -Encoding UTF8) {
@@ -391,6 +395,202 @@ function Restore-RegistrySnapshot([string]$RegistryPath, $Snapshot) {
   }
 }
 
+function Assert-NoReparsePath([string]$Path) {
+  $Resolved = [IO.Path]::GetFullPath($Path)
+  for ($Cursor = $Resolved; $Cursor; $Cursor = Split-Path -Parent $Cursor) {
+    if (Test-Path -LiteralPath $Cursor) {
+      $Item = Get-Item -LiteralPath $Cursor -Force
+      if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) { Fail "Update recovery path contains a reparse point: $Cursor" }
+    }
+    if ((Split-Path -Parent $Cursor) -eq $Cursor) { break }
+  }
+}
+
+function Assert-UpdateJournalPath([string]$Path) {
+  if (-not $Path) { Fail "Update transaction journal path is missing." }
+  $Resolved = [IO.Path]::GetFullPath($Path)
+  $Directory = Split-Path -Parent $Resolved
+  $AllowedRoot = Join-Path (Join-Path (Split-Path -Parent $InstallRoot) ".AppraisalToolbox-updates") "run-"
+  $AllowedRoot = [IO.Path]::GetFullPath($AllowedRoot)
+  if ([IO.Path]::GetFileName($Resolved) -cne "update-transaction.json" -or
+      -not $Directory.StartsWith($AllowedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+      ((Split-Path -Parent $Directory) -ine (Join-Path (Split-Path -Parent $InstallRoot) ".AppraisalToolbox-updates"))) {
+    Fail "Update transaction journal is outside the updater staging directory."
+  }
+  Assert-NoReparsePath $Directory
+  return $Resolved
+}
+
+function Write-UpdateTransactionJournal([string]$Phase) {
+  if (-not $UpdateNonce) { return }
+  $JournalPath = Assert-UpdateJournalPath $TransactionJournalPath
+  $Journal = [ordered]@{
+    schemaVersion = 1
+    status = $Phase
+    nonce = $UpdateNonce
+    userSid = [string]$RegistrationExecutionContext.userSid
+    sessionId = [int]$RegistrationExecutionContext.sessionId
+    installRoot = $InstallRoot
+    stagingRoot = $StagingRoot
+    backupRoot = $BackupRoot
+    installSnapshotPath = $InstallSnapshotPath
+    extensionLoadPath = $ExtensionLoadPath
+    extensionStaging = $ExtensionStaging
+    extensionBackup = $ExtensionBackup
+    extensionSnapshotPath = $ExtensionSnapshotPath
+    registrySnapshots = $RegistrySnapshots
+    writtenAtUtc = [DateTime]::UtcNow.ToString('o')
+  }
+  $TemporaryPath = "$JournalPath.tmp-$PID"
+  [IO.File]::WriteAllText($TemporaryPath, ($Journal | ConvertTo-Json -Depth 16), [Text.UTF8Encoding]::new($false))
+  Move-Item -LiteralPath $TemporaryPath -Destination $JournalPath -Force
+}
+
+function Invoke-UpdateTransactionRecovery {
+  if ($TestMode -or $RegistryTestRoot) { Fail "Update transaction recovery is not available in installer fixture mode." }
+  if (-not $UpdateNonce -or $RecoveryNonce -cne $UpdateNonce) { Fail "Update recovery nonce does not match the initiating transaction." }
+  $JournalPath = Assert-UpdateJournalPath $RecoveryJournalPath
+  if (-not (Test-Path -LiteralPath $JournalPath -PathType Leaf)) { Fail "Update transaction journal is missing." }
+  try { $Journal = Get-Content -LiteralPath $JournalPath -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop }
+  catch { Fail "Update transaction journal is invalid." }
+  if ([int]$Journal.schemaVersion -ne 1 -or [string]$Journal.nonce -cne $UpdateNonce -or
+      [int]$Journal.sessionId -ne [int]$RegistrationExecutionContext.sessionId -or
+      [string]$Journal.userSid -cne [string]$RegistrationExecutionContext.userSid -or
+      (Normalize-ComparablePath ([string]$Journal.installRoot)) -ine (Normalize-ComparablePath $InstallRoot)) {
+    Fail "Update transaction journal identity does not match the current desktop session."
+  }
+
+  $InstallParent = Split-Path -Parent $InstallRoot
+  $InstallName = Split-Path -Leaf $InstallRoot
+  $ExpectedBackupPrefix = $InstallName + ".previous-"
+  $BackupPath = [IO.Path]::GetFullPath([string]$Journal.backupRoot)
+  if ((Split-Path -Parent $BackupPath) -ine $InstallParent -or
+      -not (Split-Path -Leaf $BackupPath).StartsWith($ExpectedBackupPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+      (Split-Path -Leaf $BackupPath).Substring($ExpectedBackupPrefix.Length) -notmatch '^[A-Za-z0-9-]+$') {
+    Fail "Update transaction backup path is invalid."
+  }
+  Assert-NoReparsePath $BackupPath
+
+  $OriginalRoot = if (Test-Path -LiteralPath $BackupPath -PathType Container) { $BackupPath } else { $InstallRoot }
+  if (-not (Test-Path -LiteralPath $OriginalRoot -PathType Container)) { Fail "Neither the previous installation nor its backup is available." }
+  $OriginalConfigPath = Join-Path $OriginalRoot "native-helper\runtime-config.json"
+  if (-not (Test-Path -LiteralPath $OriginalConfigPath -PathType Leaf)) { Fail "Previous installation runtime configuration is missing." }
+  try { $OriginalConfig = Get-Content -LiteralPath $OriginalConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop }
+  catch { Fail "Previous installation runtime configuration is invalid." }
+  if ([string]$OriginalConfig.toolboxExtensionId -cne $ExtensionId) { Fail "Previous installation extension identity is invalid." }
+  $ExpectedExtensionPath = if ($OriginalConfig.extensionLoadPath) { [IO.Path]::GetFullPath([string]$OriginalConfig.extensionLoadPath) } else { Join-Path $InstallRoot "extension" }
+  $ExtensionPath = [IO.Path]::GetFullPath([string]$Journal.extensionLoadPath)
+  if ((Normalize-ComparablePath $ExtensionPath) -ine (Normalize-ComparablePath $ExpectedExtensionPath)) { Fail "Update recovery extension path does not match the previous installation." }
+
+  $InstallSnapshotPath = [IO.Path]::GetFullPath([string]$Journal.installSnapshotPath)
+  $ExtensionSnapshotPath = [IO.Path]::GetFullPath([string]$Journal.extensionSnapshotPath)
+  $TempRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\')
+  foreach ($Snapshot in @($InstallSnapshotPath, $ExtensionSnapshotPath)) {
+    if ((Split-Path -Parent $Snapshot).TrimEnd('\') -ine $TempRoot -or
+        (Split-Path -Leaf $Snapshot) -notmatch '^AppraisalToolbox-(?:install|extension)-snapshot-[A-Za-z0-9-]+\.json$') {
+      Fail "Update recovery snapshot path is invalid."
+    }
+  }
+
+  $Snapshots = @{}
+  foreach ($Property in $Journal.registrySnapshots.PSObject.Properties) { $Snapshots[$Property.Name] = $Property.Value }
+  if ($Snapshots.Count -ne $RegistryPaths.Count) { Fail "Update transaction registry snapshot is incomplete." }
+  foreach ($RegistryPath in $RegistryPaths) { if (-not $Snapshots.ContainsKey($RegistryPath)) { Fail "Update transaction registry snapshot is incomplete." } }
+
+  if (Test-Path -LiteralPath $BackupPath -PathType Container) {
+    if (-not (Test-Path -LiteralPath $InstallSnapshotPath -PathType Leaf)) { Fail "Previous installation snapshot is missing; automatic rollback is unsafe." }
+    $null = Verify-ExternalTree $BackupPath $InstallSnapshotPath
+    if (Test-Path -LiteralPath $InstallRoot) {
+      Assert-NoReparsePath $InstallRoot
+      Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction Stop
+      if (Test-Path -LiteralPath $InstallRoot) { Fail "Partial installation directory could not be removed." }
+    }
+    Move-Item -LiteralPath $BackupPath -Destination $InstallRoot -ErrorAction Stop
+    $null = Verify-ExternalTree $InstallRoot $InstallSnapshotPath
+  } elseif (Test-Path -LiteralPath $InstallRoot -PathType Container) {
+    if (Test-Path -LiteralPath $InstallSnapshotPath -PathType Leaf) { $null = Verify-ExternalTree $InstallRoot $InstallSnapshotPath }
+    # With no backup and no snapshot, the installer is guaranteed to have been
+    # terminated before its first root move, which is ordered after the snapshot.
+  } else {
+    Fail "Previous installation root and rollback backup are both missing."
+  }
+
+  $ExtensionBackupPath = [string]$Journal.extensionBackup
+  $ExtensionStagingPath = [string]$Journal.extensionStaging
+  $InternalExtensionPath = Normalize-ComparablePath (Join-Path $InstallRoot "extension")
+  if ((Normalize-ComparablePath $ExtensionPath) -ine $InternalExtensionPath) {
+    $ExtensionParent = Split-Path -Parent $ExtensionPath
+    $ExtensionName = Split-Path -Leaf $ExtensionPath
+    if ($ExtensionBackupPath) {
+      $ExtensionBackupPath = [IO.Path]::GetFullPath($ExtensionBackupPath)
+      $ExpectedExtensionBackupPrefix = $ExtensionName + ".previous-"
+      if ((Split-Path -Parent $ExtensionBackupPath) -ine $ExtensionParent -or
+          -not (Split-Path -Leaf $ExtensionBackupPath).StartsWith($ExpectedExtensionBackupPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+          (Split-Path -Leaf $ExtensionBackupPath).Substring($ExpectedExtensionBackupPrefix.Length) -notmatch '^[A-Za-z0-9-]+$') {
+        Fail "Original extension backup path is invalid."
+      }
+      Assert-NoReparsePath $ExtensionBackupPath
+    }
+    if ($ExtensionBackupPath -and (Test-Path -LiteralPath $ExtensionBackupPath -PathType Container)) {
+      if (-not (Test-Path -LiteralPath $ExtensionSnapshotPath -PathType Leaf)) { Fail "Original extension snapshot is missing; automatic rollback is unsafe." }
+      $null = Verify-ExternalTree $ExtensionBackupPath $ExtensionSnapshotPath
+      if (Test-Path -LiteralPath $ExtensionPath) {
+        Assert-NoReparsePath $ExtensionPath
+        Remove-Item -LiteralPath $ExtensionPath -Recurse -Force -ErrorAction Stop
+      }
+      Move-Item -LiteralPath $ExtensionBackupPath -Destination $ExtensionPath -ErrorAction Stop
+      $null = Verify-ExternalTree $ExtensionPath $ExtensionSnapshotPath
+    } elseif (Test-Path -LiteralPath $ExtensionPath -PathType Container) {
+      if (Test-Path -LiteralPath $ExtensionSnapshotPath -PathType Leaf) { $null = Verify-ExternalTree $ExtensionPath $ExtensionSnapshotPath }
+      # No extension backup means the installer was terminated before its atomic rename.
+    } else {
+      Fail "Original extension and its rollback backup are both missing."
+    }
+    if ($ExtensionStagingPath -and (Test-Path -LiteralPath $ExtensionStagingPath)) {
+      $ExtensionStagingPath = [IO.Path]::GetFullPath($ExtensionStagingPath)
+      if ((Split-Path -Parent $ExtensionStagingPath) -ine $ExtensionParent -or
+          -not (Split-Path -Leaf $ExtensionStagingPath).StartsWith(($ExtensionName + ".staging-"), [StringComparison]::OrdinalIgnoreCase)) {
+        Fail "Original extension staging path is invalid."
+      }
+      Assert-NoReparsePath $ExtensionStagingPath
+      Remove-Item -LiteralPath $ExtensionStagingPath -Recurse -Force -ErrorAction Stop
+    }
+  }
+
+  foreach ($RegistryPath in $RegistryPaths) {
+    Restore-RegistrySnapshot $RegistryPath $Snapshots[$RegistryPath]
+    $Actual = Read-ExternalRegistryState $RegistryPath
+    $Expected = $Snapshots[$RegistryPath]
+    if ([bool]$Actual.exists -ne [bool]$Expected.Exists -or
+        [bool]$Actual.defaultValueExists -ne [bool]$Expected.DefaultValueExists -or
+        ($Expected.DefaultValueExists -and ([string]$Actual.value -cne [string]$Expected.Value -or [string]$Actual.valueKind -cne [string]$Expected.Kind))) {
+      Fail "Native Messaging registration rollback did not verify: $RegistryPath"
+    }
+  }
+  if (Test-Path -LiteralPath ([string]$Journal.stagingRoot)) {
+    $StagingPath = [IO.Path]::GetFullPath([string]$Journal.stagingRoot)
+    if ((Split-Path -Parent $StagingPath) -ine $InstallParent -or
+        -not (Split-Path -Leaf $StagingPath).StartsWith(($InstallName + ".staging-"), [StringComparison]::OrdinalIgnoreCase)) {
+      Fail "Runtime staging path is invalid."
+    }
+    Assert-NoReparsePath $StagingPath
+    Remove-Item -LiteralPath $StagingPath -Recurse -Force -ErrorAction Stop
+  }
+
+  $Report = [ordered]@{
+    status = "recovered"
+    nonce = $UpdateNonce
+    installRoot = $InstallRoot
+    installRootRestored = $true
+    extensionRestored = $true
+    registryRestored = $true
+    recoveryExecutionContext = $RegistrationExecutionContext
+    recoveredAtUtc = [DateTime]::UtcNow.ToString('o')
+  }
+  [IO.File]::WriteAllText("$JournalPath.recovery-report.json", ($Report | ConvertTo-Json -Depth 12), [Text.UTF8Encoding]::new($false))
+  Write-Host "Timed-out update transaction rollback verified."
+}
+
 try {
   Write-Host "[0/7] Checking ordinary Windows user context"
   . (Join-Path $PackageRoot 'registration-context.ps1')
@@ -398,6 +598,11 @@ try {
   Assert-RegistrationContext $RegistrationExecutionContext
   $InstallContext = Assert-OrdinaryUserContext
   . (Join-Path $PackageRoot "extension-deployment.ps1")
+  if ($RecoverUpdateTransaction) {
+    Invoke-UpdateTransactionRecovery
+    exit 0
+  }
+  if ($RecoveryJournalPath -or $RecoveryNonce) { Fail "Recovery parameters require -RecoverUpdateTransaction." }
   $OldConfigPath = Join-Path $InstallRoot "native-helper\runtime-config.json"
   if (Test-Path -LiteralPath $OldConfigPath) {
     $OldConfig = Get-Content -LiteralPath $OldConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -457,13 +662,22 @@ try {
   )
 
   Write-Host "[4/7] Installing atomically"
+  if ($ExtensionLoadPath -ine (Join-Path $InstallRoot "extension")) {
+    $ExtensionStaging = "$ExtensionLoadPath.staging-$UniqueSuffix"
+    $ExtensionBackup = "$ExtensionLoadPath.previous-$UniqueSuffix"
+  }
+  if ($UpdateNonce -and -not $TransactionJournalPath) { Fail "Update transaction journal path is required." }
+  Write-UpdateTransactionJournal "prepared"
   if (Test-Path -LiteralPath $InstallRoot) {
     Save-InstallTreeSnapshot $InstallRoot $InstallSnapshotPath
+    Write-UpdateTransactionJournal "previous-root-snapshotted"
     Move-Item -LiteralPath $InstallRoot -Destination $BackupRoot
     $MovedExistingRoot = $true
+    Write-UpdateTransactionJournal "previous-root-moved"
   }
   Move-Item -LiteralPath $StagingRoot -Destination $InstallRoot
   $InstalledNewRoot = $true
+  Write-UpdateTransactionJournal "new-root-installed"
 
   Write-Host "[5/7] Running Python and Native Helper self-tests"
   $PythonExe = Join-Path $InstallRoot "runtime\python-portable\python.exe"
@@ -665,7 +879,11 @@ catch {
     }
   }
   if (Test-Path -LiteralPath $InstallSnapshotPath -PathType Leaf) {
-    Remove-Item -LiteralPath $InstallSnapshotPath -Force -ErrorAction SilentlyContinue
+    if ($RollbackErrors.Count -eq 0) {
+      Remove-Item -LiteralPath $InstallSnapshotPath -Force -ErrorAction SilentlyContinue
+    } else {
+      [Console]::Error.WriteLine("Previous installation snapshot retained for recovery: $InstallSnapshotPath")
+    }
   }
   if ($RollbackErrors.Count -gt 0) {
     foreach ($RollbackError in $RollbackErrors) {
@@ -680,6 +898,7 @@ catch {
       status = "failed"
       productVersion = $ProductVersion
       installerBuild = $InstallerBuild
+      updateNonce = $UpdateNonce
       fixtureOnly = [bool]($TestMode -and $RegistryTestRoot)
       error = $InstallError
       executionContext = $RegistrationExecutionContext
