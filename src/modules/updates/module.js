@@ -121,6 +121,8 @@ export const updatesModule = {
     let context;
     let elements;
     let checking = false;
+    let autoUpdating = false;
+    let recoveryBlocked = false;
     let latestResult = null;
     let versionConfig = null;
     let runtimeContract = null;
@@ -198,9 +200,12 @@ export const updatesModule = {
         UPDATE_STAGING_PATH_INVALID: "更新暂存路径不可用，请检查用户目录权限后重试。",
         UPDATE_DOWNLOAD_REDIRECTS_EXHAUSTED: "下载地址跳转过多，请使用其他官方通道。",
         UPDATE_TARGET_CHANGED: "发布记录发生变化，请重新检查更新。",
-        UPDATE_EXTENSION_PATH_REQUIRED: "原插件目录与 Native Host 配置未登记，请先使用正式 Mac 完整安装包修复。",
         UPDATE_PROCESS_TIMEOUT: "安装或解压超时，请查看安装日志并确认进程已结束。",
+        UPDATE_PROCESS_TIMEOUT_ROLLED_BACK: "安装超过时限，已核验旧版本仍可用，可以稍后重试。",
+        UPDATE_PROCESS_RECOVERY_FAILED: "安装超过时限，自动恢复未能核验；请保留诊断详情并联系技术支持。",
         UPDATE_PROCESS_TERMINATION_UNCONFIRMED: "更新进程未确认结束，已阻止再次安装，请查看诊断日志。",
+        UPDATE_INSTALLER_ROLLED_BACK: "安装未完成，已核验旧版本与原插件目录仍可用，可以稍后重试。",
+        UPDATE_INSTALLER_ROLLBACK_FAILED: "安装未完成，旧版本恢复状态无法核验；更新已锁定，请保留诊断详情并联系技术支持。",
         UPDATE_LOCK_RELEASE_FAILED: "更新锁未能释放，请查看诊断日志后处理。",
         APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED: "本地助手尚不支持此动作，请使用原桌面更新入口。",
         NATIVE_STREAM_IDLE_TIMEOUT: "更新响应超时，请查看诊断详情与安装日志。",
@@ -239,6 +244,16 @@ export const updatesModule = {
       }
       if (String(reason || "").startsWith("UPDATE_PYTHON_RUNTIME_ABI_UNSUPPORTED")) {
         return messages.UPDATE_PYTHON_RUNTIME_ABI_UNSUPPORTED;
+      }
+      if (reason === "UPDATE_EXTENSION_PATH_REQUIRED") {
+        const platform = String(latestResult?.platform || "");
+        if (platform === "windows-x64") {
+          return "未找到原 Windows 插件目录或本机助手配置。请从原 Windows 安装目录修复或重新安装，然后重试。";
+        }
+        if (platform.startsWith("macos-")) {
+          return "未找到原 Mac 插件目录或本机助手配置。请运行正式 Mac 完整安装包修复，然后重试。";
+        }
+        return "未找到当前平台的原插件目录或本机助手配置，请运行对应平台的完整安装包修复。";
       }
       if (String(reason || "").startsWith("UPDATE_DOWNLOAD_HTTP_")) {
         const code = String(reason).slice("UPDATE_DOWNLOAD_HTTP_".length);
@@ -396,7 +411,7 @@ export const updatesModule = {
         elements.openReleasePage.dataset.url = releaseUrl;
       }
       if (elements.updatePrimaryAction) {
-        elements.updatePrimaryAction.disabled = operationBusy;
+        elements.updatePrimaryAction.disabled = operationBusy || recoveryBlocked;
         // 发现新版本/需修复时主按钮一键自动更新；其余场景保持检查行为。
         elements.updatePrimaryAction.textContent = result?.updateAvailable || result?.repairRequired
           ? (result.autoUpdateSupported === true ? "自动下载并更新" : "打开发布页")
@@ -565,10 +580,12 @@ export const updatesModule = {
       await context.chrome.tabs.create({ url });
     }
 
-    let autoUpdating = false;
-
     // 一键更新由平台 Native Helper 下载、校验并调用原生安装器；页面只呈现进度与结果。
     async function autoDownloadInstall() {
+      if (recoveryBlocked) {
+        context.setStatus("更新事务需要人工检查，请先查看诊断详情。", "error");
+        return;
+      }
       if (autoUpdating || checking) return;
       const result = latestResult;
       if (!result?.updateAvailable && !result?.repairRequired) {
@@ -620,6 +637,7 @@ export const updatesModule = {
         } else {
           operationStatus = final;
           const reason = final?.reason || "UPDATE_FAILED";
+          if (["UPDATE_PROCESS_TERMINATION_UNCONFIRMED", "UPDATE_PROCESS_RECOVERY_FAILED", "UPDATE_INSTALLER_ROLLBACK_FAILED", "UPDATE_COMPLETION_STATUS_MISSING", "UPDATE_LOCK_RELEASE_FAILED", "UPDATE_ALREADY_RUNNING"].includes(reason)) recoveryBlocked = true;
           elements.updateBadge.textContent = "更新未完成";
           elements.updateFeedback.textContent = updateFailureText(reason);
           elements.updateFeedback.dataset.kind = "error";
@@ -627,6 +645,7 @@ export const updatesModule = {
         }
       } catch (error) {
         const reason = error?.message || String(error);
+        if (["NATIVE_STREAM_IDLE_TIMEOUT", "UPDATE_PROCESS_TERMINATION_UNCONFIRMED", "UPDATE_PROCESS_RECOVERY_FAILED", "UPDATE_INSTALLER_ROLLBACK_FAILED", "UPDATE_COMPLETION_STATUS_MISSING", "UPDATE_LOCK_RELEASE_FAILED", "UPDATE_ALREADY_RUNNING"].includes(reason)) recoveryBlocked = true;
         operationStatus = { ok: false, phase: "failed", reason };
         renderProgress(operationStatus);
         elements.updateBadge.textContent = "更新未完成";
@@ -635,7 +654,7 @@ export const updatesModule = {
         context.setStatus(`一键更新未完成：${updateFailureText(reason)}`, "error");
       } finally {
         autoUpdating = false;
-        elements.updatePrimaryAction.disabled = false;
+        elements.updatePrimaryAction.disabled = recoveryBlocked;
         if (elements.downloadUpdate) elements.downloadUpdate.disabled = !elements.downloadUpdate.dataset.url;
         if (elements.openReleasePage) elements.openReleasePage.disabled = !elements.openReleasePage.dataset.url;
       }
