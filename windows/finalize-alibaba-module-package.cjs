@@ -132,8 +132,7 @@ const checksumText = files(packageRoot)
 fs.writeFileSync(path.join(packageRoot, 'SHA256SUMS'), checksumText, 'utf8');
 
 const archive = path.join(output, `${outputName}.zip`);
-const zipScript = 'import pathlib,sys,zipfile\nroot=pathlib.Path(sys.argv[1]); output=pathlib.Path(sys.argv[2])\nwith zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED,compresslevel=6) as archive:\n for file in sorted(root.rglob("*")):\n  if file.is_file(): archive.write(file,root.name+"/"+file.relative_to(root).as_posix())';
-execFileSync(python, ['-X', 'utf8', '-c', zipScript, packageRoot, archive], { windowsHide: true });
+execFileSync(python, [path.join(source, 'scripts', 'release', 'package-macos.py'), 'zip', packageRoot, archive], { windowsHide: true });
 const archiveSha256 = hash(archive);
 fs.writeFileSync(archive + '.sha256', `${archiveSha256} *${path.basename(archive)}\n`, 'utf8');
 const result = {

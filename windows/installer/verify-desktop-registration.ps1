@@ -6,7 +6,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $OutputEncoding=[Text.UTF8Encoding]::new($false)
 . (Join-Path $PSScriptRoot 'registration-context.ps1')
-$context = Get-RegistrationContext
+$context = Get-RegistrationContext -CallerScriptPath $PSCommandPath
 $out = Join-Path $EvidenceRoot ([DateTime]::Now.ToString('yyyyMMdd-HHmmss') + '-' + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($out) | Out-Null
 $utf8 = [Text.UTF8Encoding]::new($false)
