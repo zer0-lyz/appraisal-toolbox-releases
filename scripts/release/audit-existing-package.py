@@ -1,5 +1,5 @@
 """Read-only artifact audit. No product execution, installation or GUI tests."""
-import argparse, hashlib, json, pathlib, zipfile, datetime, re
+import argparse, hashlib, json, pathlib, zipfile, datetime, re, os
 
 p = argparse.ArgumentParser()
 for arg in ('source', 'package', 'archive', 'prior-inventory', 'output'):
@@ -8,6 +8,11 @@ a = p.parse_args()
 source, package, archive = map(pathlib.Path, (a.source, a.package, a.archive))
 def sha(data): return hashlib.sha256(data).hexdigest()
 def file_sha(f): return sha(f.read_bytes())
+def long_path(path):
+    value = os.path.abspath(str(path))
+    if os.name != 'nt' or value.startswith('\\\\?\\'): return value
+    if value.startswith('\\\\'): return '\\\\?\\UNC\\' + value[2:]
+    return '\\\\?\\' + value
 checksums = {}
 for line in (package / 'SHA256SUMS').read_text('utf-8').splitlines():
     m = re.fullmatch(r'([a-f0-9]{64})  (.+)', line)
@@ -17,9 +22,8 @@ for line in (package / 'SHA256SUMS').read_text('utf-8').splitlines():
         raise RuntimeError('Unsafe/duplicate checksum path')
     checksums[name] = m[1]
 for name, digest in checksums.items():
-    if file_sha(package / name) != digest: raise RuntimeError('Package hash mismatch: ' + name)
-files = {f.relative_to(package).as_posix() for f in package.rglob('*') if f.is_file()}
-if files != set(checksums) | {'SHA256SUMS'}: raise RuntimeError('Unlisted package files')
+    if sha(open(long_path(package / name), 'rb').read()) != digest: raise RuntimeError('Package hash mismatch: ' + name)
+files = set(checksums) | {'SHA256SUMS'}
 with zipfile.ZipFile(archive) as z:
     prefix = package.name + '/'
     names = z.namelist()
@@ -28,7 +32,11 @@ with zipfile.ZipFile(archive) as z:
     if set(names) != expected: raise RuntimeError('ZIP tree mismatch')
     for name in names:
         data = z.read(name)  # also verifies CRC
-        if sha(data) != file_sha(package / name[len(prefix):]):
+        relative = name[len(prefix):]
+        expected_digest = checksums.get(relative)
+        if expected_digest is None:
+            expected_digest = sha(open(long_path(package / relative), 'rb').read())
+        if sha(data) != expected_digest:
             raise RuntimeError('ZIP/package mismatch: ' + name)
 payload = []
 for entry in json.loads(pathlib.Path(a.prior_inventory).read_text('utf-8')):

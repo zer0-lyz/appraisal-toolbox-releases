@@ -23,7 +23,7 @@ fs.writeFileSync(path.join(pkg,'BUILD-PROVENANCE.json'),JSON.stringify(provenanc
 const exe=path.join(pkg,'native-helper','native_host.exe');if(hash(exe)!==previous.provenance.nativeExeSha256)throw new Error('EXE changed during finalization');
 fs.writeFileSync(path.join(pkg,'SHA256SUMS'),files(pkg).filter(p=>path.relative(pkg,p)!=='SHA256SUMS').map(p=>hash(p)+'  '+path.relative(pkg,p).replaceAll('\\','/')).join('\n')+'\n');
 const archive=path.join(output,path.basename(pkg)+'.zip');
-execFileSync(path.join(pkg,'runtime','python-portable','python.exe'),['-X','utf8','-c','import pathlib,sys,zipfile\nr=pathlib.Path(sys.argv[1])\nwith zipfile.ZipFile(sys.argv[2],"w",zipfile.ZIP_DEFLATED,compresslevel=6) as z:\n for f in sorted(r.rglob("*")):\n  if f.is_file(): z.write(f,r.name+"/"+f.relative_to(r).as_posix())',pkg,archive],{windowsHide:true});
+execFileSync(path.join(pkg,'runtime','python-portable','python.exe'),[path.join(source,'scripts','release','package-macos.py'),'zip',pkg,archive],{windowsHide:true});
 const archiveSha256=hash(archive);fs.writeFileSync(archive+'.sha256',archiveSha256+' *'+path.basename(archive)+'\n');
 fs.writeFileSync(path.join(output,'build-result.json'),JSON.stringify({archive,archiveSha256,packageRoot:pkg,exe,provenance,selfTestPassed:previous.selfTestPassed},null,2));
 console.log(JSON.stringify({archive,archiveSha256,nativeExeUnchanged:true},null,2));

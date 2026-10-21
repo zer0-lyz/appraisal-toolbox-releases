@@ -69,7 +69,7 @@ jobs:
           TARGET='${{ matrix.target }}'
           TOOLS=()
           if [[ "$TARGET" == windows-x64 ]]; then TOOLS=(--tools "$RUNNER_TEMP/toolbox-cache/tools"); fi
-          node scripts/release/build.cjs --target "$TARGET" --version 0.2.2 --build-id "ci-$TARGET-$GITHUB_RUN_ID" --build-number 2026101701 --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
+          node scripts/release/build.cjs --target "$TARGET" --version 0.2.3 --build-id "release-$TARGET-$GITHUB_RUN_ID" --build-number 2026101805 --channel stable --runtime-build-kind release --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
       - name: Mac isolated install, upgrade, rollback, and actual host protocol
         if: matrix.target == 'macos-arm64'
         shell: bash

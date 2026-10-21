@@ -29,7 +29,7 @@ function Get-FileSha256([string]$Path) {
 
 try {
   . (Join-Path $PSScriptRoot 'registration-context.ps1')
-  $executionContextEvidence = Get-RegistrationContext
+  $executionContextEvidence = Get-RegistrationContext -CallerScriptPath $PSCommandPath
   $result.executionContext = $executionContextEvidence
   Assert-RegistrationContext $executionContextEvidence
   if (-not ("AppraisalToolboxRegistrationVerifierWin32" -as [type])) {

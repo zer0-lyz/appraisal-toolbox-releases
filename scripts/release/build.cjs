@@ -6,10 +6,21 @@ const {root,hash,sourceState,inventory,verifyRuntime,copyTracked,installerBuild}
 function argumentsFor(argv) {
   const result={};
   for(let i=0;i<argv.length;i+=2){if(!/^--[a-z-]+$/.test(argv[i])||!argv[i+1]||argv[i+1].startsWith('--'))throw Error('Use --name value pairs');const key=argv[i].slice(2);if(result[key])throw Error('Duplicate argument: '+key);result[key]=argv[i+1];}
-  const accepted=['target','version','build-id','build-number','output','base-archive','cache','tools','reuse-native','python'];
+  const accepted=['target','version','build-id','build-number','output','base-archive','cache','tools','reuse-native','python','channel','runtime-build-kind'];
   for(const key of Object.keys(result))if(!accepted.includes(key))throw Error('Unknown argument: '+key);
   for(const key of ['target','version','build-id','build-number','output'])if(!result[key])throw Error('Required: --'+key);
   if(!['macos-arm64','windows-x64'].includes(result.target)||!/^\d+\.\d+\.\d+$/.test(result.version)||! /^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/.test(result['build-id'])||!/^\d{10}$/.test(result['build-number']))throw Error('Invalid target/version/buildId/buildNumber');
+  result.channel=result.channel||'candidate';
+  result['runtime-build-kind']=result['runtime-build-kind']||(result.channel==='stable'?'release':'local');
+  if(!['candidate','stable'].includes(result.channel)||!['local','release'].includes(result['runtime-build-kind'])||(result.channel==='stable'&&result['runtime-build-kind']!=='release'))throw Error('Invalid release channel/runtime build kind');
+  return result;
+}
+function refreshAdapterBuildResultArchive(adapterOutputDirectory, archive) {
+  const resultPath=path.join(adapterOutputDirectory,'build-result.json');
+  const result=JSON.parse(fs.readFileSync(resultPath,'utf8'));
+  result.archive=path.resolve(archive);
+  result.archiveSha256=hash(archive);
+  fs.writeFileSync(resultPath,JSON.stringify(result,null,2)+'\n');
   return result;
 }
 async function build(o) {
@@ -60,29 +71,31 @@ async function build(o) {
     const result=JSON.parse(fs.readFileSync(path.join(adapterOut,'build-result.json')));packageRoot=result.packageRoot;archive=result.archive;
     native={path:'native-helper/native_host.exe',sha256:hash(result.exe),signing:result.provenance.nativeExecutableSigning};
   }
-  const extensionVersion=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/version.json')));extensionVersion.productVersion=o.version;extensionVersion.chromeVersion=o.version;extensionVersion.versionName=o.version;extensionVersion.buildNumber=Number(o['build-number']);extensionVersion.platformBuildId=o['build-id'];extensionVersion.channel='candidate';
+  const extensionVersion=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/version.json')));extensionVersion.productVersion=o.version;extensionVersion.chromeVersion=o.version;extensionVersion.versionName=o.version;extensionVersion.buildNumber=Number(o['build-number']);extensionVersion.platformBuildId=o['build-id'];extensionVersion.channel=o.channel;
   fs.writeFileSync(path.join(packageRoot,'extension/version.json'),JSON.stringify(extensionVersion,null,2)+'\n');
   // A candidate must not carry the historical release's runtime fingerprint.
   const contract=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/runtime-compat.json')));
-  Object.assign(contract,{extensionVersion:o.version,buildId:o['build-id'],runtimeBuildKind:'local',runtimeBuildId:require('node:crypto').createHash('sha256').update(JSON.stringify(sourceInventory.filter(x=>/^(?:src|native-helper|skills)\//.test(x.path)))).digest('hex'),generatedAt:new Date().toISOString()});
+  const runtimeBuildId=require('node:crypto').createHash('sha256').update(JSON.stringify(sourceInventory.filter(x=>/^(?:src|native-helper|skills)\//.test(x.path)))).digest('hex');
+  Object.assign(contract,{extensionVersion:o.version,buildId:o['build-id'],runtimeBuildKind:o['runtime-build-kind'],runtimeBuildId,generatedAt:new Date().toISOString()});
   fs.writeFileSync(path.join(packageRoot,'extension/runtime-compat.json'),JSON.stringify(contract,null,2)+'\n');
   const manifest=JSON.parse(fs.readFileSync(path.join(packageRoot,'extension/manifest.json')));manifest.version=o.version;manifest.version_name=o.version;fs.writeFileSync(path.join(packageRoot,'extension/manifest.json'),JSON.stringify(manifest,null,2)+'\n');
   const builtProvenance=JSON.parse(fs.readFileSync(path.join(packageRoot,'BUILD-PROVENANCE.json')));
-  Object.assign(builtProvenance,{target:o.target,sourceCommit:state.commit,sourceDirty:false,productVersion:o.version,buildId:o['build-id'],buildNumber:Number(o['build-number']),lockSha256:hash(lockfile),installerBuild:installerBuild(o.target)});
+  Object.assign(builtProvenance,{target:o.target,sourceCommit:state.commit,sourceDirty:false,productVersion:o.version,buildId:o['build-id'],buildNumber:Number(o['build-number']),channel:o.channel,runtimeBuildKind:o['runtime-build-kind'],runtimeBuildId,lockSha256:hash(lockfile),installerBuild:installerBuild(o.target)});
   fs.writeFileSync(path.join(packageRoot,'BUILD-PROVENANCE.json'),JSON.stringify(builtProvenance,null,2)+'\n');
   fs.copyFileSync(lockfile,path.join(packageRoot,'release-inputs.lock.json'));fs.copyFileSync(sourceInventoryFile,path.join(packageRoot,'SOURCE-INVENTORY.json'));
-  fs.writeFileSync(path.join(packageRoot,'VERSION.txt'),`version=${o.version}\nbuild=${o['build-id']}\ninstallerBuild=${installerBuild(o.target)}\n`);
+  fs.writeFileSync(path.join(packageRoot,'VERSION.txt'),`version=${o.version}\nbuild=${o['build-id']}\nbuildNumber=${o['build-number']}\nchannel=${o.channel}\nruntimeBuildKind=${o['runtime-build-kind']}\ninstallerBuild=${installerBuild(o.target)}\n`);
   const checksums=inventory(packageRoot).filter(x=>path.basename(x.path)!=='SHA256SUMS').map(x=>`${x.sha256}  ${path.relative(packageRoot,x.path).replaceAll('\\','/')}`).join('\n')+'\n';fs.writeFileSync(path.join(packageRoot,'SHA256SUMS'),checksums);
   const zipPython=o.target==='macos-arm64'?(o.python||'/usr/bin/python3'):path.join(packageRoot,'runtime/python-portable/python.exe');
   // Repack after target-independent version/lock/provenance changes.
   execFileSync(zipPython,[path.join(root,'scripts/release/package-macos.py'),'zip',packageRoot,archive],{stdio:'inherit'});
+  if(o.target==='windows-x64')refreshAdapterBuildResultArchive(path.join(out,'adapter'),archive);
   // Fail instead of publishing provenance for a checkout modified while packaging.
   if(sourceState().commit!==state.commit||sourceInventory.some(item=>hash(path.join(root,item.path))!==item.sha256))throw Error('Source changed during build; discard candidate and rebuild from the frozen commit');
   const payload=inventory(packageRoot).map(x=>({...x,path:path.relative(packageRoot,x.path).replaceAll('\\','/')}));
   const relative=p=>path.relative(out,p).replaceAll('\\','/');
-  const result={schemaVersion:3,product:'评估工具箱',productVersion:o.version,target:o.target,buildId:o['build-id'],buildNumber:Number(o['build-number']),extensionId:lock.extensionId,nativeHost:lock.nativeHost,sourceCommit:state.commit,sourceDirty:false,installerBuild:installerBuild(o.target),lockSha256:hash(lockfile),archive:{path:relative(archive),sha256:hash(archive)},packageRoot:relative(packageRoot),native,cache:{runtimeHit:cacheHit,key:o.target+'-'+hash(lockfile)},payload,acceptance:{offline:'pending',installer:'pending',gui:'not-covered',windowsRevalidation:'required for shared/Windows changes'}};
+  const result={schemaVersion:3,product:'评估工具箱',productVersion:o.version,target:o.target,buildId:o['build-id'],buildNumber:Number(o['build-number']),channel:o.channel,runtimeBuildKind:o['runtime-build-kind'],runtimeBuildId,extensionId:lock.extensionId,nativeHost:lock.nativeHost,sourceCommit:state.commit,sourceDirty:false,installerBuild:installerBuild(o.target),lockSha256:hash(lockfile),archive:{path:relative(archive),sha256:hash(archive)},packageRoot:relative(packageRoot),native,cache:{runtimeHit:cacheHit,key:o.target+'-'+hash(lockfile)},payload,acceptance:{offline:'pending',installer:'pending',gui:'not-covered',windowsRevalidation:'required for shared/Windows changes'}};
   fs.writeFileSync(path.join(out,'release-manifest.json'),JSON.stringify(result,null,2)+'\n');fs.writeFileSync(archive+'.sha256',`${hash(archive)}  ${path.basename(archive)}\n`);
   console.log(JSON.stringify({sourceCommit:state.commit,archive:result.archive,manifest:relative(path.join(out,'release-manifest.json')),runtimeCacheHit:cacheHit}));
 }
 if(require.main===module)build(argumentsFor(process.argv.slice(2))).catch(e=>{console.error(e.message);process.exitCode=1;});
-module.exports={argumentsFor,build};
+module.exports={argumentsFor,build,refreshAdapterBuildResultArchive};

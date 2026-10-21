@@ -24,7 +24,9 @@ const ps = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
 const psQuote = text => "'" + text.replace(/'/g, "''") + "'";
 function powerShell(code) { return execFileSync(ps, ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from("$ProgressPreference='SilentlyContinue';" + code, 'utf16le').toString('base64')], { encoding: 'utf8', windowsHide: true, maxBuffer: 10 * 1024 * 1024 }); }
 const extraction = path.join(outputDirectory, 'verified-base');
-powerShell(`$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath ${psQuote(baseArchive)} -DestinationPath ${psQuote(extraction)}`);
+// Keep the build independent from optional PowerShell module autoloading. The
+// base archive SHA was verified above; still reject traversal before extraction.
+powerShell(`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=${psQuote(baseArchive)}; $destination=${psQuote(extraction)}; [IO.Directory]::CreateDirectory($destination) | Out-Null; $zip=[IO.Compression.ZipFile]::OpenRead($archive); try { foreach($entry in $zip.Entries) { $target=[IO.Path]::GetFullPath([IO.Path]::Combine($destination,$entry.FullName)); if(-not $target.StartsWith($destination+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid base archive path' } } } finally { $zip.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory($archive,$destination)`);
 const original = path.join(extraction, 'appraisal-toolbox-v0.2.1-windows-x64');
 require('../scripts/release/build-common.cjs').verifyRuntime(original, require('../release-inputs.lock.json').targets['windows-x64']);
 const basePackageFiles = new Set(fs.readFileSync(path.join(original, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/).map(line => {
@@ -121,8 +123,7 @@ async function build() {
   const checksumText = files(packageRoot).filter(file => path.relative(packageRoot, file) !== 'SHA256SUMS').map(file => `${hash(file)}  ${path.relative(packageRoot, file).replaceAll('\\', '/')}`).join('\n') + '\n';
   fs.writeFileSync(path.join(packageRoot, 'SHA256SUMS'), checksumText);
   const archive = path.join(outputDirectory, packageName + '.zip');
-  const zipCode = 'import pathlib,sys,zipfile\nroot=pathlib.Path(sys.argv[1]); output=pathlib.Path(sys.argv[2])\nwith zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED,compresslevel=6) as archive:\n for file in sorted(root.rglob("*")):\n  if file.is_file(): archive.write(file,root.name+"/"+file.relative_to(root).as_posix())';
-  execFileSync(env.TIANYUAN_PYTHON_BIN, ['-c', zipCode, packageRoot, archive], { stdio: 'inherit', windowsHide: true });
+  execFileSync(env.TIANYUAN_PYTHON_BIN, [path.join(source, 'scripts/release/package-macos.py'), 'zip', packageRoot, archive], { stdio: 'inherit', windowsHide: true });
   const archiveHash = hash(archive);
   fs.writeFileSync(archive + '.sha256', `${archiveHash} *${path.basename(archive)}\n`);
   fs.writeFileSync(path.join(outputDirectory, 'build-result.json'), JSON.stringify({ archive, archiveSha256: archiveHash, packageRoot, exe, provenance, selfTestPassed: true }, null, 2));
