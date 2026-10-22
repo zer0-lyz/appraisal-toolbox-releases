@@ -880,6 +880,10 @@ function downloadAndInstallUpdate(message, emit) {
   return platformUpdate.downloadAndInstallUpdate(message, emit, checkGithubUpdate);
 }
 
+function getUpdateStatus() {
+  return platformUpdate.getUpdateStatus();
+}
+
 module.exports = {
   DEFAULT_REPOSITORY,
   UPDATE_MANIFEST_NAME,
@@ -894,5 +898,6 @@ module.exports = {
   checkGithubUpdate,
   resultFromManifest,
   downloadAndInstallUpdate,
+  getUpdateStatus,
   isUpdateInProgress: () => platformUpdate.isUpdating(),
 };

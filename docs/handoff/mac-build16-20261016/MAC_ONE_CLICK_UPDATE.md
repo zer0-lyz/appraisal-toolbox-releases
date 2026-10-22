@@ -27,3 +27,11 @@
 - `npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools` 后运行 `node scripts/release/update-ui-fixtures.cjs scripts/release/test-tools/node_modules <summary.json>`：真实更新模块的合成 DOM，检查手动回退和两端重载；不代表 GUI 验收。
 - `bash macos/test-isolated-install.sh <package-root> <new-test-directory>`：隔离初装/升级/用户数据保留/Edge 注册失败回滚/Native 协议，并通过真实 Mac 更新器驱动包内安装器完成一键更新回归；只使用临时 Python framework 和模拟浏览器目录。
 - 普通桌面更新、Chrome/Edge 扩展重载、真实 Native Messaging 浏览器链和 macOS Gatekeeper/notarization 均需另外记录实机证据。
+
+## 2026-10-21 更新：后台任务与可核验恢复（PR #15）
+
+上文长 Native 流及按 PID 回收目录锁的描述是 `macos-transactional.1` 历史实现，已在本轮候选替换。新实现沿用天源工作台的后台 worker、持久状态查询与页面轮询模式；不复制工作台配置或身份。Mac 用固定 inode 的 POSIX flock 和两个分工明确的 journal，保留快照；PID 消失不授权删锁或覆盖恢复现场。
+
+`get_update_status` 是能力协商后的只读动作；启动回执只表示 accepted/starting，不能当成安装成功。完整安装、自检与身份/配置/manifest 核验后，`complete+verified=true` 才触发当前浏览器扩展重载。已核验回滚允许重试，unknown 保留现场并阻止重复安装；页面重开和流断开仍查询状态。最终成功的扩展 reload 请求与真实重载后握手分开验收。
+
+锁 runtime 必须解析到外部 Python.org 3.14.6，不借用系统 PATH；独立测试显式使用锁定包提取的 Python.framework 和对应 DYLD_FRAMEWORK_PATH。手动完整安装与 UI 后台安装使用同一锁，Mac 自带 Bash 3.2 兼容。candidate 构建仍为 0.2.3 / 2026102101，无 Release/latest 切换。完整分类、构建和分层证据见 `../MAC_UPDATE_RECOVERY_REVIEW_20261021.md`。

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync, spawn } = require('node:child_process');
+const { execFileSync } = require('node:child_process');
 
 const [packageRootValue, installRootValue, testRootValue, sourceRootValue] = process.argv.slice(2);
 if (![packageRootValue, installRootValue, testRootValue, sourceRootValue].every(Boolean)) {
@@ -14,80 +14,84 @@ const installRoot = path.resolve(installRootValue);
 const testRoot = path.resolve(testRootValue);
 const sourceRoot = path.resolve(sourceRootValue);
 const homeDir = path.dirname(installRoot);
-const packageVersion = JSON.parse(fs.readFileSync(path.join(packageRoot, 'extension/version.json'), 'utf8'));
-const packageContract = JSON.parse(fs.readFileSync(path.join(packageRoot, 'extension/runtime-compat.json'), 'utf8'));
+const version = JSON.parse(fs.readFileSync(path.join(packageRoot, 'extension/version.json'), 'utf8'));
+const contract = JSON.parse(fs.readFileSync(path.join(packageRoot, 'extension/runtime-compat.json'), 'utf8'));
 const provenance = JSON.parse(fs.readFileSync(path.join(packageRoot, 'BUILD-PROVENANCE.json'), 'utf8'));
+const pythonBin = process.env.APPRAISAL_TEST_LOCK_PYTHON || process.env.APPRAISAL_PYTHON_BOOTSTRAP;
+const frameworkPath = process.env.APPRAISAL_TEST_FRAMEWORK_PATH;
+if (!pythonBin || !frameworkPath || process.env.DYLD_FRAMEWORK_PATH !== frameworkPath) {
+  throw new Error('ISOLATED_PINNED_PYTHON_FRAMEWORK_REQUIRED');
+}
+assert.equal(execFileSync(pythonBin, ['--version'], {encoding: 'utf8'}).trim(), 'Python 3.14.6');
 const zipPath = path.join(testRoot, 'isolated-update-candidate.zip');
-execFileSync('/usr/bin/python3', [path.join(sourceRoot, 'scripts/release/package-macos.py'), 'zip', packageRoot, zipPath], { stdio: 'inherit' });
-const zipBytes = fs.readFileSync(zipPath);
-const assetSha = crypto.createHash('sha256').update(zipBytes).digest('hex');
+execFileSync(pythonBin, [path.join(sourceRoot, 'scripts/release/package-macos.py'), 'zip', packageRoot, zipPath], {stdio: 'ignore'});
+const assetSha = crypto.createHash('sha256').update(fs.readFileSync(zipPath)).digest('hex');
+const assetSize = fs.statSync(zipPath).size;
 const assetUrl = `https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/download/${provenance.buildId}/appraisal-toolbox-macos-arm64.zip`;
 const latest = {
   ok: true, releasePublished: true, updateAvailable: true, repairRequired: false,
-  platform: 'macos-arm64', latestVersion: packageVersion.productVersion,
-  latestBuildNumber: Number(packageVersion.buildNumber), latestRuntimeBuildId: packageContract.runtimeBuildId,
-  latestRuntimeBuildKind: packageContract.runtimeBuildKind,
-  asset: { name: path.basename(zipPath), url: assetUrl, size: zipBytes.length, sha256: assetSha },
-  downloadCandidates: [{ source: 'isolated-package-test', url: assetUrl, size: zipBytes.length, sha256: assetSha }],
+  platform: 'macos-arm64', latestVersion: version.productVersion,
+  latestBuildNumber: Number(version.buildNumber), latestRuntimeBuildId: contract.runtimeBuildId,
+  latestRuntimeBuildKind: contract.runtimeBuildKind,
+  asset: {name: path.basename(zipPath), url: assetUrl, size: assetSize, sha256: assetSha},
+  downloadCandidates: [{source: 'isolated-package-fixture', url: assetUrl, size: assetSize, sha256: assetSha}],
 };
-const testFrameworkPath = process.env.APPRAISAL_TEST_FRAMEWORK_PATH;
-if (!testFrameworkPath || !process.env.DYLD_FRAMEWORK_PATH) throw new Error('ISOLATED_PYTHON_FRAMEWORK_REQUIRED');
-const { createMacOSUpdateEngine } = require(path.join(packageRoot, 'native-helper/update_engine_macos.js'));
-const engine = createMacOSUpdateEngine({
-  homeDir,
-  installRoot,
-  downloadAsset: async (_url, destination) => {
-    fs.copyFileSync(zipPath, destination);
-    return { size: fs.statSync(destination).size, sha256: assetSha };
-  },
-  installPackage: async ({ installerPath, packageRoot: installerRoot, logPath, env, onStarted }) => {
-    const logFd = fs.openSync(logPath, 'wx', 0o600);
-    const child = spawn('/bin/bash', [installerPath], {
-      cwd: installerRoot,
-      env: { ...env, APPRAISAL_TEST_FRAMEWORK_PATH: testFrameworkPath, DYLD_FRAMEWORK_PATH: testFrameworkPath },
-      stdio: ['ignore', logFd, logFd],
+const {runMacOSUpdateTransaction} = require(path.join(packageRoot, 'native-helper/macos_update_worker.js'));
+const {MacUpdateTransactionStore} = require(path.join(packageRoot, 'native-helper/macos_update_transaction.js'));
+const updatesRoot = path.join(homeDir, '.appraisal-toolbox-updates');
+const nonce = crypto.randomUUID();
+const verificationEnvironment = {
+  APPRAISAL_TEST_FRAMEWORK_PATH: frameworkPath,
+  DYLD_FRAMEWORK_PATH: frameworkPath,
+};
+const preserved = ['history/preserve.txt', 'cache/preserve.txt', 'projects/fixture/workbooks/preserve.txt', 'map-config.json'];
+const originalBytes = new Map(preserved.map(relative => [relative, fs.readFileSync(path.join(installRoot, relative))]));
+const receipts = [];
+(async () => {
+  try {
+    const result = await runMacOSUpdateTransaction({
+      schemaVersion: 1, nonce, installRoot, updatesRoot,
+      update: {url: assetUrl, sha256: assetSha, assetName: path.basename(zipPath), sizeBytes: assetSize},
+    }, {
+      homeDir, pythonBin, requirePinnedPython: false,
+      lockEnvironment: {DYLD_FRAMEWORK_PATH: frameworkPath},
+      checkUpdate: async input => {
+        assert.equal(input.repository, 'zer0-lyz/appraisal-toolbox-releases');
+        assert.equal(input.platform, 'darwin');
+        assert.equal(input.architecture, 'arm64');
+        return latest;
+      },
+      downloadAsset: async (_url, destination) => {
+        fs.copyFileSync(zipPath, destination);
+        return {size: assetSize, sha256: assetSha};
+      },
+      testInstallerEnvironment: verificationEnvironment,
+      verificationEnvironment,
+      onAccepted: receipt => receipts.push(receipt),
     });
-    try {
-      onStarted(child);
-      await new Promise((resolve, reject) => {
-        child.once('error', () => reject(new Error('UPDATE_INSTALLER_NOT_STARTED')));
-        child.once('close', (code) => code === 0 ? resolve() : reject(new Error(`UPDATE_INSTALLER_EXIT_${code ?? -1}`)));
-      });
-    } finally {
-      fs.closeSync(logFd);
-    }
-  },
-  verificationEnvironment: {
-    APPRAISAL_TEST_FRAMEWORK_PATH: testFrameworkPath,
-    DYLD_FRAMEWORK_PATH: testFrameworkPath,
-  },
-});
-const frames = [];
-engine.downloadAndInstallUpdate({ url: assetUrl, sha256: assetSha }, (frame) => frames.push(frame), async (input) => {
-  assert.equal(input.repository, 'zer0-lyz/appraisal-toolbox-releases');
-  assert.equal(input.platform, 'darwin');
-  assert.equal(input.architecture, 'arm64');
-  return latest;
-}).then((result) => {
-  assert.equal(result.ok, true, JSON.stringify(result));
-  assert.equal(result.platform, 'macos-arm64');
-  assert.equal(result.latestVersion, packageVersion.productVersion);
-  assert.equal(Number(result.latestBuildNumber), Number(packageVersion.buildNumber));
-  assert.equal(frames.some((frame) => frame.phase === 'installing'), true);
-  for (const relative of ['history/preserve.txt', 'cache/preserve.txt', 'projects/fixture/workbooks/preserve.txt', 'map-config.json']) {
-    assert.equal(fs.existsSync(path.join(installRoot, relative)), true, `preserved ${relative}`);
-  }
-  const success = {
-    ok: true, evidenceType: 'isolated-update-engine-and-real-installer-transaction',
-    sourceCommit: provenance.sourceCommit, productVersion: packageVersion.productVersion,
-    buildNumber: Number(packageVersion.buildNumber), buildId: provenance.buildId,
-    packageSha256: assetSha, installerLogExists: fs.existsSync(result.installerLogPath),
-    chromeAndEdgeNativeHostVerified: true, userDataPreserved: true, browserGuiCovered: false,
-  };
-  fs.rmSync(zipPath, { force: true });
-  process.stdout.write(`${JSON.stringify(success)}\n`);
-}).catch((error) => {
-  fs.rmSync(zipPath, { force: true });
-  process.stderr.write(`${error?.stack || error}\n`);
-  process.exitCode = 1;
-});
+    assert.equal(receipts.length, 1);
+    assert.equal(receipts[0].accepted, true);
+    assert.equal(receipts[0].verified, false);
+    assert.equal(receipts[0].state, 'starting');
+    assert.equal(result.state, 'complete', JSON.stringify(result));
+    assert.equal(result.verified, true, JSON.stringify(result));
+    assert.equal(result.latestVersion, version.productVersion);
+    assert.equal(Number(result.latestBuildNumber), Number(version.buildNumber));
+    const store = new MacUpdateTransactionStore({homeDir, installRoot, updatesRoot, pythonBin,
+      lockEnvironment: {DYLD_FRAMEWORK_PATH: frameworkPath}});
+    const persisted = await store.getStatus();
+    assert.equal(persisted.state, 'complete');
+    assert.equal(persisted.verified, true);
+    assert.equal(persisted.nonce, nonce);
+    for (const relative of preserved) assert.deepEqual(fs.readFileSync(path.join(installRoot, relative)), originalBytes.get(relative));
+    process.stdout.write(JSON.stringify({
+      ok: true, evidenceType: 'isolated-worker-with-real-package-and-installer',
+      sourceCommit: provenance.sourceCommit, productVersion: version.productVersion,
+      buildNumber: Number(version.buildNumber), buildId: provenance.buildId,
+      packageSha256: assetSha, installerJournalPresent: fs.existsSync(path.join(updatesRoot, nonce, 'installer-transaction.json')),
+      persistedVerifiedCompletion: true, chromeAndEdgeNativeHostVerified: true,
+      syntheticUserDataBytePreserved: true, officialReleaseNetworkCovered: false,
+      detachedHostLifetimeCoveredHere: false, browserGuiCovered: false,
+    }) + '\n');
+  } finally { fs.rmSync(zipPath, {force: true}); }
+})().catch(error => { process.stderr.write(String(error.stack || error) + '\n'); process.exitCode = 1; });
