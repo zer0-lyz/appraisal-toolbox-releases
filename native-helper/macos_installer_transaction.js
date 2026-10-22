@@ -444,7 +444,10 @@ function beginInstaller({ root, journalPath, nonce, mode, workerJournalPath, loc
   const dir = path.dirname(journalPath);
   if (fs.existsSync(dir)) {
     ensurePrivateDirectory(dir);
-    if (fs.readdirSync(dir).length !== 0) throw new Error("INSTALLER_JOURNAL_ALREADY_EXISTS");
+    const allowedWorkerArtifacts = new Set(["extracted", "update.zip", "installer.log"]);
+    if (fs.readdirSync(dir).some(name => !workerMode || !allowedWorkerArtifacts.has(name))) {
+      throw new Error("INSTALLER_JOURNAL_ALREADY_EXISTS");
+    }
   } else ensurePrivateDirectory(dir);
   if (fs.existsSync(journalPath)) throw new Error("INSTALLER_JOURNAL_ALREADY_EXISTS");
   const journal = {

@@ -324,3 +324,27 @@ function assertFileLockBusyForTest(lockPath) {
     return true;
   }
 }
+test('delegated installer accepts its worker staging artifacts but never overwrites an installer journal', async t => {
+  const f=fixture(t), nonce=crypto.randomUUID();
+  const {MacUpdateTransactionStore}=require('./macos_update_transaction.js');
+  const store=new MacUpdateTransactionStore({homeDir:f.home,installRoot:f.installRoot,updatesRoot:f.updatesRoot,pythonBin:PYTHON,
+    lockEnvironment:process.env.DYLD_FRAMEWORK_PATH?{DYLD_FRAMEWORK_PATH:process.env.DYLD_FRAMEWORK_PATH}:{}});
+  const lock=await store.acquire();
+  try {
+    store.write(nonce,{state:'starting',phase:'installing',verified:false},{create:true});
+    const directory=path.join(f.updatesRoot,nonce), journalPath=path.join(directory,'installer-transaction.json');
+    fs.mkdirSync(path.join(directory,'extracted'),{recursive:true});
+    fs.writeFileSync(path.join(directory,'update.zip'),'synthetic archive');
+    fs.writeFileSync(path.join(directory,'installer.log'),'synthetic log');
+    const env={...process.env,HOME:f.home,APPRAISAL_UPDATE_MODE:'worker',APPRAISAL_UPDATE_NONCE:nonce,
+      APPRAISAL_UPDATE_WORKER_JOURNAL:store.journalPath,APPRAISAL_UPDATE_INSTALLER_JOURNAL:journalPath,APPRAISAL_UPDATE_LOCK_PYTHON:PYTHON};
+    const args=[HELPER,'begin',f.installRoot,journalPath,nonce,'worker',store.journalPath,PYTHON,
+      path.join(f.home,'chrome.json'),path.join(f.home,'edge.json'),f.installRoot+'.staging-'+nonce,f.installRoot+'.previous-'+nonce,
+      String(process.pid),String(process.pid),f.lockPath,'',''];
+    execFileSync(process.execPath,args,{env,stdio:'ignore'});
+    const original=fs.readFileSync(journalPath);
+    assert.equal(readInstallerJournal(journalPath).stage,'starting');
+    assert.throws(()=>execFileSync(process.execPath,args,{env,stdio:'ignore'}));
+    assert.deepEqual(fs.readFileSync(journalPath),original);
+  } finally {await lock.release();}
+});
