@@ -348,3 +348,10 @@ test('delegated installer accepts its worker staging artifacts but never overwri
     assert.deepEqual(fs.readFileSync(journalPath),original);
   } finally {await lock.release();}
 });
+test('installer ERR trap is inherited by guarded mutation functions on system Bash', t => {
+  const f=fixture(t), source=fs.readFileSync(path.join(__dirname,'../macos/installer/install.sh'),'utf8');
+  const options=source.match(/^set ([-A-Za-z ]+)$/m)[1], marker=path.join(f.root,'rollback-trap-ran');
+  const script=`set ${options}\nMARKER="$1"\ntrap 'printf recovered > "$MARKER"; exit 7' ERR\nguarded_mutation() { "$@"; }\nguarded_mutation /usr/bin/false\n`;
+  assert.throws(()=>execFileSync('/bin/bash',['-c',script,'installer trap fixture',marker],{stdio:'ignore'}),error=>error.status===7);
+  assert.equal(fs.readFileSync(marker,'utf8'),'recovered');
+});

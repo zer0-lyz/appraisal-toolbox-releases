@@ -58,3 +58,5 @@
 首次真实包隔离运行发现 worker 已创建下载/解压/log 目录，而安装器仍要求该目录完全为空，导致委托安装在改动安装树前以 INSTALLER_JOURNAL_ALREADY_EXISTS 停止。该候选未通过且不作为交付包。已将 worker 模式的既有文件限制为 extracted/update.zip/installer.log，保留 nonce/root/锁验证和不覆盖既有 installer journal 的门禁；手动入口仍要求空目录。补充真实 begin-helper 回归，最终 Mac suite 39/39、0 skipped；使用新干净 commit 重新构建 r2。
 
 随后整组运行中的一个手动回滚 fixture 读到了尚未写完的 lock-status JSON，首次为 38/39；该轮不是 39/39。锁控制状态已改为 fsync 后原子发布，重新完整运行实际为 39/39、0 skipped（root-macos-tests-final.log）。最后交付采用包含此修复的更新源码重建，先前候选 SHA 不沿用。
+
+r3 真实包的一键安装/配置、持久成功状态和合成用户数据逐字节保留已通过；随后 Edge 写入失败测试发现 guarded_mutation 函数内失败没有继承 ERR trap，未触发恢复。因此 r3 未通过完整安装验收。安装器现启用 Bash errtrace（set -E），补充系统 Bash 的函数失败恢复入口回归；当前 40/40、0 skipped。交付包继续从新干净 commit 重建 r4，不能沿用 r3 的完整通过状态。
