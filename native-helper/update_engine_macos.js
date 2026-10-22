@@ -779,7 +779,7 @@ function createMacOSUpdateEngine(options = {}) {
 
   function isUpdating() {
     if (localStart) return true;
-    if (platform !== "darwin") return false;
+    if (platform !== "darwin" || !capabilities().autoUpdateSupported) return false;
     try { return storeForStatus().isBusySync(runFileSync); }
     catch { return true; }
   }

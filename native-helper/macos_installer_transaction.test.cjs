@@ -355,3 +355,14 @@ test('installer ERR trap is inherited by guarded mutation functions on system Ba
   assert.throws(()=>execFileSync('/bin/bash',['-c',script,'installer trap fixture',marker],{stdio:'ignore'}),error=>error.status===7);
   assert.equal(fs.readFileSync(marker,'utf8'),'recovered');
 });
+test('snapshot retains relative symlink bytes and proves equality with the live baseline', t => {
+  const f=fixture(t), nonce=crypto.randomUUID();
+  fs.writeFileSync(path.join(f.installRoot,'data.txt'),'original bytes');
+  fs.symlinkSync('data.txt',path.join(f.installRoot,'relative-link'));
+  const helper=require('./macos_installer_transaction.js');
+  const snapshotRoot=path.join(f.root,'snapshot'), manifestBackupRoot=path.join(f.root,'manifests');
+  const manifestPaths={chrome:path.join(f.home,'chrome.json'),edge:path.join(f.home,'edge.json')};
+  const saved=helper.snapshotInstallation({root:f.installRoot,snapshotRoot,manifestBackupRoot,manifestPaths,nonce,canonicalRoot:f.installRoot});
+  assert.equal(fs.readlinkSync(path.join(snapshotRoot,'relative-link')),'data.txt');
+  assert.equal(helper.verifySnapshot({root:f.installRoot,snapshotRoot,manifestBackupRoot,manifestPaths,nonce,canonicalRoot:f.installRoot,expectedFingerprint:saved.originalFingerprint}).ok,true);
+});

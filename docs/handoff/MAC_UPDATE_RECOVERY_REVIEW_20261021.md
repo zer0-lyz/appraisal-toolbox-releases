@@ -60,3 +60,5 @@
 随后整组运行中的一个手动回滚 fixture 读到了尚未写完的 lock-status JSON，首次为 38/39；该轮不是 39/39。锁控制状态已改为 fsync 后原子发布，重新完整运行实际为 39/39、0 skipped（root-macos-tests-final.log）。最后交付采用包含此修复的更新源码重建，先前候选 SHA 不沿用。
 
 r3 真实包的一键安装/配置、持久成功状态和合成用户数据逐字节保留已通过；随后 Edge 写入失败测试发现 guarded_mutation 函数内失败没有继承 ERR trap，未触发恢复。因此 r3 未通过完整安装验收。安装器现启用 Bash errtrace（set -E），补充系统 Bash 的函数失败恢复入口回归；当前 40/40、0 skipped。交付包继续从新干净 commit 重建 r4，不能沿用 r3 的完整通过状态。
+
+r4 已完成真实隔离初装、保留合成配置的升级、真实包一键安装、Edge 写失败后的完整回滚核验和实际 Native 协议（含 get_update_status 与核心技能导入）。CI run 23 的共享检查同时发现：无 Python 的 runner 上，不支持的 Intel Mac factory 被错误判断为忙；现由能力门禁立即返回 false，不进入 Mac 锁查询。快照复制也明确保留相对符号链接，并在移动前核对快照与实时基线指纹相同。新增该回归，最终源码测试 41/41、0 skipped；交付 r5 从这些修正的共同 commit 重建。

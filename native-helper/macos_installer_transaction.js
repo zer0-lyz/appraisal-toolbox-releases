@@ -152,7 +152,7 @@ function manifestRecords(manifestPaths) {
 function stateFingerprint(root, records) { return sha256(JSON.stringify({ tree: treeFingerprint(root), manifests: records })); }
 
 function copyTree(source, destination) {
-  fs.cpSync(source, destination, { recursive: true, preserveTimestamps: true, dereference: false, errorOnExist: true });
+  fs.cpSync(source, destination, { recursive: true, preserveTimestamps: true, dereference: false, verbatimSymlinks: true, errorOnExist: true });
 }
 function captureManifestSnapshot(manifestBackupRoot, records) {
   fs.mkdirSync(manifestBackupRoot, { recursive: false, mode: 0o700 });
@@ -198,6 +198,7 @@ function snapshotInstallation({ root, snapshotRoot, manifestBackupRoot, manifest
   const records = manifestRecords(manifestPaths);
   captureManifestSnapshot(manifestBackupRoot, records);
   const fingerprint = stateFingerprint(present ? snapshotRoot : path.join(snapshotRoot, ".absent-root"), records);
+  if (fingerprint !== stateFingerprint(canonical, records)) throw new Error("INSTALLER_SNAPSHOT_COPY_MISMATCH");
   return { schema: 2, nonce, canonicalRoot: canonical, snapshotRoot, manifestBackupRoot, rootExisted: present, originalFingerprint: fingerprint };
 }
 function verifySnapshot({ root, snapshotRoot, manifestBackupRoot, manifestPaths, expectedFingerprint, nonce, canonicalRoot: expectedRoot }) {
