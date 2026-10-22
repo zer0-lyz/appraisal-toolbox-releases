@@ -62,7 +62,7 @@ if /bin/bash "$PACKAGE_ROOT/安装.command" > "$TASK_TEST_ROOT/rollback-install.
   exit 1
 fi
 chmod 700 "$TASK_EDGE_ROOT"
-rg -q '安装前文件、配置、浏览器清单和 Native 自检均已核验恢复' "$TASK_TEST_ROOT/rollback-install.log" || {
+/usr/bin/grep -q '安装前文件、配置、浏览器清单和 Native 自检均已核验恢复' "$TASK_TEST_ROOT/rollback-install.log" || {
   echo 'Rollback did not prove restoration and Native self-test' >&2
   /usr/bin/tail -20 "$TASK_TEST_ROOT/rollback-install.log" >&2
   exit 1
