@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-INSTALLER_BUILD="macos-transactional.2"
+INSTALLER_BUILD="macos-transactional.3"
 if [[ -n "${APPRAISAL_TEST_FRAMEWORK_PATH:-}" ]]; then
   [[ -n "${APPRAISAL_BROWSER_HOME:-}" && -n "${APPRAISAL_PYTHON_BOOTSTRAP:-}" && -n "${APPRAISAL_TOOLBOX_ROOT:-}" ]] || { echo "隔离测试环境不完整" >&2; exit 1; }
   export DYLD_FRAMEWORK_PATH="$APPRAISAL_TEST_FRAMEWORK_PATH"
@@ -168,7 +168,8 @@ guarded_mutation "$NODE_BIN" "$TRANSACTION_HELPER" snapshot "$JOURNAL_PATH" >/de
 guarded_mutation "$NODE_BIN" "$TRANSACTION_HELPER" stage "$JOURNAL_PATH" staging
 guarded_mutation mkdir -p "$STAGING_ROOT"
 if [[ -d "$INSTALL_ROOT" ]]; then guarded_mutation /usr/bin/ditto "$INSTALL_ROOT" "$STAGING_ROOT"; fi
-for component in extension native-helper skills runtime/node; do guarded_mutation rm -rf "$STAGING_ROOT/$component"; done
+# Rebuild Python from locked wheels; retaining the previous venv can carry quarantine on native extensions.
+for component in extension native-helper skills runtime/node python; do guarded_mutation rm -rf "$STAGING_ROOT/$component"; done
 guarded_mutation /usr/bin/ditto "$PACKAGE_ROOT/extension" "$STAGING_ROOT/extension"
 guarded_mutation /usr/bin/ditto "$PACKAGE_ROOT/native-helper" "$STAGING_ROOT/native-helper"
 guarded_mutation /usr/bin/ditto "$PACKAGE_ROOT/skills" "$STAGING_ROOT/skills"
