@@ -1,3 +1,6 @@
+import { nativeErrorMessage } from "../../core/native-errors.js";
+import { sendQueuedDepreciationNativeMessage, showNativeDiagnostics } from "../../core/native-messaging.mjs";
+
 export const MODULE_ID = "depreciation-capex-forecast";
 export const NATIVE_ACTION = "depreciation_capex_forecast";
 
@@ -28,30 +31,19 @@ export const ADDED_HEADERS = [
 ];
 
 export function nativeRequest(message, timeoutMs = 60_000) {
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const timer = globalThis.setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(new Error("Native Helper 请求超时，请检查本机运行环境"));
-    }, timeoutMs);
-    const operation = message.operation || message.action;
-    const payload = { ...message, action: NATIVE_ACTION, operation };
-    chrome.runtime.sendNativeMessage("com.appraisal.toolbox.helper", payload, (response) => {
-      if (settled) return;
-      settled = true;
-      globalThis.clearTimeout(timer);
-      const lastError = chrome.runtime.lastError;
-      if (lastError) {
-        reject(new Error(lastError.message || "Native Helper 未响应"));
-        return;
-      }
-      if (!response || response.ok === false) {
-        reject(new Error(response?.message || response?.reason || "Native Helper 返回失败"));
-        return;
-      }
-      resolve(response);
-    });
+  const operation = message.operation || message.action;
+  const payload = { ...message, action: NATIVE_ACTION, operation };
+  return sendQueuedDepreciationNativeMessage(chrome, payload, timeoutMs).then((response) => {
+    if (!response || response.ok === false) {
+      showNativeDiagnostics(response);
+      const error = new Error(nativeErrorMessage(response?.reason || response?.message || "NATIVE_HOST_UNAVAILABLE"));
+      error.code = response?.reason || "";
+      error.diagnostics = response?.diagnostics;
+      throw error;
+    }
+    return response;
+  }).catch((error) => {
+    throw new Error(nativeErrorMessage(error));
   });
 }
 
@@ -68,7 +60,7 @@ export function setMessage(element, text, kind = "") {
 }
 
 export function pageLink(route = MODULE_ID) {
-  return chrome.runtime.getURL(`src/sidepanel/index.html#${route}`);
+  return chrome.runtime.getURL(`src/shell/index.html#${route}`);
 }
 
 export function templateUrl() {

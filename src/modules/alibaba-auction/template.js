@@ -40,10 +40,8 @@ export const alibabaAuctionTemplate = `
     </div>
     <label class="alibaba-auction-source-row"><span>检索网址</span><input id="alibabaAuctionSourceUrl" type="text" readonly></label>
     <div class="button-row alibaba-auction-parameter-actions">
-      <button id="saveAlibabaAuctionParams" type="button">确认并应用参数</button>
       <button id="resetAlibabaAuctionParams" type="button" class="secondary">恢复默认</button>
     </div>
-    <div id="alibabaAuctionParameterMessage" class="inline-feedback">请调整参数后先点击“确认并应用参数”。</div>
   </section>
 
   <section class="section alibaba-auction-output">
@@ -58,12 +56,17 @@ export const alibabaAuctionTemplate = `
       <button id="chooseAlibabaAuctionOutput" type="button" class="secondary">选择目录</button>
     </div>
     <label class="alibaba-auction-map-option"><input id="alibabaAuctionGenerateMap" type="checkbox" checked> 生成独立地图 HTML</label>
+    <div class="button-row alibaba-auction-parameter-actions">
+      <button id="saveAlibabaAuctionParams" type="button">确认并应用参数</button>
+    </div>
+    <div id="alibabaAuctionParameterMessage" class="inline-feedback">设置筛选条件并选择输出目录后，点击“确认并应用参数”。</div>
   </section>
 
   <section class="section alibaba-auction-network-action">
     <div class="section-title-row">
       <div><h2>网络抓取</h2><p class="section-description">确认参数并选定输出位置后，只访问当前阿里拍卖列表和详情页；不会读取历史文件。</p></div>
       <span class="badge">访问网络</span>
+      <p class="section-description">抓取将占用你当前的标签页，期间请勿关闭或切换该页。登录或安全验证请在该页手动完成。</p>
     </div>
     <div class="button-row"><button id="openAlibabaAuctionSource" type="button" class="secondary" disabled title="请先选择本机输出目录并确认参数">打开并登录</button><button id="runAlibabaAuction" type="button" disabled title="请先选择本机输出目录并确认参数">开始网络抓取</button><button id="clearAlibabaAuctionResults" type="button" class="tiny secondary" disabled>清空当前结果</button></div>
   </section>

@@ -1,0 +1,132 @@
+name: Dual platform build verification (no publication)
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Product version (for example 0.2.4)
+        required: true
+        default: '0.2.3'
+        type: string
+      build_number:
+        description: Shared ten-digit build number
+        required: true
+        default: '2026102101'
+        type: string
+      channel:
+        description: Build channel; stable builds are still uploaded only as Actions artifacts
+        required: true
+        default: candidate
+        type: choice
+        options:
+          - candidate
+          - stable
+  push:
+    branches:
+      - main
+    paths:
+      - 'version.json'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'native-helper/**'
+      - 'skills/**'
+      - 'macos/**'
+      - 'windows/**'
+      - 'scripts/release/**'
+      - 'manifest.json'
+      - 'version.json'
+      - 'runtime-compat.json'
+      - 'README.md'
+      - 'LICENSE'
+      - 'release-inputs.lock.json'
+      - '.github/workflows/**'
+permissions:
+  contents: read
+concurrency:
+  group: candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: macos-arm64
+            runner: macos-15
+            node: 24.14.0
+          - target: windows-x64
+            runner: windows-2022
+            node: 24.18.1
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/toolbox-cache
+          key: toolbox-${{ matrix.target }}-${{ hashFiles('release-inputs.lock.json') }}
+      - name: Shared source regressions
+        run: node scripts/release/source-checks.cjs
+      - name: Install locked DOM fixture dependency
+        shell: bash
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools
+      - name: Update UI platform fixtures
+        shell: bash
+        run: node scripts/release/update-ui-fixtures.cjs scripts/release/test-tools/node_modules "$RUNNER_TEMP/update-ui-summary.json"
+      - name: Bootstrap locked Windows tools
+        if: matrix.target == 'windows-x64'
+        shell: pwsh
+        run: |
+          ./windows/bootstrap-build-tools.ps1 -ToolsDirectory "$env:RUNNER_TEMP/toolbox-cache/tools"
+      - name: Build target from the checked out commit
+        shell: bash
+        run: |
+          TARGET='${{ matrix.target }}'
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            VERSION="$(node -p "require('./version.json').productVersion")"
+            BUILD_NUMBER="$(node -p "require('./version.json').buildNumber")"
+            CHANNEL=stable
+          else
+            VERSION="${{ github.event.inputs.version || '0.2.3' }}"
+            BUILD_NUMBER="${{ github.event.inputs.build_number || '2026102101' }}"
+            CHANNEL="${{ github.event.inputs.channel || 'candidate' }}"
+          fi
+          RUNTIME_KIND=local
+          if [[ "$CHANNEL" == stable ]]; then RUNTIME_KIND=release; fi
+          TOOLS=()
+          if [[ "$TARGET" == windows-x64 ]]; then TOOLS=(--tools "$RUNNER_TEMP/toolbox-cache/tools"); fi
+          node scripts/release/build.cjs --target "$TARGET" --version "$VERSION" --build-id "ci-$TARGET-$GITHUB_RUN_ID" --build-number "$BUILD_NUMBER" --channel "$CHANNEL" --runtime-build-kind "$RUNTIME_KIND" --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
+      - name: Mac isolated install, upgrade, rollback, and actual host protocol
+        if: matrix.target == 'macos-arm64'
+        shell: bash
+        run: |
+          PACKAGE="$(node -p "require(process.argv[1]).packageRoot" "$RUNNER_TEMP/toolbox-output/release-manifest.json")"
+          bash macos/test-isolated-install.sh "$RUNNER_TEMP/toolbox-output/$PACKAGE" "$RUNNER_TEMP/toolbox-validation"
+      - name: Windows actual SEA imports and Native protocol (not desktop install)
+        if: matrix.target == 'windows-x64'
+        shell: pwsh
+        run: |
+          $Manifest = Get-Content -LiteralPath "$env:RUNNER_TEMP/toolbox-output/release-manifest.json" -Raw | ConvertFrom-Json
+          $Package = Join-Path "$env:RUNNER_TEMP/toolbox-output" $Manifest.packageRoot
+          $Config = @{ pythonBin=(Join-Path $Package 'runtime/python-portable/python.exe'); printSkillsDir=(Join-Path $Package 'skills'); depreciationSkillDir=(Join-Path $Package 'skills/depreciation-capex-forecast') } | ConvertTo-Json
+          [IO.File]::WriteAllText((Join-Path $Package 'native-helper/runtime-config.json'), $Config, [Text.UTF8Encoding]::new($false))
+          node scripts/release/verify-package.cjs $Package "$env:RUNNER_TEMP/toolbox-validation"
+      - name: Save build archives and sanitized synthetic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: toolbox-${{ matrix.target }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/toolbox-output/**/*.zip
+            ${{ runner.temp }}/toolbox-output/**/*.sha256
+            ${{ runner.temp }}/toolbox-output/release-manifest.json
+            ${{ runner.temp }}/toolbox-output/source-inventory.json
+            ${{ runner.temp }}/toolbox-validation/**/*summary.json
+            ${{ runner.temp }}/update-ui-summary.json
+          if-no-files-found: warn

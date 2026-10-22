@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>评估工具箱</title>
     <link rel="stylesheet" href="../styles/shell.css">
+    <link rel="stylesheet" href="../styles/native-diagnostics.css">
+    <link rel="stylesheet" href="../modules/workbook-tools/styles.css">
   </head>
   <body>
     <main class="app">
@@ -23,12 +25,13 @@
             <h2>功能模块</h2>
             <p>选择一个功能开始处理</p>
           </div>
-          <span id="moduleCountBadge" class="badge">6 个业务工具</span>
+          <button id="nativeHealth" type="button" class="health-pill" title="点击重新检查本机助手" aria-live="polite">助手检查中</button>
+          <span id="moduleCountBadge" class="badge">4 个业务工具</span>
         </div>
         <div class="module-sections">
           <section class="module-section" aria-labelledby="moduleSectionTitle">
             <div class="module-section-heading">
-              <h3 id="moduleSectionTitle">业务工具</h3>
+              <h3 id="moduleSectionTitle">业务工具</h3><span id="landPublicityHealth" class="health-pill" title="检查土地网站连接">土地数据源检查中</span>
               <small>数据采集、文档处理与测算功能</small>
             </div>
             <div class="module-grid">
@@ -42,7 +45,6 @@
                 </span>
                 <strong>浙江土地市场网</strong>
                 <small>按行政区、用途和价格面积筛选并生成地图结果</small>
-                <small class="module-health" id="landPublicityHealth" hidden></small>
               </button>
               <button id="openAlibabaAuction" type="button" class="module-card">
                 <span class="module-icon" aria-hidden="true">
@@ -76,6 +78,26 @@
                 <strong>表格设置</strong>
                 <small>批量统一 Word 文档中所有表格的格式</small>
               </button>
+            </div>
+          </section>
+          <section class="module-section module-section-building" aria-labelledby="moduleSectionDevelopmentTitle">
+            <div class="module-section-heading">
+              <h3 id="moduleSectionDevelopmentTitle">开发中</h3>
+              <small>开发测试中，验证可用后转入业务工具</small>
+            </div>
+            <div class="module-grid">
+              <button id="open-detail-print-format" type="button" class="module-card">
+                <span class="module-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path class="icon-stroke" d="M7 8V3h10v5M7 16H4V8h16v8h-3M7 13h10v8H7zM17 10h1"></path></svg></span>
+                <span class="development-badge">开发中</span><strong>明细表打印格式</strong><small>批量设置本地 Excel 明细表打印格式</small>
+              </button>
+              <button id="open-declaration-print-format" type="button" class="module-card">
+                <span class="module-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path class="icon-stroke" d="M7 8V3h10v5M7 16H4V8h16v8h-3M7 13h10v8H7zM17 10h1"></path></svg></span>
+                <span class="development-badge">开发中</span><strong>申报表打印格式</strong><small>整理申报表显示内容与打印版式</small>
+              </button>
+              <button id="open-detail-formula-restore" type="button" class="module-card">
+                <span class="module-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path class="icon-stroke" d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"></path></svg></span>
+                <span class="development-badge">开发中</span><strong>明细表公式恢复</strong><small>恢复汇总链接并输出对比报告</small>
+              </button>
               <button id="openAnjukeProperty" type="button" class="module-card">
                 <span class="module-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false">
@@ -84,6 +106,7 @@
                     <path class="icon-stroke" d="m17.5 16.8 2.8 2.8"></path>
                   </svg>
                 </span>
+                <span class="development-badge">开发中</span>
                 <strong>安居客数据</strong>
                 <small>抓取物业出售、租赁案例并保存原始证据</small>
               </button>
@@ -95,6 +118,7 @@
                     <path class="icon-stroke" d="M21 4.5H3a.75.75 0 0 0-.75.75V18A1.5 1.5 0 0 0 3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V5.25A.75.75 0 0 0 21 4.5m-.75 13.5H3.75V6h16.5z"></path>
                   </svg>
                 </span>
+                <span class="development-badge">开发中</span>
                 <strong>折旧摊销与资本性支出预测</strong>
                 <small>设置参数、录入资产并运行长周期折旧摊销预测</small>
               </button>
@@ -138,6 +162,9 @@
       <section id="page-alibaba-lease" class="route-page hidden" data-route="alibaba-lease"></section>
       <section id="page-anjuke-property" class="route-page hidden" data-route="anjuke-property"></section>
       <section id="page-table-format" class="route-page hidden" data-route="table-format"></section>
+      <section id="page-detail-print-format" class="route-page hidden" data-route="detail-print-format"></section>
+      <section id="page-declaration-print-format" class="route-page hidden" data-route="declaration-print-format"></section>
+      <section id="page-detail-formula-restore" class="route-page hidden" data-route="detail-formula-restore"></section>
       <section id="page-map-settings" class="route-page hidden" data-route="map-settings"></section>
       <section id="page-updates" class="route-page hidden" data-route="updates"></section>
       <section id="page-depreciation-capex-forecast" class="route-page hidden" data-route="depreciation-capex-forecast"></section>

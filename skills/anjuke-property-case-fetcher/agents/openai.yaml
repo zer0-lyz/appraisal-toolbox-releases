@@ -1,0 +1,6 @@
+interface:
+  display_name: "安居客物业出售租赁案例抓取"
+  short_description: "抓取安居客物业出售租赁案例与租金数据"
+  default_prompt: "Use $anjuke-property-case-fetcher to抓取安居客物业出售或租赁案例并整理租金/售价数据。"
+policy:
+  allow_implicit_invocation: true

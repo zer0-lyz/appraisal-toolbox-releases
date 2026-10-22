@@ -1,3 +1,4 @@
+import { userErrorMessage } from "../core/user-errors.js";
 import { EventBus } from "../core/event-bus.js";
 import { FeatureFlagService } from "../core/feature-flags.js";
 import { ModuleRegistry } from "../core/module-registry.js";
@@ -7,15 +8,18 @@ import { alibabaAuctionModule } from "../modules/alibaba-auction/module.js";
 import { alibabaLeaseModule } from "../modules/alibaba-lease/module.js";
 import { anjukePropertyModule } from "../modules/anjuke-property/module.js";
 import { tableFormatModule } from "../modules/table-format/module.js";
+import { workbookToolModules } from "../modules/workbook-tools/module.js";
 import { mapSettingsModule } from "../modules/map-settings/module.js";
 import { updatesModule } from "../modules/updates/module.js";
 import { depreciationCapexModule } from "../modules/depreciation-capex-forecast/module.js";
+import { classifyNativeMessagingError } from "../core/native-errors.js";
+import { showNativeDiagnostics } from "../core/native-messaging.mjs";
 
 const NATIVE_HOST_NAME = "com.appraisal.toolbox.helper";
 const CONNECTOR_PROTOCOL_VERSION = "connector-agent-binding-v3";
 
 const elements = Object.fromEntries(
-  ["goHome", "subtitle", "status"].map((id) => [id, document.getElementById(id)]),
+  ["goHome", "subtitle", "status", "nativeHealth"].map((id) => [id, document.getElementById(id)]),
 );
 
 const extensionManifest = chrome.runtime.getManifest();
@@ -31,6 +35,7 @@ moduleRegistry.register(alibabaAuctionModule);
 moduleRegistry.register(alibabaLeaseModule);
 moduleRegistry.register(anjukePropertyModule);
 moduleRegistry.register(tableFormatModule);
+for (const module of workbookToolModules) moduleRegistry.register(module);
 moduleRegistry.register(mapSettingsModule);
 moduleRegistry.register(updatesModule);
 moduleRegistry.register(depreciationCapexModule);
@@ -73,6 +78,24 @@ window.addEventListener("hashchange", () => {
   renderRoute(window.location.hash.slice(1));
 });
 
+async function checkNativeHealth() {
+  const pill = elements.nativeHealth;
+  if (!pill) return;
+  pill.textContent = "助手检查中";
+  pill.disabled = true;
+  try {
+    const reply = await sendNativeMessage({ action: "health" });
+    if (!reply?.ok) throw new Error("NATIVE_HOST_START_FAILED");
+    pill.textContent = "本机助手正常";
+    pill.dataset.kind = "ok";
+    pill.title = "本机助手已响应，点击重新检查。土地网站连接状态另列。";
+  } catch (error) {
+    pill.textContent = "本机助手异常";
+    pill.dataset.kind = "error";
+    pill.title = userErrorMessage(error);
+  } finally { pill.disabled = false; }
+}
+
 function sendNativeMessage(message, timeoutMs = 12000) {
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
@@ -83,9 +106,10 @@ function sendNativeMessage(message, timeoutMs = 12000) {
       window.clearTimeout(timeout);
       const error = chrome.runtime.lastError;
       if (error) {
-        reject(new Error(error.message || "NATIVE_HOST_UNAVAILABLE"));
+        reject(new Error(classifyNativeMessagingError(error.message) || "NATIVE_HOST_START_FAILED"));
         return;
       }
+      if (response?.ok === false) showNativeDiagnostics(response);
       resolve(response);
     });
   });
@@ -133,7 +157,8 @@ function streamNativeMessage(message, onProgress) {
           }
           return;
         }
-        if (payload?.event === "complete") {
+        if (payload?.event === "complete" || (!payload?.event && payload?.ok === false)) {
+          if (payload.ok === false) showNativeDiagnostics(payload);
           finish(resolve, payload);
         }
       });
@@ -173,13 +198,16 @@ async function bootstrapApplication() {
     });
     renderRoute(requestedRoute);
     setStatus("工具箱已就绪", "idle");
+    void checkNativeHealth();
   } catch (error) {
     // Keep the shell usable even if a non-core startup task fails.
     renderRoute("home");
-    setStatus(`部分模块加载失败：${error?.message || String(error)}`, "error");
+    setStatus(`部分模块加载失败：${userErrorMessage(error)}`, "error");
     console.error(error);
   }
 }
+
+elements.nativeHealth?.addEventListener("click", checkNativeHealth);
 
 elements.goHome?.addEventListener("click", () => navigateToRoute("home"));
 
@@ -189,5 +217,5 @@ window.addEventListener("beforeunload", () => {
 
 bootstrapApplication().catch((error) => {
   console.error(error);
-  setStatus(`启动失败：${error?.message || String(error)}`, "error");
+  setStatus(`启动失败：${userErrorMessage(error)}`, "error");
 });

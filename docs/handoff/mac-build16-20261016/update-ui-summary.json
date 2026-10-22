@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "evidenceType": "actual-updates-module-synthetic-DOM",
+  "cases": [
+    {
+      "autoUpdateSupported": false,
+      "checks": 1,
+      "streams": 0,
+      "opened": 1
+    },
+    {
+      "autoUpdateSupported": true,
+      "checks": 1,
+      "streams": 1,
+      "opened": 0
+    }
+  ],
+  "guiCovered": false
+}
