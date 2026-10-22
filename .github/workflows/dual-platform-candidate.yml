@@ -5,12 +5,12 @@ on:
       version:
         description: Product version (for example 0.2.4)
         required: true
-        default: '0.2.3'
+        default: '0.2.4'
         type: string
       build_number:
         description: Shared ten-digit build number
         required: true
-        default: '2026102101'
+        default: '2026102202'
         type: string
       channel:
         description: Build channel; stable builds are still uploaded only as Actions artifacts
@@ -93,8 +93,8 @@ jobs:
             BUILD_NUMBER="$(node -p "require('./version.json').buildNumber")"
             CHANNEL=stable
           else
-            VERSION="${{ github.event.inputs.version || '0.2.3' }}"
-            BUILD_NUMBER="${{ github.event.inputs.build_number || '2026102101' }}"
+            VERSION="${{ github.event.inputs.version || '0.2.4' }}"
+            BUILD_NUMBER="${{ github.event.inputs.build_number || '2026102202' }}"
             CHANNEL="${{ github.event.inputs.channel || 'candidate' }}"
           fi
           RUNTIME_KIND=local
