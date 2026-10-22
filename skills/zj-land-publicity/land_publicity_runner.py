@@ -578,7 +578,7 @@ def _land_use_code_category(code: Any) -> Optional[str]:
         return "商服用地"
     if (modern and family.startswith(("10", "11"))) or (not modern and family.startswith("06")):
         return "工矿仓储"
-    if (modern and family.startswith(("08", "12", "15"))) or (not modern and family.startswith(("08", "09", "10", "12", "15"))):
+    if (modern and family.startswith(("08", "12", "13", "14", "15"))) or (not modern and family.startswith(("08", "09", "10", "12", "15"))):
         return "其他用地"
     return None
 
