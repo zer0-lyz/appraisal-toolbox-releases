@@ -25,11 +25,21 @@ node --test --test-reporter=tap "$TASK_SOURCE_ROOT"/native-helper/*macos*.test.c
 }
 /usr/bin/grep -q '^# skipped 0$' "$TASK_TEST_ROOT/macos-unit-tests.log" || { echo "Skipped runtime tests are not acceptance" >&2; exit 1; }
 /bin/bash "$PACKAGE_ROOT/安装.command" > "$TASK_TEST_ROOT/fresh-install.log" 2>&1
-TASK_LXML_EXTENSION="$(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name 'etree.cpython-314-darwin.so' -print -quit)"
-[[ -n "$TASK_LXML_EXTENSION" ]] || { echo 'Installed lxml extension fixture not found' >&2; exit 1; }
 TASK_QUARANTINE_FIXTURE='0081;67000000;AppraisalToolboxIsolatedTest;00000000-0000-0000-0000-000000000000'
-/usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$TASK_LXML_EXTENSION"
-/usr/bin/xattr -p com.apple.quarantine "$TASK_LXML_EXTENSION" >/dev/null || { echo 'Quarantine fixture was not applied' >&2; exit 1; }
+TASK_PYTHON_EXTENSION_COUNT=0
+while IFS= read -r -d '' TASK_PYTHON_EXTENSION; do
+  TASK_PYTHON_EXTENSION_COUNT=$((TASK_PYTHON_EXTENSION_COUNT + 1))
+  /usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$TASK_PYTHON_EXTENSION"
+  /usr/bin/xattr -p com.apple.quarantine "$TASK_PYTHON_EXTENSION" >/dev/null || {
+    echo "Quarantine fixture was not applied: $TASK_PYTHON_EXTENSION" >&2
+    exit 1
+  }
+done < <(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name '*.so' -print0)
+[[ "$TASK_PYTHON_EXTENSION_COUNT" -gt 0 ]] || { echo 'No Python native-extension fixtures found' >&2; exit 1; }
+TASK_OLD_NODE="$APPRAISAL_TOOLBOX_ROOT/runtime/node/bin/node"
+[[ -x "$TASK_OLD_NODE" ]] || { echo 'Installed Node fixture not found' >&2; exit 1; }
+/usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$TASK_OLD_NODE"
+/usr/bin/xattr -p com.apple.quarantine "$TASK_OLD_NODE" >/dev/null || { echo 'Node quarantine fixture was not applied' >&2; exit 1; }
 mkdir -p "$APPRAISAL_TOOLBOX_ROOT/history" "$APPRAISAL_TOOLBOX_ROOT/cache" "$APPRAISAL_TOOLBOX_ROOT/projects/fixture/workbooks"
 printf 'synthetic-history' > "$APPRAISAL_TOOLBOX_ROOT/history/preserve.txt"
 printf 'synthetic-cache' > "$APPRAISAL_TOOLBOX_ROOT/cache/preserve.txt"
@@ -52,13 +62,25 @@ const config=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
 assert.deepEqual(config.syntheticUserSetting,{preserve:true,label:'中文与空格'});
 assert.equal(config.pythonBin,path.join(process.argv[3],'python/bin/python3'));
 NODE
-TASK_LXML_EXTENSION_AFTER="$(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name 'etree.cpython-314-darwin.so' -print -quit)"
-[[ -n "$TASK_LXML_EXTENSION_AFTER" ]] || { echo 'Updated lxml extension fixture not found' >&2; exit 1; }
-if /usr/bin/xattr -p com.apple.quarantine "$TASK_LXML_EXTENSION_AFTER" >/dev/null 2>&1; then
-  echo 'Upgrade retained quarantine from the previous Python environment' >&2
+TASK_PYTHON_EXTENSION_AFTER_COUNT=0
+while IFS= read -r -d '' TASK_PYTHON_EXTENSION_AFTER; do
+  TASK_PYTHON_EXTENSION_AFTER_COUNT=$((TASK_PYTHON_EXTENSION_AFTER_COUNT + 1))
+  if /usr/bin/xattr -p com.apple.quarantine "$TASK_PYTHON_EXTENSION_AFTER" >/dev/null 2>&1; then
+    echo "Upgrade retained quarantine on a Python native extension: $TASK_PYTHON_EXTENSION_AFTER" >&2
+    exit 1
+  fi
+done < <(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name '*.so' -print0)
+[[ "$TASK_PYTHON_EXTENSION_AFTER_COUNT" -eq "$TASK_PYTHON_EXTENSION_COUNT" ]] || {
+  echo 'Upgrade changed the Python native-extension inventory' >&2
+  exit 1
+}
+TASK_NODE_AFTER="$APPRAISAL_TOOLBOX_ROOT/runtime/node/bin/node"
+if /usr/bin/xattr -p com.apple.quarantine "$TASK_NODE_AFTER" >/dev/null 2>&1; then
+  echo 'Upgrade retained quarantine on the bundled Node runtime' >&2
   exit 1
 fi
-"$APPRAISAL_TOOLBOX_ROOT/python/bin/python3" -c 'from lxml import etree; assert etree.LXML_VERSION'
+/usr/bin/codesign --verify "$TASK_NODE_AFTER" >/dev/null 2>&1 || { echo 'Updated Node signature is invalid' >&2; exit 1; }
+"$APPRAISAL_TOOLBOX_ROOT/python/bin/python3" -c 'import charset_normalizer, docx, lxml, openpyxl, requests; from lxml import etree; assert etree.LXML_VERSION'
 for task_file in history/preserve.txt cache/preserve.txt projects/fixture/workbooks/preserve.txt map-config.json; do
   [[ -f "$APPRAISAL_TOOLBOX_ROOT/$task_file" ]] || { echo "Upgrade lost $task_file" >&2; exit 1; }
 done
@@ -89,7 +111,10 @@ fs.writeFileSync(process.argv[2],JSON.stringify({
   ok:true,evidenceType:'actual-installer-in-disposable-home-and-browser-directories',
   python:'3.14.6 extracted from official package',pythonRealpath:fs.realpathSync(process.argv[3]),
   freshIsolatedInstall:true,syntheticDataUpgrade:true,oldLxmlQuarantineRebuilt:true,
-  updatedLxmlQuarantineAbsent:true,updatedLxmlImportOk:true,edgeWriteFailureRollback:true,
+  updatedLxmlQuarantineAbsent:true,updatedLxmlImportOk:true,oldPythonNativeQuarantineRebuilt:true,
+  updatedPythonNativeQuarantineAbsent:true,updatedPythonDependencyImportsOk:true,
+  oldNodeQuarantineRebuilt:true,updatedNodeQuarantineAbsent:true,updatedNodeCodeSignatureValid:true,
+  edgeWriteFailureRollback:true,
   chromeAndEdgeManifestReadback:true,nativeJsonSelfTest:true,argumentForwardingCovered:true,
   systemFrameworkInstallCovered:false,ordinaryDesktopInstallerCovered:false,
   browserNativeConnectionCovered:false,browserGuiCovered:false,

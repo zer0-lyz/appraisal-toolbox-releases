@@ -10,7 +10,7 @@ Mac 安装器先用 `ditto` 将旧安装根复制到 staging，随后只删除�
 
 安装器现在在创建虚拟环境前删除 staging 中的 `python/`，之后仅从包内 SHA 锁定的 wheel 重新安装依赖。原安装根和用户数据不在此步骤改写；安装事务的快照与回滚路径不变。安装器标识由 `macos-transactional.2` 升至 `.3`。
 
-新增隔离升级回归：先在 disposable HOME 中真实安装，再给旧 lxml 扩展设置合成 quarantine 标记，执行真实升级器，并确认新 lxml 文件不再带标记且可以导入。回归同时保留原有合成配置/历史文件、Native 自检、Chrome/Edge manifest 核验和 Edge 注册失败后的回滚测试。整个测试不接触正式 Profile、凭据、地图 Key 或天源运行目录。
+新增隔离升级回归：先在 disposable HOME 中真实安装，再给旧 Python 环境里的全部原生扩展 `.so` 和随包 Node 设置合成 quarantine 标记，执行真实升级器；升级后逐个确认 Python 扩展及 Node 均无旧标记，导入 `charset_normalizer`、`requests`、`openpyxl`、`lxml` 和 `python-docx`，并核验替换后的 Node Developer ID 签名。回归同时保留原有合成配置/历史文件、Native 自检、Chrome/Edge manifest 核验和 Edge 注册失败后的回滚测试。整个测试不接触正式 Profile、凭据、地图 Key 或天源运行目录。
 
 ## 安全与发布边界
 
