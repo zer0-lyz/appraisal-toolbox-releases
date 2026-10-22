@@ -65,3 +65,17 @@ PR #14 run 20 (`39563782597`) 本次已重新读取为双端 success。Windows a
 ## 2026-10-22 双端发布整合
 
 Mac PR #15 的持久状态轮询与事务恢复已与 Windows PR #14 的 Windows updater/installer 合并到同一发布分支。共享 UI 保留 capability negotiation、Windows legacy stream 与 Mac verified-status polling；Windows `update_engine.js` 和 `windows/installer/` 继续使用其 Windows 专属锁、journal、guardian 与注册核验实现。发布前将两端从同一最终源码提交重建；此前 CI artifacts 不充当正式版包。真实 Windows 桌面更新、Mac/Windows 浏览器 GUI、官方源端到端更新与产品签名仍按未覆盖记录。
+
+## 2026-10-22 浙江土地市场网用途/容积率修复（Mac 先行）
+
+共享 `skills/zj-land-publicity/land_publicity_runner.py` 与 `scrape_zj_land.py` 修复了单选用途二次过滤漏掉“普通商品住房”等名称变体的问题；单选以官网 `landUse=1..4` 查询为准，多选依据官方 `planUse` 分类编码复核。结果新增容积率，读列表 `rjl` / 详情 `plotRatio`，X/S 及比较符按原值显示在 Excel、独立结果页和地图弹窗。Mac 对照官网余姚 735 条，四类分类数量和官网分别为 145/85/474/31，未分类及错分为 0；源模块回归 12/12。证据见 `LAND_PUBLICITY_USE_RATIO_VALIDATION_20261022.md`。
+
+这是共享业务载荷，没有改 Windows adapter、Native Host 或安装器。Mac 候选 `0.2.5 / 2026102204` 来自 `f806df777ac7448c84cd1917eb2fef879effb8bb`，ZIP SHA-256 `ade3caf5f847291184c37d2faf6d72714adf2a89eb261694999ab959900da0bc`；产品未签名、未公证，未安装到正式目录。Windows 仍需用其目标 runtime 从后续共同源码构建，并验证单选/多选用途、Excel/HTML/地图容积率，以及 SEA/真实桌面安装链。Mac 真实浏览器 GUI 也未覆盖。本记录不把 API/夹具/隔离安装证据当成双端完整验收，不改变 stable/latest 或 main。
+
+
+### 2026-10-22 浙江土地地区抽样补充（共享业务修复）
+
+- `skills/zj-land-publicity/land_publicity_runner.py::_land_use_code_category` 纳入现代 `V3-13` 与 `V3-14` “其他用地”编码族。官网 `landUse=4` 结果含 58 条此前在多选本地复核中未分类的公用设施/绿地记录；修复后在 2026-01-01 至 2026-10-22 的四类官网筛选记录中 3,324 条全部归入预期类别，错分和未分类均为 0。
+- Mac 对官网目录下 92 个区县代码逐个查询，92/92 返回与选择代码一致的区县记录；四类覆盖住宅297、商服482、工矿仓储2331、其他214条。住宅297/297与商服482/482列表记录均提取到容积率。
+- 这是平台无关的共享 Python 业务修复；Windows adapter、Native host、安装器没有改动。Windows 新候选需从该提交在 Windows 目标 runtime 重建，并复验单选/多选、`V3-13/V3-14`、Excel/HTML/地图容积率；CI/公开接口结果不能替代 Windows 桌面验收。
+- Mac 详细逐区县证据：`LAND_PUBLICITY_REGION_SAMPLE_20261022.json`。

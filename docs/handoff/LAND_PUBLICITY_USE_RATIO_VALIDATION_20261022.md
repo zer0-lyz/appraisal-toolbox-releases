@@ -1,0 +1,62 @@
+# 浙江土地市场网用途筛选与容积率验证（2026-10-22）
+
+## 变更范围
+
+分支：`codex/zj-land-use-filter-20261022`，基于 PR #17 当前 head `cde37ff42e221ff24db7644e3fcc03470b1508df`。本变更仅调整共享土地业务脚本/结果输出，不改 Mac Native adapter、安装器、扩展 ID 或 Native Host 标识。
+
+- 单选用途通过官网列表接口 `landUse=1..4` 分类码查询；不再用易漏掉“普通商品住房”等名称的模糊文本二次过滤。
+- 多选用途按 `planUse` 中的官网分类编码及名称归类；现代 `V3-*` 和旧分类码均覆盖。
+- 住宅、商服等结果新增“容积率”列。优先取列表 `rjl`，缺失时取详情 `plotRatio`；保留官网 X/S 标记和比较符，例如 `X≤1.01；S≤1.6`，不擅自解释 X/S 的业务含义。
+- 容积率同时写入 Excel、独立 HTML 结果表和地图弹窗；历史 Excel 已有该列时也可复用。
+
+## 验证证据
+
+官网公开接口：`https://www.zjzrzyjy.com/landView/land-bidding`，区县代码 `330281`（余姚），2026-10-22 查询。
+
+| 用途 | 官网分类码 | 官网总数 | 未筛选 735 条按 `planUse` 本地归类 | 分类不符/未分类 |
+|---|---:|---:|---:|---:|
+| 住宅用地 | 1 | 145 | 145 | 0 |
+| 商服用地 | 2 | 85 | 85 | 0 |
+| 工矿仓储 | 3 | 474 | 474 | 0 |
+| 其他用地 | 4 | 31 | 31 | 0 |
+
+住宅样本 `2026-29`（普通商品住房用地（二类））列表 `rjl` 与详情 `plotRatio` 均为 `X≤1.01；S≤1.6`。商服样本 `2026-26`（零售商业用地）两处均为 `X≤1.3；S≤1.4`。真实数据通过官方公开接口读取；未操作账号、浏览器 Profile 或地图 Key。
+
+本地土地模块回归：12/12 通过，覆盖四类现代/旧用途编码、Excel/HTML/地图结果中容积率回读、列表值优先和详情值回退。Python 语法编译通过。
+
+## 全省地区修复后的 Mac 候选重建
+
+- 旧候选 `2026102204` 不含 `V3-13/V3-14` 分类补丁，现由下述候选替代。产品版本仍为 `0.2.5`，build `2026102205`，buildId `mac-land-region-sample-20261022`；构建源码提交 `8a0ccbeeea7fba8626b1331e77dbb2a3018fc9e9`，系统 `macOS 27.0.1 arm64`。
+- 构建命令：`node scripts/release/build.cjs --target macos-arm64 --version 0.2.5 --build-id mac-land-region-sample-20261022 --build-number 2026102205 --channel candidate --runtime-build-kind local --output /tmp/appraisal-toolbox-mac-land-region-20261022 --cache /tmp/appraisal-toolbox-build-cache --python /usr/bin/python3`。
+- 本机候选 ZIP：`/tmp/appraisal-toolbox-mac-land-region-20261022/appraisal-toolbox-v0.2.5-macos-arm64-mac-land-region-sample-20261022.zip`，SHA-256 `ced659f5b30bb14aae6fd5e5782389e682efd1e4e5a09f1d774994c931a59628`。Native Host SHA-256 `f8b7f135fff1eb704eec70edec57872534e82b51ddc9f47ed699ebf704addb69`；`macos-transactional.3`。
+- 构建工具 Node `v24.14.0`、Python `3.9.6`，包内 Python `3.14.6`；锁定 runtime 缓存逐项验证后命中。产品包和 launcher 未签名、未公证。
+- 来源回归 17/17、构建回归 9/9、土地模块测试 12/12；候选 ZIP CRC、SHA-256 通过。隔离安装/升级/回滚、真实打包 Native 协议及四个 Python 技能导入通过；在隔离安装副本中再次运行土地模块 12/12 通过。
+- 隔离脚本第一次使用 `/tmp` 测试根时因 macOS 将它解析为 `/private/tmp`，导致脚本字符串路径断言失败；改用规范 `/private/tmp` 路径后完整新装、升级、回滚通过。两次都只使用临时测试目录。候选包未安装到正式目录，未发布 Release，不改 stable/latest/main。
+
+## Mac 候选构建
+
+- macOS 27.0.1 arm64，源码提交 `f806df777ac7448c84cd1917eb2fef879effb8bb`，构建版本 `0.2.5` / build `2026102204` / buildId `mac-land-use-20261022`。
+- 候选 ZIP：`appraisal-toolbox-v0.2.5-macos-arm64-mac-land-use-20261022.zip`，SHA-256 `ade3caf5f847291184c37d2faf6d72714adf2a89eb261694999ab959900da0bc`；Native Host SHA-256 `f8b7f135fff1eb704eec70edec57872534e82b51ddc9f47ed699ebf704addb69`；installerBuild `macos-transactional.3`。
+- 构建工具 Node `v24.14.0`、系统打包 Python `3.9.6`；包内锁定 Python `3.14.6`。SHA256SUMS 的 152 个载荷文件、ZIP 153 项 CRC 均回读通过。
+- 候选包内土地回归 12/12；Mac 隔离新装/升级/回滚、实际 Native 自测和四个技能导入通过。安装使用专用 `/private/tmp` 测试根，没有写入用户正式安装目录。
+- 产品包/launcher 未签名、未 notarize。候选未发布、未装入正式目录；stable、共享 latest、main 均未变。
+
+## 验收边界
+
+以上是 Mac 源码/候选包回归及真实公开 API 直连验证，不等于 Chrome 中通过真实 GUI 完成抓取。真实插件 GUI/Native 连接未覆盖；Windows 实机/SEA 安装器未覆盖。Windows 后续从同一共享源码构建并验证用途多选、容积率 Excel/HTML/地图与其运行时路径。
+
+
+## 全省地区抽样与四类筛选复核（2026-10-22）
+
+依据官网行政区树逐个以区县 `regionCode` 发起一条结果抽样查询，日期为 2026-01-01 至 2026-10-22、每次取 1 条；浙江 11 个地市下的 92 个区县均返回本区记录，92/92 通过。四类用途另分别按官网 `landUse=1..4` 拉取完整当期结果，并通过当前运行器的 `_land_use_categories` 与 `_plot_ratio_text` 逐条核验：
+
+| 用途 | 官网记录数 | 有记录区县数 | 分类错分/未分类 | 容积率列表值可解析 |
+|---|---:|---:|---:|---:|
+| 住宅 | 297 | 62 | 0 / 0 | 297/297 |
+| 商服 | 482 | 76 | 0 / 0 | 482/482 |
+| 工矿仓储 | 2,331 | 90 | 0 / 0 | 2,331/2,331 |
+| 其他 | 214 | 68 | 0 / 0 | 214/214 |
+
+地区单独筛选样本、各区县四类数量、官网筛选记录数和容积率样例保存在 [`LAND_PUBLICITY_REGION_SAMPLE_20261022.json`](LAND_PUBLICITY_REGION_SAMPLE_20261022.json)。抽样中发现 `V3-13`（公用设施）与 `V3-14`（绿地与开敞空间）未纳入多选用途的“其他用地”本地分类，造成官方“其他”筛选结果中 58 条被本地逻辑留为未分类；现已把这两个现代编码族纳入“其他用地”，并新增供电用地、公园绿地回归。修复后四类 3,324 条官网记录由当前运行器逐条归类，错分/未分类均为 0。
+
+土地模块 12/12 回归通过。列表容积率检查证明住宅 297 条、商服 482 条均可从官网 `rjl` 读出并按 X/S 标记及比较符格式化；详情 `plotRatio` 回退仍由既有组件回归覆盖。该地区抽样是公开接口直连，不代表真实插件 GUI / 浏览器安装抓取验收。

@@ -1,13 +1,21 @@
 import os
 import json
 import sys
+import tempfile
 import unittest
+from pathlib import Path
+
+import openpyxl
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from land_publicity_runner import _list_record_matches_request, _list_server_filters, filter_records, validate_request
-from scrape_zj_land import fetch_records, fetch_region_codes
+from land_publicity_runner import (
+    OUTPUT_COLUMNS, _land_use_categories, _land_use_matches_request, _list_record_matches_request,
+    _list_server_filters, _plot_ratio_text, _website_server_filters, enrich_record, filter_records, row_from_item, validate_request,
+    write_excel, write_result_html,
+)
+from scrape_zj_land import build_map_assets, fetch_records, fetch_region_codes
 
 
 class JSONResponseFixture:
@@ -81,6 +89,86 @@ class LandPublicityDateTests(unittest.TestCase):
             fetch_records(max_pages=1, server_filters={"regionName": "镇海区", "fallbackRegionName": "宁波市"})
 
         self.assertIn("regionCode=330211", calls[0])
+
+    def test_official_land_use_codes_cover_all_four_categories(self):
+        fixtures = [
+            ("住宅用地", {"NAME_": "普通商品住房用地（二类）", "KEY_": "V3-07010203", "PARENTKEY_": "V3-07"}),
+            ("商服用地", {"NAME_": "零售商业用地", "KEY_": "V3-090101", "PARENTKEY_": "V3-09"}),
+            ("工矿仓储", {"NAME_": "一类工业用地（其他工业用地）", "KEY_": "V3-10010102", "PARENTKEY_": "V3-10"}),
+            ("其他用地", {"NAME_": "社会停车场用地", "KEY_": "V3-120803", "PARENTKEY_": "V3-12"}),
+            ("其他用地", {"NAME_": "供电用地", "KEY_": "V3-1303", "PARENTKEY_": "V3-13"}),
+            ("其他用地", {"NAME_": "公园绿地", "KEY_": "V3-1401", "PARENTKEY_": "V3-14"}),
+            ("住宅用地", {"NAME_": "普通商品房", "KEY_": "07010201"}),
+            ("商服用地", {"NAME_": "零售商业用地", "KEY_": "0501"}),
+            ("工矿仓储", {"NAME_": "其他工业用地", "KEY_": "060102"}),
+            ("其他用地", {"NAME_": "教育用地", "KEY_": "0803"}),
+        ]
+        categories = ["住宅用地", "商服用地", "工矿仓储", "其他用地"]
+        for expected, plan_use in fixtures:
+            record = {"_sourceEndpoint": "landbidding", "planUse": json.dumps([plan_use], ensure_ascii=False)}
+            self.assertEqual(_land_use_categories(record, {}), {expected})
+            other = next(value for value in categories if value != expected)
+            self.assertTrue(_land_use_matches_request({"landUses": [expected, other]}, record, {}, allow_unknown=False))
+            choices_without_match = [value for value in categories if value != expected][:2]
+            self.assertFalse(_land_use_matches_request({"landUses": choices_without_match}, record, {}, allow_unknown=False))
+
+    def test_single_official_land_use_filter_is_used_for_each_category(self):
+        codes = {"住宅用地": 1, "商服用地": 2, "工矿仓储": 3, "其他用地": 4}
+        for land_use, code in codes.items():
+            request = {"landUses": [land_use]}
+            self.assertEqual(_list_server_filters(request).get("landUse"), None)
+            self.assertEqual(_website_server_filters(request)["landUse"], code)
+
+    def test_plot_ratio_is_preserved_in_excel_and_html(self):
+        raw_ratio = '{"RJL_X_FH":"≤","RJL_X":"1.01","RJL_S_FH":"≤","RJL_S":"1.6"}'
+        self.assertEqual(_plot_ratio_text(raw_ratio), "X≤1.01；S≤1.6")
+        enriched = enrich_record({"sourceId": "ratio-fixture", "_sourceEndpoint": "landbidding", "rjl": raw_ratio}, lambda _source_id: {"plotRatio": "{\"RJL_X_FH\":\"≤\",\"RJL_X\":\"9\"}"})
+        self.assertEqual(enriched["plot_ratio"], "X≤1.01；S≤1.6")
+        detail_fallback = enrich_record({"sourceId": "ratio-fixture", "_sourceEndpoint": "landbidding"}, lambda _source_id: {"plotRatio": raw_ratio})
+        self.assertEqual(detail_fallback["plot_ratio"], "X≤1.01；S≤1.6")
+        item = {
+            "record": {"publicityId": "2026-29", "sourceCode": "2026-29", "rjl": raw_ratio},
+            "detail": {}, "detail_data": {"plotRatio": raw_ratio}, "coord": {},
+            "location": "余姚市", "land_use": "普通商品住房用地（二类）", "area_mu": None,
+            "area_sqm": None, "start_price": None, "start_total_price": "", "deal_price": None,
+            "deal_total_price": "", "detail_url": "https://example.invalid/detail", "transferee": "",
+            "trade_form": "", "term": "", "plot_ratio": "",
+        }
+        row = row_from_item(item)
+        self.assertEqual(row["容积率"], "X≤1.01；S≤1.6")
+        self.assertIn("容积率", OUTPUT_COLUMNS)
+        with tempfile.TemporaryDirectory() as directory:
+            excel_path = os.path.join(directory, "result.xlsx")
+            html_path = os.path.join(directory, "result.html")
+            write_excel(Path(excel_path), [row], {"maxPages": 1}, {})
+            workbook = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)
+            values = list(workbook.active.iter_rows(values_only=True))
+            workbook.close()
+            ratio_column = values[0].index("容积率")
+            self.assertEqual(values[1][ratio_column], "X≤1.01；S≤1.6")
+            write_result_html(Path(html_path), [row], {"maxPages": 1}, {}, {"map": "", "excel": "result.xlsx"})
+            html_text = Path(html_path).read_text(encoding="utf-8")
+            self.assertIn("容积率", html_text)
+            self.assertIn("X≤1.01；S≤1.6", html_text)
+
+    def test_plot_ratio_is_preserved_in_map_popup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output_path = Path(directory) / "result.xlsx"
+            rows = [{
+                "sourceCode": "2026-26", "districtName": "余姚市", "releaseTime": "2026-10-22",
+                "_detail_url": "https://example.invalid/detail", "_location": "余姚市",
+                "_use": "零售商业用地", "_plot_ratio": "X≤1.3；S≤1.4",
+                "_coord": {"center": {"lng": 121.0, "lat": 30.0}},
+            }]
+            with patch("scrape_zj_land.load_map_config", return_value={"amapEnabled": False}), patch(
+                "scrape_zj_land.browser_script", return_value=""
+            ):
+                assets = build_map_assets(rows, output_path)
+            points = json.loads(Path(assets["coord_json"]).read_text(encoding="utf-8"))
+            self.assertEqual(points[0]["items"][0]["plotRatio"], "X≤1.3；S≤1.4")
+            map_html = Path(assets["map_html"]).read_text(encoding="utf-8")
+            self.assertIn("容积率", map_html)
+            self.assertIn("row.plotRatio", map_html)
 
     def test_list_candidate_filter_uses_list_content_before_detail_fetch(self):
         request = {

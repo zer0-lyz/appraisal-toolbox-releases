@@ -213,6 +213,7 @@ def _build_basic_map_assets(rows, output_path):
             'origin': [center.get('originLng', ''), center.get('originLat', '')],
             'area_mu': r.get('_area_mu', ''),
             'use': r.get('_use', ''),
+            'plot_ratio': r.get('_plot_ratio', ''),
             'startUnitPriceYuanSqm': r.get('_start_unit_price', ''),
             'startTotalPriceWan': r.get('_start_total_price_wan', ''),
             'dealUnitPriceYuanSqm': r.get('_deal_unit_price', ''),
@@ -296,6 +297,7 @@ AppraisalAmap.watch(MAP_CONFIG);</script>
           坐标中心：${{esc(p.center[0])}}, ${{esc(p.center[1])}}<br/>
           原始坐标：${{esc(p.origin[0])}}, ${{esc(p.origin[1])}}<br/>
           用地信息：${{esc(p.use)}}<br/>
+          容积率：${{esc(p.plot_ratio)}}<br/>
           出让面积：${{esc(p.area_mu)}} 亩<br/>
           成交单价：${{esc(p.dealUnitPriceYuanSqm)}} 元/平方米<br/>
           成交总价：${{esc(p.dealTotalPriceWan)}} 万元<br/>
@@ -394,6 +396,7 @@ def build_map_assets(rows, output_path):
             'url': text(row.get('_detail_url')),
             'location': text(row.get('_location')),
             'landUse': text(row.get('_use')),
+            'plotRatio': text(row.get('_plot_ratio')),
             'tradeMethod': text(row.get('_trade_method')),
             'areaMu': row.get('_area_mu', ''),
             'areaSqm': row.get('_assignment_area_sqm', ''),
@@ -703,10 +706,10 @@ def build_map_assets(rows, output_path):
       const entries = item.items || [], title = escapeHtml(item.labelTitle || item.title || '土地成交案例'), price = escapeHtml(item.labelPrice || '暂无成交单价');
       let body = '';
       if (entries.length > 1) {
-        body = `<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th>项目位置</th><th>交易日期</th><th>土地用途</th><th>成交单价</th><th>网址</th></tr></thead><tbody>${entries.slice(0, 12).map((row) => `<tr><td>${valueText(row.location)}</td><td>${valueText(row.date)}</td><td>${valueText(row.landUse)}</td><td>${row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : '—'}</td><td>${linkText(row.url, '打开')}</td></tr>`).join('')}</tbody></table>${entries.length > 12 ? `<div style="margin-top:6px;color:#718096;font-size:11px;">仅展示前 12 条，其余 ${entries.length - 12} 条请查看 Excel。</div>` : ''}`;
+        body = `<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th>项目位置</th><th>交易日期</th><th>土地用途</th><th>容积率</th><th>成交单价</th><th>网址</th></tr></thead><tbody>${entries.slice(0, 12).map((row) => `<tr><td>${valueText(row.location)}</td><td>${valueText(row.date)}</td><td>${valueText(row.landUse)}</td><td>${valueText(row.plotRatio)}</td><td>${row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : '—'}</td><td>${linkText(row.url, '打开')}</td></tr>`).join('')}</tbody></table>${entries.length > 12 ? `<div style="margin-top:6px;color:#718096;font-size:11px;">仅展示前 12 条，其余 ${entries.length - 12} 条请查看 Excel。</div>` : ''}`;
       } else {
         const row = entries[0] || {};
-        const details = [['公示编号', row.sourceCode], ['行政区', row.district], ['项目位置', row.location], ['土地用途', row.landUse], ['交易方式', row.tradeMethod], ['土地面积', row.areaSqm ? `${numberText(row.areaSqm)} 平方米` : (row.areaMu ? `${numberText(row.areaMu)} 亩` : '')], ['成交单价', row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : ''], ['成交总价', row.dealTotalPriceWan ? `${numberText(row.dealTotalPriceWan)} 万元` : ''], ['发布时间', row.date], ['详情网址', linkText(row.url, '打开详情')], ['坐标类型', row.coordType], ['坐标', `${item.lat.toFixed(6)}, ${item.lon.toFixed(6)}`]];
+        const details = [['公示编号', row.sourceCode], ['行政区', row.district], ['项目位置', row.location], ['土地用途', row.landUse], ['容积率', row.plotRatio], ['交易方式', row.tradeMethod], ['土地面积', row.areaSqm ? `${numberText(row.areaSqm)} 平方米` : (row.areaMu ? `${numberText(row.areaMu)} 亩` : '')], ['成交单价', row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : ''], ['成交总价', row.dealTotalPriceWan ? `${numberText(row.dealTotalPriceWan)} 万元` : ''], ['发布时间', row.date], ['详情网址', linkText(row.url, '打开详情')], ['坐标类型', row.coordType], ['坐标', `${item.lat.toFixed(6)}, ${item.lon.toFixed(6)}`]];
         body = `<table style="width:100%;border-collapse:collapse;font-size:12px;">${details.filter(([, value]) => value !== '' && value !== null && value !== undefined).map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${typeof value === 'string' && value.includes('<a ') ? value : valueText(value)}</td></tr>`).join('')}</table>`;
       }
       return `<div style="min-width:300px;max-width:560px;"><div style="font-size:15px;font-weight:700;margin-bottom:6px;">${title}</div><div style="margin-bottom:8px;color:#2d3748;font-size:12px;line-height:1.45;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#edf2f7;margin-right:6px;">${item.labelCount > 1 ? `同位置 ${item.labelCount} 条` : valueText(item.labelLandUse)}</span><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#ebf8ff;">单价：${price}</span></div>${body}</div>`;
