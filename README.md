@@ -3,7 +3,7 @@
 独立于天源底稿系统运行的 Chrome 侧边栏扩展，收录评估业务中不依赖天源页面绑定的数据采集与测算工具。
 
 - 扩展 ID（由 manifest key 固定）：`aamfmhcbjgofhmannejoiilkkpchfkgm`
-- 当前正式稳定版：`0.2.4`；Mac 隔离修复候选：`0.2.5`（buildNumber `2026102203`，尚未发布）
+- 当前正式稳定版：`0.2.5`
 - 许可：MIT
 
 ## 功能模块
@@ -22,8 +22,8 @@
 ## 安装
 
 1. 从 [Releases](https://github.com/zer0-lyz/appraisal-toolbox-releases/releases) 下载对应系统的完整安装包：
-   - macOS Apple Silicon：从 Releases 下载 `v0.2.4` 的 macOS Apple Silicon 完整安装包
-   - Windows x64：从 Releases 下载 `v0.2.4` 的 Windows x64 完整安装包
+   - macOS Apple Silicon：从 Releases 下载 `v0.2.5` 的 macOS Apple Silicon 完整安装包
+   - Windows x64：从 Releases 下载 `v0.2.5` 的 Windows x64 完整安装包
 2. 解压后运行包内安装器；安装器会配置专属 Native Host `com.appraisal.toolbox.helper`、独立运行目录、Node.js / Python 与离线依赖。
 3. Chrome 或 Edge 打开扩展管理页，开启开发者模式并加载安装器提示的 `extension` 目录。
 4. 确认扩展 ID 为 `aamfmhcbjgofhmannejoiilkkpchfkgm`。
@@ -36,7 +36,7 @@
 扩展只检查本仓库的更新清单
 （`https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/latest/download/update-manifest.json`），
 与主工作台的更新通道完全隔离。macOS Apple Silicon 与 Windows x64 提供 Native Host 协助的一键更新；其他环境或不支持自动更新时引导到发布页。
-当前稳定版为 `0.2.4`。更新模块具备平台专属事务恢复；真实 Windows 桌面更新、官方源完整在线更新、浏览器 reload 和签名/notarization仍需独立验收。
+当前稳定版为 `0.2.5`。更新模块具备平台专属事务恢复；真实 Windows 桌面更新、官方源完整在线更新、浏览器 reload 和签名/notarization仍需独立验收。
 
 ## 架构
 
