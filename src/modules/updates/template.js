@@ -10,7 +10,7 @@ export const updatesTemplate = `
     <div class="section-title-row">
       <div>
         <h2 id="updateHeadline">正在读取当前版本</h2>
-        <p id="updateDescription" class="section-description">检查不使用任何凭据；工具箱更新经发布页下载安装，不在页内覆盖组件。</p>
+        <p id="updateDescription" class="section-description">Mac 与 Windows 可一键更新并配置原插件目录。</p>
       </div>
       <span id="updateBadge" class="badge">未检查</span>
     </div>

@@ -1,4 +1,7 @@
+import { userErrorMessage, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { anjukePropertyTemplate } from "./template.js";
+import { nativeErrorMessage } from "../../core/native-errors.js";
+import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
 
 const DEFAULT_PROFILE_PATH = "~/.appraisal-toolbox/profiles/anjuke-property";
 const DETAIL_DELAY_MS = 2200;
@@ -281,7 +284,7 @@ export const anjukePropertyModule = {
   manifest: {
     id: "anjuke-property",
     type: "feature",
-    stage: "stable",
+    stage: "development",
     route: "anjuke-property",
     displayName: "安居客数据",
     messageNamespace: "anjuke-property",
@@ -477,7 +480,8 @@ export const anjukePropertyModule = {
         renderParameterState();
         setMessage(elements.anjukePropertyParameterMessage, `已导入当前列表页${isScopedListingUrl(currentUrl) ? "（已带区域条件）" : "（将按页面当前筛选条件）"}。请确认参数后点击“确认并应用参数”。`, "ok");
       } catch (error) {
-        setMessage(elements.anjukePropertyParameterMessage, `导入当前网址失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.anjukePropertyParameterMessage, `导入当前网址失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -493,7 +497,8 @@ export const anjukePropertyModule = {
         await context.chrome.tabs.update(tab.id, { url: config.currentUrl });
         setMessage(elements.anjukePropertyParameterMessage, "已在当前标签页打开安居客列表页，选好范围后再导入网址。", "ok");
       } catch (error) {
-        setMessage(elements.anjukePropertyParameterMessage, `打开安居客失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.anjukePropertyParameterMessage, `打开安居客失败：${userErrorMessage(error)}`, "error");
       }
     }
 
@@ -523,7 +528,7 @@ export const anjukePropertyModule = {
       const result = await context.sendNativeMessage({ action: "select_anjuke_property_output_directory" }, 130000);
       const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
       if (!result?.ok || !selected) {
-        if (!result?.cancelled) setMessage(elements.anjukePropertyParameterMessage, result?.reason || "未选择输出目录", "warn");
+        if (!result?.cancelled) setMessage(elements.anjukePropertyParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
         return;
       }
       config.outputDirectory = selected;
@@ -812,7 +817,7 @@ export const anjukePropertyModule = {
         context.setStatus(`安居客抓取${result.status === "complete" ? "完成" : "部分完成"}：${results.length} 条`, result.status === "complete" ? "ok" : "warn");
       } catch (error) {
         renderProgress({ phase: "failed", percent: 0, message: "抓取失败" });
-        setMessage(elements.anjukePropertyResultMessage, `抓取未完成：${error?.message || String(error)}`, "error");
+        setMessage(elements.anjukePropertyResultMessage, `抓取未完成：${userErrorMessage(error)}`, "error");
         context.setStatus("安居客抓取失败", "error");
       } finally {
         running = false;
@@ -823,9 +828,19 @@ export const anjukePropertyModule = {
 
     async function openPath(value, label, options = {}) {
       if (!value) return;
-      const result = await context.sendNativeMessage({ action: "open_anjuke_property_path", path: value, outputDirectory: config.outputDirectory }, 15000);
-      if (options.quiet && result?.ok) return;
-      setMessage(elements.anjukePropertyResultMessage, result?.ok ? `已打开${label}。` : `${label}打开失败：${result?.reason || "未知错误"}`, result?.ok ? "ok" : "error");
+      try {
+        if (/\.html?$/i.test(value)) {
+          await openHtmlResultInCurrentBrowser(context, "open_anjuke_property_path", value, config.outputDirectory);
+          if (!options.quiet) setMessage(elements.anjukePropertyResultMessage, `${label}已在当前浏览器新标签页打开。`, "ok");
+        } else {
+          const result = await context.sendNativeMessage({ action: "open_anjuke_property_path", path: value, outputDirectory: config.outputDirectory }, 15000);
+          if (!result?.ok) throw new Error(result?.reason || "未知错误");
+          if (!options.quiet) setMessage(elements.anjukePropertyResultMessage, `已打开${label}。`, "ok");
+        }
+      } catch (error) {
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.anjukePropertyResultMessage, `${label}打开失败：${userErrorMessage(error)}`, "error");
+      }
     }
 
     return {

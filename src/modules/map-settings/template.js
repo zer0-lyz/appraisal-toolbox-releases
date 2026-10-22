@@ -9,7 +9,7 @@ export const mapSettingsTemplate = `
 
   <section class="section map-settings-notice">
     <div class="inline-feedback" data-kind="warn">
-      默认使用现有公共底图并自动切换；只有默认底图全部无法加载时，才需要在这里启用官方高德 API。
+      地图仅使用官方高德地图。未配置时显示配置提示；启用并保存高德 JS API Key 后，重新生成地图即可加载。
     </div>
   </section>
 
@@ -17,7 +17,7 @@ export const mapSettingsTemplate = `
     <div class="section-title-row">
       <div>
         <h2>官方高德地图</h2>
-        <p class="section-description">配置后，新生成的地图会把高德 API 作为备用底图。配置只保存在本机，不会上传或写入 GitHub。</p>
+        <p class="section-description">配置后，新生成的地图使用官方高德 JS API。配置保存在本机，不会上传或写入 GitHub。</p>
       </div>
       <span id="mapSettingsConfiguredStatus" class="badge">未配置</span>
     </div>
@@ -26,26 +26,22 @@ export const mapSettingsTemplate = `
       <a id="mapSettingsAmapConsoleLink" class="external-link" href="https://console.amap.com/dev/key/app" target="_blank" rel="noopener noreferrer">打开高德 API 配置页面</a>
       <ol>
         <li>登录或注册高德开放平台，进入“应用管理 → 我的应用”。</li>
-        <li>创建应用后新增“Web 端（JS API）”Key；如控制台提供安全密钥（securityJsCode），一并复制。</li>
-        <li>回到这里启用官方高德底图，填写 Key 和安全密钥，点击“保存地图配置”。</li>
+        <li>创建应用后新增“Web 端（JS API）”Key。</li>
+        <li>回到这里启用官方高德底图，填写 JS API Key 并点击“保存地图配置”。</li>
       </ol>
     </div>
     <label class="check-row map-settings-enable-row">
       <input id="mapSettingsEnableAmap" type="checkbox">
-      <span>启用官方高德底图备用源</span>
+      <span>启用高德地图</span>
     </label>
     <label class="field-block">
       <span>高德 Web 端（JS API）Key</span>
       <input id="mapSettingsAmapKey" type="password" maxlength="256" autocomplete="off" placeholder="启用时填写；已配置则留空表示保留原 Key">
     </label>
-    <label class="field-block">
-      <span>安全密钥（可选）</span>
-      <input id="mapSettingsAmapSecurityCode" type="password" maxlength="256" autocomplete="off" placeholder="如高德控制台要求则填写">
-    </label>
     <p id="mapSettingsLocalStatus" class="section-description map-settings-status" role="status">正在读取本机配置…</p>
     <div class="button-row">
       <button id="saveMapSettings" type="button">保存地图配置</button>
-      <button id="clearMapSettings" type="button" class="secondary">恢复默认底图</button>
+      <button id="clearMapSettings" type="button" class="secondary">清除地图配置</button>
     </div>
     <div id="mapSettingsMessage" class="inline-feedback">未修改本机地图配置。</div>
   </section>
@@ -53,9 +49,9 @@ export const mapSettingsTemplate = `
   <section class="section map-settings-help">
     <div class="section-title-row"><div><h2>配置说明</h2></div></div>
     <ol>
-      <li>在高德控制台创建“Web 端（JS API）”Key，不要把 Key 或安全密钥发送到聊天或提交到仓库。</li>
+      <li>在高德控制台创建“Web 端（JS API）”Key，不要把 Key 发送到聊天或提交到仓库。</li>
       <li>启用后保存配置，再重新生成土地或司法拍卖地图；已经打开的旧 HTML 不会自动更新。</li>
-      <li>如果未启用或清除了配置，系统会继续使用现有公共底图和自动降级逻辑。</li>
+      <li>如果未启用或清除了配置，地图显示配置提示；不会加载其他底图。</li>
     </ol>
   </section>
 `;

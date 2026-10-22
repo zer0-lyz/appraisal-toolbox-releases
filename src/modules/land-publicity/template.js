@@ -7,11 +7,12 @@ export const landPublicityTemplate = `
     <button id="backFromLandPublicity" type="button" class="secondary">返回首页</button>
   </div>
 
-  <section class="section land-publicity-notice">
+  <details class="section land-publicity-notice">
+    <summary>使用说明与固定交易条件</summary>
     <div class="inline-feedback" data-kind="warn">
       交易条件固定为国有土地、挂牌出让/拍卖出让、结果公示；行政区和官网查询日期会直接用于列表查询。
     </div>
-  </section>
+  </details>
 
   <section class="section land-publicity-filters">
     <div class="section-title-row"><div><h2>交易条件</h2><p class="section-description">本模块按成交公示场景固定条件，无需重复选择。</p></div></div>
@@ -75,6 +76,9 @@ export const landPublicityTemplate = `
     <div class="progress-track"><div id="landPublicityProgressBar" class="progress-value" style="width:0%"></div></div>
     <div class="land-publicity-progress-counts"><span>已抓取 <strong id="landPublicityFetchedCount">0</strong></span><span>已筛选 <strong id="landPublicityFilteredCount">0</strong></span><span>已写出 <strong id="landPublicityWrittenCount">0</strong></span></div>
     <div class="button-row"><button id="openLandPublicityHtml" type="button" class="secondary" disabled>打开结果页</button><button id="openLandPublicityExcel" type="button" class="secondary" disabled>打开 Excel</button><button id="openLandPublicityMap" type="button" class="secondary" disabled>查看地图</button></div>
+    <div id="landPublicityOpenMessage" class="inline-feedback" role="status" aria-live="polite"></div>
+    <div class="inline-feedback">地图底图空白或未配置时，请先配置地图；保存后重新生成地图，原成交数据与坐标会保留。</div>
+    <button id="openLandPublicityMapSettings" type="button" class="secondary">前往地图基础配置</button>
     <div id="landPublicityResultMessage" class="inline-feedback">完成后将回读 Excel、HTML 及可选地图文件；无坐标案例会在表格中明确标注。</div>
   </section>
 `;

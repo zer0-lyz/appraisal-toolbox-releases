@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "evidenceType": "actual-packaged-native-host",
+  "sourceCommit": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "imports": {
+    "ok": true,
+    "imports": [
+      "landPublicity",
+      "anjukeProperty",
+      "tableFormat",
+      "detailPrint",
+      "declarationPrint",
+      "formulaRestore",
+      "depreciation"
+    ],
+    "entries": [
+      {
+        "name": "landPublicity",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "anjukeProperty",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "tableFormat",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "detailPrint",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "declarationPrint",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "formulaRestore",
+        "ok": true,
+        "exitCode": 0
+      },
+      {
+        "name": "depreciation",
+        "ok": true,
+        "exitCode": 0
+      }
+    ]
+  },
+  "healthOk": true,
+  "macUpdaterRejectedWithoutNetwork": true,
+  "frames": [
+    {
+      "ok": false,
+      "event": "complete",
+      "action": "download_and_install_update",
+      "phase": "failed",
+      "percent": 0,
+      "reason": "PLATFORM_UPDATE_UNSUPPORTED",
+      "autoUpdateSupported": false,
+      "security": {
+        "credentialsReturned": false
+      }
+    }
+  ],
+  "pythonEnvOverrides": false,
+  "browserConnectionCovered": false
+}

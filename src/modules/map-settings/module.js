@@ -1,3 +1,4 @@
+import { userErrorMessage, showUserErrorDiagnostics } from "../../core/user-errors.js";
 import { mapSettingsTemplate } from "./template.js";
 
 function elementMap(documentRef) {
@@ -9,7 +10,6 @@ function elementMap(documentRef) {
     "mapSettingsConfiguredStatus",
     "mapSettingsEnableAmap",
     "mapSettingsAmapKey",
-    "mapSettingsAmapSecurityCode",
     "mapSettingsLocalStatus",
     "saveMapSettings",
     "clearMapSettings",
@@ -22,6 +22,13 @@ function setMessage(element, text, kind = "") {
   if (!element) return;
   element.textContent = text;
   element.dataset.kind = kind;
+}
+
+function configurationError(error) {
+  const reason = error?.message || String(error);
+  return ({
+    MAP_CONFIG_AMAP_KEY_REQUIRED: "请填写高德 Web 端（JS API）Key。",
+  })[reason] || "请确认 Native Helper 在线后重试。";
 }
 
 export const mapSettingsModule = {
@@ -56,8 +63,8 @@ export const mapSettingsModule = {
       }
       elements.mapSettingsEnableAmap.checked = Boolean(summary?.enabled);
       elements.mapSettingsLocalStatus.textContent = configured
-        ? `本机已配置高德 API（Key：${summary.webKeyMasked || "已隐藏"}）。留空 Key 保存时会保留现有配置。`
-        : "当前使用默认公共底图；默认底图全部失败时，地图会提示在此处配置官方 API。";
+        ? `本机已配置高德地图（Key：${summary.webKeyMasked || "已隐藏"}）。留空 Key 保存时会保留现有配置。`
+        : "高德地图配置未完成。启用后填写 JS API Key 并保存；未配置时不加载地图。";
       elements.mapSettingsLocalStatus.dataset.kind = configured ? "ok" : "warn";
     }
 
@@ -68,7 +75,8 @@ export const mapSettingsModule = {
         nativeSummary = result;
         renderSummary();
       } catch (error) {
-        setMessage(elements.mapSettingsMessage, `读取本机地图配置失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.mapSettingsMessage, `读取本机地图配置失败：${userErrorMessage(error)}`, "error");
         elements.mapSettingsLocalStatus.textContent = "暂时无法读取本机配置，请确认工作台本机运行组件在线。";
         elements.mapSettingsLocalStatus.dataset.kind = "error";
       }
@@ -77,8 +85,7 @@ export const mapSettingsModule = {
     async function save() {
       const enabled = elements.mapSettingsEnableAmap.checked;
       const webKey = elements.mapSettingsAmapKey.value.trim();
-      const securityJsCode = elements.mapSettingsAmapSecurityCode.value.trim();
-      if (enabled && !webKey && !nativeSummary?.configured) {
+      if (enabled && !webKey && !(nativeSummary?.webKeyConfigured || nativeSummary?.configured)) {
         setMessage(elements.mapSettingsMessage, "启用官方高德底图前，请填写 Web 端（JS API）Key。", "warn");
         return;
       }
@@ -86,18 +93,18 @@ export const mapSettingsModule = {
       try {
         const result = await context.sendNativeMessage({
           action: "save_map_config",
-          config: { amap: { enabled, webKey, securityJsCode, preserveExisting: nativeSummary?.configured === true } },
+          config: { amap: { enabled, webKey, preserveExisting: Boolean(nativeSummary?.webKeyConfigured || nativeSummary?.configured) } },
         }, 15000);
         if (!result?.ok) throw new Error(result?.reason || "MAP_CONFIG_SAVE_FAILED");
         nativeSummary = result;
         elements.mapSettingsAmapKey.value = "";
-        elements.mapSettingsAmapSecurityCode.value = "";
         await context.storage.save({ enabled: result.enabled, configured: result.configured, webKeyMasked: result.webKeyMasked || "" });
         renderSummary();
-        setMessage(elements.mapSettingsMessage, result.enabled ? "已保存。请重新生成地图后使官方 API 配置生效。" : "已恢复默认公共底图。", "ok");
+        setMessage(elements.mapSettingsMessage, result.enabled ? "已保存。请重新生成地图后使官方 API 配置生效。" : "已停用高德地图。未配置时地图显示配置提示。", "ok");
         context.setStatus("地图基础配置已保存", "ok");
       } catch (error) {
-        setMessage(elements.mapSettingsMessage, `保存地图配置失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.mapSettingsMessage, `保存地图配置失败：${configurationError(error)}`, "error");
       } finally {
         elements.saveMapSettings.disabled = false;
       }
@@ -110,13 +117,13 @@ export const mapSettingsModule = {
         if (!result?.ok) throw new Error(result?.reason || "MAP_CONFIG_CLEAR_FAILED");
         nativeSummary = result;
         elements.mapSettingsAmapKey.value = "";
-        elements.mapSettingsAmapSecurityCode.value = "";
         await context.storage.save({ enabled: false, configured: false, webKeyMasked: "" });
         renderSummary();
-        setMessage(elements.mapSettingsMessage, "已恢复默认公共底图。", "ok");
-        context.setStatus("已恢复默认地图配置", "ok");
+        setMessage(elements.mapSettingsMessage, "已停用高德地图。未配置时地图显示配置提示。", "ok");
+        context.setStatus("已清除地图配置", "ok");
       } catch (error) {
-        setMessage(elements.mapSettingsMessage, `恢复默认配置失败：${error?.message || String(error)}`, "error");
+        showUserErrorDiagnostics(error, context.document);
+        setMessage(elements.mapSettingsMessage, `清除地图配置失败：${userErrorMessage(error)}`, "error");
       } finally {
         elements.clearMapSettings.disabled = false;
       }

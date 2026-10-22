@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "evidenceType": "actual-installer-in-disposable-directories",
+  "python": "3.14.6 extracted from hash-locked official pkg",
+  "freshIsolatedInstall": true,
+  "syntheticDataUpgrade": true,
+  "edgeWriteFailureRollback": true,
+  "chromeAndEdgeManifestReadback": true,
+  "systemFrameworkInstallCovered": false,
+  "ordinaryDesktopInstallerCovered": false,
+  "browserNativeConnectionCovered": false,
+  "browserGuiCovered": false
+}
