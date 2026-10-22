@@ -70,4 +70,4 @@ Mac PR #15 的持久状态轮询与事务恢复已与 Windows PR #14 的 Windows
 
 共享 `skills/zj-land-publicity/land_publicity_runner.py` 与 `scrape_zj_land.py` 修复了单选用途二次过滤漏掉“普通商品住房”等名称变体的问题；单选以官网 `landUse=1..4` 查询为准，多选依据官方 `planUse` 分类编码复核。结果新增容积率，读列表 `rjl` / 详情 `plotRatio`，X/S 及比较符按原值显示在 Excel、独立结果页和地图弹窗。Mac 对照官网余姚 735 条，四类分类数量和官网分别为 145/85/474/31，未分类及错分为 0；源模块回归 12/12。证据见 `LAND_PUBLICITY_USE_RATIO_VALIDATION_20261022.md`。
 
-这是共享业务载荷，没有改 Windows adapter、Native Host 或安装器；Windows 仍需用其目标 runtime 从后续共同源码构建，并验证单选/多选用途、Excel/HTML/地图容积率，以及 SEA/真实桌面安装链。Mac 真实浏览器 GUI 也未覆盖。本记录不把 API/夹具证据当成双端完整验收，不改变 stable/latest 或 main。
+这是共享业务载荷，没有改 Windows adapter、Native Host 或安装器。Mac 候选 `0.2.5 / 2026102204` 来自 `f806df777ac7448c84cd1917eb2fef879effb8bb`，ZIP SHA-256 `ade3caf5f847291184c37d2faf6d72714adf2a89eb261694999ab959900da0bc`；产品未签名、未公证，未安装到正式目录。Windows 仍需用其目标 runtime 从后续共同源码构建，并验证单选/多选用途、Excel/HTML/地图容积率，以及 SEA/真实桌面安装链。Mac 真实浏览器 GUI 也未覆盖。本记录不把 API/夹具/隔离安装证据当成双端完整验收，不改变 stable/latest 或 main。

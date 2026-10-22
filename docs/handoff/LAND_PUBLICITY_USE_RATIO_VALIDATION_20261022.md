@@ -24,6 +24,14 @@
 
 本地土地模块回归：12/12 通过，覆盖四类现代/旧用途编码、Excel/HTML/地图结果中容积率回读、列表值优先和详情值回退。Python 语法编译通过。
 
+## Mac 候选构建
+
+- macOS 27.0.1 arm64，源码提交 `f806df777ac7448c84cd1917eb2fef879effb8bb`，构建版本 `0.2.5` / build `2026102204` / buildId `mac-land-use-20261022`。
+- 候选 ZIP：`appraisal-toolbox-v0.2.5-macos-arm64-mac-land-use-20261022.zip`，SHA-256 `ade3caf5f847291184c37d2faf6d72714adf2a89eb261694999ab959900da0bc`；Native Host SHA-256 `f8b7f135fff1eb704eec70edec57872534e82b51ddc9f47ed699ebf704addb69`；installerBuild `macos-transactional.3`。
+- 构建工具 Node `v24.14.0`、系统打包 Python `3.9.6`；包内锁定 Python `3.14.6`。SHA256SUMS 的 152 个载荷文件、ZIP 153 项 CRC 均回读通过。
+- 候选包内土地回归 12/12；Mac 隔离新装/升级/回滚、实际 Native 自测和四个技能导入通过。安装使用专用 `/private/tmp` 测试根，没有写入用户正式安装目录。
+- 产品包/launcher 未签名、未 notarize。候选未发布、未装入正式目录；stable、共享 latest、main 均未变。
+
 ## 验收边界
 
-以上是 Mac 源码模块回归及真实公开接口验证，不等于已在 Chrome 中进行真实 GUI 抓取。当前没有 Windows 实机/SEA 安装器验证，也没有重新构建或安装 Mac 完整插件包；稳定版、共享 latest、main 均未变。Windows 后续从同一共享源码构建并验证用途多选、容积率 Excel/HTML/地图与其运行时路径。
+以上是 Mac 源码/候选包回归及真实公开 API 直连验证，不等于 Chrome 中通过真实 GUI 完成抓取。真实插件 GUI/Native 连接未覆盖；Windows 实机/SEA 安装器未覆盖。Windows 后续从同一共享源码构建并验证用途多选、容积率 Excel/HTML/地图与其运行时路径。
