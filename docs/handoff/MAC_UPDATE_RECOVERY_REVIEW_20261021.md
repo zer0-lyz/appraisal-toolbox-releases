@@ -56,3 +56,5 @@
 共享 source-checks 16 项通过，更新页 22 个 synthetic DOM 场景通过；这些不作为真实 GUI 证明。新 worker 13 项使用合成包/安装故障注入，真实安装和恢复 helper 有独立 7 项（包含 SIGKILL 存活子进程、complete 后恢复、已回滚结果重放）；engine 8 项包含真实父进程退出后的后台继续运行。此前 37 项还曾用原始锁定基础包提取的 Python 3.14.6 跑完且 0 skipped。最终真实包安装/升级/回滚和源码提交、ZIP SHA 将在构建后补充。
 
 首次真实包隔离运行发现 worker 已创建下载/解压/log 目录，而安装器仍要求该目录完全为空，导致委托安装在改动安装树前以 INSTALLER_JOURNAL_ALREADY_EXISTS 停止。该候选未通过且不作为交付包。已将 worker 模式的既有文件限制为 extracted/update.zip/installer.log，保留 nonce/root/锁验证和不覆盖既有 installer journal 的门禁；手动入口仍要求空目录。补充真实 begin-helper 回归，最终 Mac suite 39/39、0 skipped；使用新干净 commit 重新构建 r2。
+
+随后整组运行中的一个手动回滚 fixture 读到了尚未写完的 lock-status JSON，首次为 38/39；该轮不是 39/39。锁控制状态已改为 fsync 后原子发布，重新完整运行实际为 39/39、0 skipped（root-macos-tests-final.log）。最后交付采用包含此修复的更新源码重建，先前候选 SHA 不沿用。

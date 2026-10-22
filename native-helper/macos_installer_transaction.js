@@ -623,8 +623,8 @@ async function holdLock(lockPath, pythonBin, ownerPid, processGroupId, nonce, st
     const ownerAtStart = processRecord(owner);
     if (!ownerAtStart || ownerAtStart.pgid !== group) throw new Error("INSTALLER_LOCK_OWNER_INVALID");
     const payload = { schema: 1, nonce, lockPath: lock, holderPid: process.pid, ownerPid: owner, processGroupId: group };
-    const fd = fs.openSync(status, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY, 0o600);
-    try { fs.writeFileSync(fd, JSON.stringify(payload) + "\n", "utf8"); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+    if (fs.existsSync(status)) throw new Error("INSTALLER_LOCK_CONTROL_EXISTS");
+    atomicWriteJson(status, payload);
     statusWritten = true;
     process.stdout.write("LOCKED\n");
     while (true) {
