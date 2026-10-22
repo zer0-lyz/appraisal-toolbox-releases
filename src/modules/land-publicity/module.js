@@ -241,9 +241,6 @@ export const landPublicityModule = {
       config.dataSourceCheckedAt = new Date().toISOString();
       renderHealthMarker();
       void context.storage.save({ ...config });
-      if (status !== "ok") {
-        console.warn(`land-publicity health check failed: ${status}`);
-      }
     }
 
     async function loadRegionCatalog() {
