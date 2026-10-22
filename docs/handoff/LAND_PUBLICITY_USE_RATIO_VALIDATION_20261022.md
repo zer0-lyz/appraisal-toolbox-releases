@@ -24,6 +24,15 @@
 
 本地土地模块回归：12/12 通过，覆盖四类现代/旧用途编码、Excel/HTML/地图结果中容积率回读、列表值优先和详情值回退。Python 语法编译通过。
 
+## 全省地区修复后的 Mac 候选重建
+
+- 旧候选 `2026102204` 不含 `V3-13/V3-14` 分类补丁，现由下述候选替代。产品版本仍为 `0.2.5`，build `2026102205`，buildId `mac-land-region-sample-20261022`；构建源码提交 `8a0ccbeeea7fba8626b1331e77dbb2a3018fc9e9`，系统 `macOS 27.0.1 arm64`。
+- 构建命令：`node scripts/release/build.cjs --target macos-arm64 --version 0.2.5 --build-id mac-land-region-sample-20261022 --build-number 2026102205 --channel candidate --runtime-build-kind local --output /tmp/appraisal-toolbox-mac-land-region-20261022 --cache /tmp/appraisal-toolbox-build-cache --python /usr/bin/python3`。
+- 本机候选 ZIP：`/tmp/appraisal-toolbox-mac-land-region-20261022/appraisal-toolbox-v0.2.5-macos-arm64-mac-land-region-sample-20261022.zip`，SHA-256 `ced659f5b30bb14aae6fd5e5782389e682efd1e4e5a09f1d774994c931a59628`。Native Host SHA-256 `f8b7f135fff1eb704eec70edec57872534e82b51ddc9f47ed699ebf704addb69`；`macos-transactional.3`。
+- 构建工具 Node `v24.14.0`、Python `3.9.6`，包内 Python `3.14.6`；锁定 runtime 缓存逐项验证后命中。产品包和 launcher 未签名、未公证。
+- 来源回归 17/17、构建回归 9/9、土地模块测试 12/12；候选 ZIP CRC、SHA-256 通过。隔离安装/升级/回滚、真实打包 Native 协议及四个 Python 技能导入通过；在隔离安装副本中再次运行土地模块 12/12 通过。
+- 隔离脚本第一次使用 `/tmp` 测试根时因 macOS 将它解析为 `/private/tmp`，导致脚本字符串路径断言失败；改用规范 `/private/tmp` 路径后完整新装、升级、回滚通过。两次都只使用临时测试目录。候选包未安装到正式目录，未发布 Release，不改 stable/latest/main。
+
 ## Mac 候选构建
 
 - macOS 27.0.1 arm64，源码提交 `f806df777ac7448c84cd1917eb2fef879effb8bb`，构建版本 `0.2.5` / build `2026102204` / buildId `mac-land-use-20261022`。
