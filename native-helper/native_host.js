@@ -419,6 +419,7 @@ const DEPRECIATION_CAPEX_ACTIONS = Object.freeze({
 const TOOLBOX_NATIVE_ACTIONS = new Set([
   "health",
   "download_and_install_update",
+  "get_update_status",
   "check_github_update",
   "get_map_config",
   "save_map_config",
@@ -4522,6 +4523,9 @@ async function handle(message) {
   if (message?.action === "start_connector_bridge") {
     return await startConnectorBridgeAction({ forceRestart: message.forceRestart === true });
   }
+  if (message?.action === "get_update_status") {
+    return await updateChecker.getUpdateStatus();
+  }
   if (message?.action === "check_github_update") {
     return await updateChecker.checkGithubUpdate({
       currentVersion: message.currentVersion,
@@ -4999,7 +5003,9 @@ if (process.argv.includes("--self-test")) {
     });
 } else {
   readMessages((message) => {
-    if (updateChecker.isUpdateInProgress() && message?.action !== "download_and_install_update") {
+    if (updateChecker.isUpdateInProgress()
+      && message?.action !== "download_and_install_update"
+      && message?.action !== "get_update_status") {
       writeMessage({ ok: false, action: message?.action, reason: "UPDATE_ALREADY_RUNNING" });
       return;
     }

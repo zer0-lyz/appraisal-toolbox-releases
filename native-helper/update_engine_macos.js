@@ -8,6 +8,7 @@ const https = require("node:https");
 const { pipeline } = require("node:stream/promises");
 const { Transform } = require("node:stream");
 const { spawn, execFileSync } = require("node:child_process");
+const { MacUpdateTransactionStore, atomicWriteJson, canonicalInstallRoot, ensurePrivateDirectory, resolveLockPython } = require("./macos_update_transaction.js");
 
 const REPOSITORY = "zer0-lyz/appraisal-toolbox-releases";
 const EXTENSION_ID = "aamfmhcbjgofhmannejoiilkkpchfkgm";
@@ -21,6 +22,21 @@ const PYTHON_VERSION = "3.14.6";
 
 function capabilitiesFor(platform = process.platform, architecture = process.arch) {
   return { autoUpdateSupported: platform === "darwin" && architecture === "arm64" };
+}
+
+function frameworkSearchPathForPython(pythonBin) {
+  let interpreterPath;
+  try { interpreterPath = fs.realpathSync(path.resolve(String(pythonBin || ""))); }
+  catch { throw new Error("UPDATE_LOCK_RUNTIME_UNAVAILABLE"); }
+  let directory = path.dirname(interpreterPath);
+  while (directory !== path.dirname(directory)) {
+    if (path.basename(directory) === "Python.framework") {
+      try { if (fs.statSync(directory).isDirectory()) return path.dirname(directory); }
+      catch { break; }
+    }
+    directory = path.dirname(directory);
+  }
+  throw new Error("UPDATE_LOCK_RUNTIME_UNAVAILABLE");
 }
 
 function extensionIdFromKey(value) {
@@ -90,9 +106,10 @@ function digestFile(filePath) {
   });
 }
 
-async function downloadAsset(url, targetPath, expectedSize, expectedSha256, onBytes = () => {}) {
+async function downloadAsset(url, targetPath, expectedSize, expectedSha256, onBytes = () => {}, timeoutMs = DOWNLOAD_TIMEOUT_MS) {
   const controller = new AbortController();
-  const deadline = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+  const boundedTimeout = Math.max(1, Math.min(DOWNLOAD_TIMEOUT_MS, Number(timeoutMs) || DOWNLOAD_TIMEOUT_MS));
+  const deadline = setTimeout(() => controller.abort(), boundedTimeout);
   const partialPath = `${targetPath}.part`;
   try {
     const response = await responseFor(url, controller.signal);
@@ -482,6 +499,21 @@ function rollbackFromInstallerLog({ installRoot, logPath, homeDir, expectedVersi
   }
 }
 
+function statusLockPython(frameworkRoot, runFileSync) {
+  let base = path.resolve(frameworkRoot || "/Library/Frameworks/Python.framework/Versions/3.14");
+  const nested = path.join(base, "Python.framework/Versions/3.14");
+  if (fs.existsSync(nested)) base = nested;
+  const canonical = fs.realpathSync(base);
+  const python = fs.realpathSync(path.join(canonical, "bin/python3.14"));
+  const relative = path.relative(canonical, python);
+  if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)
+    || !fs.statSync(python).isFile()) throw new Error("UPDATE_LOCK_RUNTIME_UNAVAILABLE");
+  const version = runFileSync(python, ["--version"], {encoding: "utf8", timeout: 5000}).trim();
+  if (version !== "Python 3.14.6") throw new Error("UPDATE_LOCK_RUNTIME_UNAVAILABLE");
+  runFileSync(python, ["-c", "import fcntl,sys; assert sys.version_info[:3] == (3,14,6)"], {stdio: "ignore", timeout: 5000});
+  return python;
+}
+
 function createMacOSUpdateEngine(options = {}) {
   const platform = options.platform || process.platform;
   const architecture = options.architecture || process.arch;
@@ -490,260 +522,298 @@ function createMacOSUpdateEngine(options = {}) {
   const updatesRoot = path.resolve(options.updatesRoot || path.join(homeDir, ".appraisal-toolbox-updates"));
   const spawnProcess = options.spawn || spawn;
   const runFileSync = options.execFileSync || execFileSync;
-  const download = options.downloadAsset || downloadAsset;
-  const downloadAttempts = Math.max(1, Math.min(5, Number(options.downloadAttempts) || DOWNLOAD_ATTEMPTS));
-  const retryDelayMs = Math.max(0, Math.min(30000, Number(options.retryDelayMs) || DOWNLOAD_RETRY_DELAY_MS));
-  const wait = options.sleep || ((duration) => new Promise((resolve) => setTimeout(resolve, duration)));
-  const extract = options.extractZip || ((zipPath, destination) => runProcess(
-    "/usr/bin/ditto", ["-x", "-k", zipPath, destination],
-    { cwd: path.dirname(zipPath), stdio: "ignore" }, 3 * 60 * 1000, spawnProcess,
-  ));
-  const installPackage = options.installPackage || (async ({ installerPath, packageRoot, logPath, env, onStarted }) => {
-    const logFd = fs.openSync(logPath, "wx", 0o600);
-    try {
-      return await runProcess("/bin/bash", [installerPath], {
-        cwd: packageRoot,
-        env,
-        stdio: ["ignore", logFd, logFd],
-      }, INSTALL_TIMEOUT_MS, spawnProcess, onStarted);
-    } finally {
-      fs.closeSync(logFd);
-    }
-  });
-  let updating = false;
+  const workerPath = path.resolve(options.workerPath || path.join(__dirname, "macos_update_worker.js"));
+  let localStart = false;
 
-  function capabilities() { return capabilitiesFor(platform, architecture); }
-
-  async function downloadAndInstallUpdate(message = {}, emit = () => {}, checkUpdate) {
-    let updateRoot = "";
-    let lockPath = "";
-    let lockAcquired = false;
-    let originalCwd = "";
-    let installerStarted = false;
-    let installerHeartbeat = null;
-    let currentVersion = null;
-    let final;
-    const nonce = crypto.randomUUID();
-    const progress = (percent, phase, text) => emit({
-      ok: true,
-      event: "progress",
-      action: "download_and_install_update",
-      phase,
-      percent,
-      message: text,
-      security: { credentialsReturned: false },
-    });
-    try {
-      if (!capabilities().autoUpdateSupported) throw new Error("PLATFORM_UPDATE_UNSUPPORTED");
-      if (updating) throw new Error("UPDATE_ALREADY_RUNNING");
-      updating = true;
-      if (!fs.existsSync(installRoot) || fs.lstatSync(installRoot).isSymbolicLink()) {
-        throw new Error("UPDATE_EXTENSION_PATH_REQUIRED");
-      }
-      const nativeRoot = path.join(installRoot, "native-helper");
-      const config = readJson(path.join(nativeRoot, "runtime-config.json"));
-      const current = readJson(path.join(installRoot, "extension", "version.json"));
-      const contract = readJson(path.join(installRoot, "extension", "runtime-compat.json"));
-      const currentManifest = readJson(path.join(installRoot, "extension", "manifest.json"));
-      for (const component of ["extension", "native-helper", "python", "runtime", "skills"]) {
-        const componentPath = path.join(installRoot, component);
-        if (fs.existsSync(componentPath) && fs.lstatSync(componentPath).isSymbolicLink()) {
-          throw new Error("UPDATE_STAGING_PATH_INVALID");
-        }
-      }
-      if (extensionIdFromKey(currentManifest.key) !== EXTENSION_ID
-        || config.toolboxExtensionId !== EXTENSION_ID
-        || config.nativeHostName !== NATIVE_HOST) {
-        throw new Error("UPDATE_EXTENSION_PATH_REQUIRED");
-      }
-      currentVersion = { productVersion: String(current.productVersion || ""), buildNumber: Number(current.buildNumber || 0) };
-      const pythonBootstrap = checkPythonRuntime(installRoot, runFileSync);
-      const requestSha = String(message.sha256 || "").toLowerCase();
-      if (!/^[a-f0-9]{64}$/.test(requestSha)) throw new Error("UPDATE_SHA256_REQUIRED");
-      if (typeof checkUpdate !== "function") throw new Error("UPDATE_CHECK_FAILED");
-      progress(1, "preflight", "正在核对官方发布记录与本机运行环境…");
-      const latest = await checkUpdate({
-        repository: REPOSITORY,
-        currentVersion: current.productVersion,
-        currentBuildNumber: current.buildNumber,
-        currentRuntimeBuildId: contract.runtimeBuildId,
-        currentRuntimeBuildKind: contract.runtimeBuildKind,
-        platform: "darwin",
-        architecture: "arm64",
-      });
-      if (!latest?.ok) throw new Error(latest?.reason || "UPDATE_CHECK_FAILED");
-      if (!latest.releasePublished || latest.platform !== "macos-arm64"
-        || (!latest.updateAvailable && !latest.repairRequired)) throw new Error("UPDATE_NOT_REQUIRED");
-      const targetBuild = Number(latest.latestBuildNumber || 0);
-      const comparison = compareVersions(latest.latestVersion, current.productVersion);
-      if (comparison < 0 || (comparison === 0 && targetBuild < Number(current.buildNumber || 0))) {
-        throw new Error("UPDATE_TARGET_CHANGED");
-      }
-      if (!Number.isSafeInteger(targetBuild) || targetBuild < 1) throw new Error("UPDATE_TARGET_CHANGED");
-      const targetSha = String(latest.asset?.sha256 || "").replace(/^sha256:/i, "").toLowerCase();
-      const targetSize = Number(latest.asset?.size || 0);
-      if (!/^[a-f0-9]{64}$/.test(targetSha)) throw new Error("UPDATE_SHA256_MISSING");
-      if (targetSha !== requestSha) throw new Error("UPDATE_TARGET_CHANGED");
-      if (!Number.isSafeInteger(targetSize) || targetSize <= 0) throw new Error("UPDATE_DOWNLOAD_SIZE_MISMATCH");
-      const candidates = [...new Map([
-        ...(Array.isArray(latest.downloadCandidates) ? latest.downloadCandidates : []),
-        latest.asset || {},
-      ].filter((candidate) => candidate?.url).map((candidate) => [String(candidate.url), candidate])).values()];
-      const requestedUrl = allowedAssetUrl(message.url).href;
-      if (!candidates.some((candidate) => allowedAssetUrl(candidate.url).href === requestedUrl)) {
-        throw new Error("UPDATE_TARGET_CHANGED");
-      }
-
-      if (fs.existsSync(updatesRoot) && fs.lstatSync(updatesRoot).isSymbolicLink()) {
-        throw new Error("UPDATE_STAGING_PATH_INVALID");
-      }
-      fs.mkdirSync(updatesRoot, { recursive: true, mode: 0o700 });
-      fs.chmodSync(updatesRoot, 0o700);
-      lockPath = path.join(homeDir, ".appraisal-toolbox-update.lock");
-      acquireUpdateLock(lockPath, nonce);
-      lockAcquired = true;
-      updateRoot = fs.mkdtempSync(path.join(updatesRoot, `run-${nonce.slice(0, 8)}-`));
-      const zipPath = path.join(updateRoot, "package.zip");
-      const extractRoot = path.join(updateRoot, "extracted");
-      const logPath = path.join(updateRoot, "installer.log");
-      fs.mkdirSync(extractRoot, { mode: 0o700 });
-      let downloaded = false;
-      let downloadFailure = null;
-      for (const candidate of candidates) {
-        const url = String(candidate.url || "");
-        try {
-          allowedAssetUrl(url);
-          const candidateSha = String(candidate.sha256 || targetSha).replace(/^sha256:/i, "").toLowerCase();
-          if (candidateSha !== targetSha) continue;
-          for (let attempt = 1; attempt <= downloadAttempts; attempt += 1) {
-            try {
-              progress(2, "downloading", "正在下载官方 macOS 安装包…");
-              await download(url, zipPath, targetSize, targetSha, (bytes) => {
-                progress(Math.min(58, 2 + bytes / targetSize * 56), "downloading", "正在下载更新包…");
-              });
-              downloaded = true;
-              break;
-            } catch (error) {
-              downloadFailure = error;
-              fs.rmSync(zipPath, { force: true });
-              if (!isRetryableDownloadError(error) || attempt >= downloadAttempts) break;
-              progress(2, "downloading", `下载连接中断，正在重试（${attempt + 1}/${downloadAttempts}）…`);
-              await wait(retryDelayMs * attempt);
-            }
-          }
-          if (downloaded) break;
-        } catch (error) {
-          downloadFailure = error;
-          fs.rmSync(zipPath, { force: true });
-        }
-      }
-      if (!downloaded) throw downloadFailure || new Error("UPDATE_DOWNLOAD_CHANNELS_FAILED");
-      progress(60, "verifying", "正在校验下载包和内部文件清单…");
-      if (fs.statSync(zipPath).size !== targetSize || await digestFile(zipPath) !== targetSha) {
-        throw new Error("UPDATE_DOWNLOAD_SHA256_MISMATCH");
-      }
-      progress(68, "extracting", "正在安全暂存更新包…");
-      await extract(zipPath, extractRoot);
-      const packageRoot = findPackageRoot(extractRoot);
-      const packageDetails = await validatePackage(packageRoot, latest, runFileSync);
-      progress(78, "installing", "正在安装组件、Python 依赖并登记 Chrome / Edge Native Host…");
-      const env = installerEnvironment(process.env, { homeDir, installRoot, pythonBootstrap });
-      originalCwd = process.cwd();
-      process.chdir(updateRoot);
-      installerStarted = true;
-      installerHeartbeat = setInterval(() => {
-        progress(80, "installing", "安装器正在配置组件，请保持浏览器开启…");
-      }, 10000);
-      try {
-        await installPackage({
-          installerPath: packageDetails.installerPath,
-          packageRoot,
-          logPath,
-          env,
-          onStarted: (child) => updateLockOwner(lockPath, nonce, { installerPid: Number(child.pid) }),
-        });
-      } finally {
-        clearInterval(installerHeartbeat);
-        installerHeartbeat = null;
-      }
-      progress(94, "verifying_install", "正在核验扩展版本、Native Host 与运行环境…");
-      let installed;
-      try {
-        installed = verifyInstalled({
-          installRoot,
-          homeDir,
-          packageDetails,
-          pythonBootstrap: path.join(installRoot, "python", "bin", "python3"),
-          runFileSync,
-          verificationEnvironment: options.verificationEnvironment,
-        });
-      } catch (error) {
-        rollbackFromInstallerLog({ installRoot, logPath, homeDir, expectedVersion: currentVersion, nonce });
-        throw error;
-      }
-      final = {
-        ok: true,
-        phase: "complete",
-        percent: 100,
-        message: "更新安装与配置核验完成；即将重新加载扩展。",
-        platform: "macos-arm64",
-        latestVersion: installed.productVersion,
-        latestBuildNumber: installed.buildNumber,
-        buildId: installed.buildId,
-        installerLogPath: logPath,
-        currentVersionUnchanged: false,
-      };
-      fs.rmSync(zipPath, { force: true });
-      fs.rmSync(extractRoot, { recursive: true, force: true });
-    } catch (error) {
-      const raw = String(error?.message || "");
-      const reason = /^(?:UPDATE_[A-Z0-9_]+|PLATFORM_UPDATE_UNSUPPORTED)$/.test(raw)
-        ? raw
-        : "UPDATE_FAILED";
-      let currentVersionUnchanged = null;
-      try {
-        const now = readJson(path.join(installRoot, "extension", "version.json"));
-        currentVersionUnchanged = Boolean(currentVersion
-          && now.productVersion === currentVersion.productVersion
-          && Number(now.buildNumber) === Number(currentVersion.buildNumber));
-      } catch { /* preserve unknown when the installation cannot be read */ }
-      final = {
-        ok: false,
-        phase: "failed",
-        percent: installerStarted ? 78 : 1,
-        reason,
-        message: "更新未完成；当前版本状态已核验，请查看本机更新日志。",
-        currentVersionUnchanged,
-        diagnostics: {
-          stagePath: updateRoot || null,
-          installerLogPath: fs.existsSync(path.join(updateRoot, "installer.log")) ? path.join(updateRoot, "installer.log") : null,
-          installerStarted,
-        },
-      };
-    } finally {
-      clearInterval(installerHeartbeat);
-      if (originalCwd) { try { process.chdir(originalCwd); } catch { /* leave the process outside the replaced install tree */ } }
-      updating = false;
-      if (lockAcquired && lockPath && final?.reason !== "UPDATE_PROCESS_TIMEOUT") {
-        try { fs.rmSync(lockPath, { recursive: true, force: true }); }
-        catch { final = { ok: false, phase: "failed", reason: "UPDATE_LOCK_RELEASE_FAILED", currentVersionUnchanged: null }; }
-      }
-      if (updateRoot && !installerStarted && final?.ok !== true) {
-        fs.rmSync(updateRoot, { recursive: true, force: true });
-      }
-    }
-    const result = { ...final, event: "complete", action: "download_and_install_update", security: { credentialsReturned: false } };
-    emit(result);
-    return result;
+  function capabilities() {
+    return { ...capabilitiesFor(platform, architecture), updateStatusSupported: platform === "darwin" };
   }
 
-  return { capabilities, downloadAndInstallUpdate, isUpdating: () => updating };
+  function storeForStatus() {
+    let pythonBin = "";
+    const bootstrap = path.join(installRoot, "python", "bin", "python3");
+    try {
+      if (fs.existsSync(bootstrap)) pythonBin = resolveLockPython(
+        installRoot, bootstrap, runFileSync, options.frameworkRoot || process.env.APPRAISAL_TEST_FRAMEWORK_PATH,
+      );
+    } catch { /* status remains readable; an active journal becomes unknown without a proven lock runtime */ }
+    const lockEnvironment = { ...(options.lockEnvironment || {}) };
+    if (pythonBin && !lockEnvironment.DYLD_FRAMEWORK_PATH) {
+      lockEnvironment.DYLD_FRAMEWORK_PATH = frameworkSearchPathForPython(pythonBin);
+    }
+    const makeStore = (python) => new MacUpdateTransactionStore({
+      homeDir, installRoot, updatesRoot, pythonBin: python, spawnProcess,
+      lockEnvironment: python ? { ...lockEnvironment, DYLD_FRAMEWORK_PATH: frameworkSearchPathForPython(python) } : lockEnvironment,
+      lockTimeoutMs: options.lockTimeoutMs,
+      releaseTimeoutMs: options.releaseTimeoutMs,
+    });
+    const store = makeStore(pythonBin);
+    if (!pythonBin) {
+      const journal = store.readJournal();
+      if (journal && !journal.invalid && ["starting", "busy", "installing", "recovering"].includes(journal.state)) {
+        try {
+          return makeStore(statusLockPython(options.frameworkRoot || process.env.APPRAISAL_TEST_FRAMEWORK_PATH, runFileSync));
+        } catch { /* never execute a journal-supplied path or use PATH for this read-only probe */ }
+      }
+    }
+    return store;
+  }
+
+  function statusView(value) {
+    const status = { ok: value?.ok === true, action: "get_update_status" };
+    for (const key of [
+      "state", "phase", "percent", "message", "reason", "transactionId", "verified", "recoveryBlocked",
+      "currentVersionUnchanged", "platform", "latestVersion", "latestBuildNumber",
+    ]) if (value?.[key] !== undefined) status[key] = value[key];
+    if (value?.diagnostics && typeof value.diagnostics === "object") {
+      status.diagnostics = {
+        installerStarted: value.diagnostics.installerStarted === true,
+        failureStage: String(value.diagnostics.failureStage || "").slice(0, 40),
+      };
+    }
+    return status;
+  }
+
+  async function getUpdateStatus() {
+    if (platform !== "darwin") return statusView({ ok: true, state: "idle", phase: "idle", verified: false, recoveryBlocked: false });
+    try {
+      return statusView(await storeForStatus().getStatus());
+    } catch {
+      return statusView({ ok: false, state: "unknown", phase: "recovery", reason: "UPDATE_LOCK_ARBITRATION_FAILED", verified: false, recoveryBlocked: true });
+    }
+  }
+
+  function startReply({ ok = false, state = "failed_safe", reason = "", nonce = "", message = "更新任务未能启动。" } = {}) {
+    return {
+      ok, accepted: ok, event: "complete", action: "download_and_install_update",
+      phase: ok ? "starting" : state, state, percent: ok ? 1 : 0,
+      message: String(message).slice(0, 160), reason: reason || undefined,
+      transactionId: nonce || undefined, verified: false, recoveryBlocked: state === "unknown",
+      platform: "macos-arm64", security: { credentialsReturned: false },
+    };
+  }
+
+  async function awaitStartAck(ackPath, nonce, child, spawnError) {
+    const deadline = Date.now() + Math.max(1000, Number(options.startAckTimeoutMs) || 10000);
+    const delay = options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+    while (Date.now() < deadline) {
+      try {
+        const ack = JSON.parse(fs.readFileSync(ackPath, "utf8"));
+        if (ack && typeof ack === "object") return ack;
+      } catch (error) {
+        if (error?.code !== "ENOENT" && error?.code !== "SyntaxError") break;
+      }
+      if (spawnError()) return null;
+      if (child?.exitCode !== null && child?.exitCode !== undefined) return null;
+      await delay(25);
+    }
+    return null;
+  }
+
+  async function downloadAndInstallUpdate(message = {}, emit = () => {}, checkUpdate) {
+    let emitted = false;
+    const emitOnce = (reply) => {
+      if (!emitted) {
+        emitted = true;
+        try { emit(reply); } catch { /* a disconnected caller cannot change the transaction result */ }
+      }
+      return reply;
+    };
+    if (localStart) return emitOnce(startReply({ state: "busy", reason: "UPDATE_ALREADY_RUNNING" }));
+    localStart = true;
+
+    let nonce = "";
+    let requestPath = "";
+    let ackPath = "";
+    let workerChild = null;
+    let workerExecutorStarted = false;
+    let launchError = null;
+    let workerFailure = null;
+    let requestCreated = false;
+    const removePendingRequest = () => {
+      if (!requestPath) return;
+      try { fs.rmSync(requestPath, { force: true }); } catch { /* status remains fail-closed */ }
+    };
+    const unconfirmedStart = async (store) => {
+      let status;
+      try { status = await store.getStatus(); }
+      catch {
+        return emitOnce(startReply({
+          state: "unknown", reason: "UPDATE_START_STATUS_UNKNOWN", nonce,
+          message: "更新启动状态尚未核实；系统已阻止重复安装。",
+        }));
+      }
+      if (status.transactionId === nonce && status.state !== "unknown" && status.recoveryBlocked !== true) {
+        return emitOnce(startReply({ ok: true, state: "starting", nonce }));
+      }
+      if (launchError) {
+        removePendingRequest();
+        try { status = await store.getStatus(); } catch { status = { state: "unknown" }; }
+        if (status.state === "idle") {
+          return emitOnce(startReply({ state: "failed_safe", reason: "UPDATE_WORKER_NOT_STARTED" }));
+        }
+      }
+      if (workerChild && workerChild.exitCode !== null && workerChild.exitCode !== undefined
+        && status.reason === "UPDATE_WORKER_START_UNCONFIRMED" && status.transactionId === nonce) {
+        removePendingRequest();
+        try { status = await store.getStatus(); } catch { status = { state: "unknown" }; }
+        if (status.state === "idle") {
+          return emitOnce(startReply({ state: "failed_safe", reason: "UPDATE_START_STATUS_UNKNOWN" }));
+        }
+      }
+      return emitOnce(startReply({
+        state: "unknown",
+        reason: status.reason || "UPDATE_START_STATUS_UNKNOWN",
+        nonce,
+        message: "更新启动状态尚未核实；系统已阻止重复安装。",
+      }));
+    };
+
+    try {
+      nonce = crypto.randomUUID();
+      if (!capabilities().autoUpdateSupported) {
+        return emitOnce(startReply({ state: "failed_safe", reason: "PLATFORM_UPDATE_UNSUPPORTED" }));
+      }
+      if (!fs.existsSync(installRoot) || fs.lstatSync(installRoot).isSymbolicLink()) throw new Error("UPDATE_EXTENSION_PATH_REQUIRED");
+      const currentManifest = readJson(path.join(installRoot, "extension", "manifest.json"));
+      const config = readJson(path.join(installRoot, "native-helper", "runtime-config.json"));
+      if (extensionIdFromKey(currentManifest.key) !== EXTENSION_ID
+        || config.toolboxExtensionId !== EXTENSION_ID || config.nativeHostName !== NATIVE_HOST) {
+        throw new Error("UPDATE_EXTENSION_PATH_REQUIRED");
+      }
+      const pythonBootstrap = checkPythonRuntime(installRoot, runFileSync);
+      const lockPython = resolveLockPython(
+        installRoot, pythonBootstrap, runFileSync, options.frameworkRoot || process.env.APPRAISAL_TEST_FRAMEWORK_PATH,
+      );
+      const rawUrl = allowedAssetUrl(message.url).href;
+      const sha256 = String(message.sha256 || "").toLowerCase();
+      if (!/^[a-f0-9]{64}$/.test(sha256)) throw new Error("UPDATE_SHA256_REQUIRED");
+      const assetName = String(message.assetName || "appraisal-toolbox-update.zip");
+      if (assetName.includes("/") || assetName.includes("\\") || assetName === "." || assetName === "..") throw new Error("UPDATE_REQUEST_INVALID");
+      const sizeBytes = Number(message.sizeBytes || 0);
+      if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 0) throw new Error("UPDATE_DOWNLOAD_SIZE_MISMATCH");
+
+      const store = storeForStatus();
+      const currentStatus = await store.getStatus();
+      if (currentStatus.state === "unknown" || currentStatus.recoveryBlocked) {
+        return emitOnce(startReply({
+          state: "unknown", reason: currentStatus.reason || "UPDATE_RECOVERY_REQUIRED",
+          message: "更新现场需要恢复核验，已阻止重复安装。",
+        }));
+      }
+      if (["starting", "busy", "installing", "recovering"].includes(currentStatus.state)) {
+        return emitOnce(startReply({ state: "busy", reason: "UPDATE_ALREADY_RUNNING", message: "已有更新任务正在处理。" }));
+      }
+
+      const canonicalRoot = store.installRoot;
+      const privateUpdatesRoot = ensurePrivateDirectory(updatesRoot);
+      const requestDirectory = ensurePrivateDirectory(path.join(privateUpdatesRoot, "requests"));
+      requestPath = path.join(requestDirectory, nonce + ".request.json");
+      ackPath = requestPath + ".ack.json";
+      const workerRequest = {
+        schemaVersion: 1, nonce, installRoot: canonicalRoot, updatesRoot: privateUpdatesRoot,
+        update: { url: rawUrl, sha256, assetName, sizeBytes },
+      };
+      atomicWriteJson(requestPath, workerRequest);
+      requestCreated = true;
+      if (typeof options.workerExecutor === "function") {
+        workerExecutorStarted = true;
+        const task = Promise.resolve().then(() => options.workerExecutor({
+          request: workerRequest, requestPath, checkUpdate, lockPython,
+          onAccepted: (value) => atomicWriteJson(ackPath, { ...value, transactionId: value?.transactionId || nonce }),
+        }));
+        task.catch((error) => { workerFailure = error || new Error("UPDATE_WORKER_NOT_STARTED"); });
+        const ack = await awaitStartAck(ackPath, nonce, null, () => Boolean(workerFailure));
+        if (!ack || ack.transactionId !== nonce) return unconfirmedStart(store);
+        if (ack.accepted !== true || ack.state !== "starting") {
+          removePendingRequest();
+          return emitOnce(startReply({
+            state: ack.state || "busy", reason: ack.reason || "UPDATE_ALREADY_RUNNING",
+            nonce, message: ack.message || "更新任务未能启动。",
+          }));
+        }
+      } else {
+        const nodePath = path.join(installRoot, "runtime/node/bin/node");
+        if (!fs.existsSync(nodePath) || fs.lstatSync(nodePath).isSymbolicLink()) throw new Error("UPDATE_RUNTIME_UNAVAILABLE");
+        if (!fs.existsSync(workerPath) || fs.lstatSync(workerPath).isSymbolicLink()) throw new Error("UPDATE_WORKER_UNAVAILABLE");
+        const env = { PATH: "/usr/bin:/bin:/usr/sbin:/sbin", HOME: homeDir, APPRAISAL_UPDATE_LOCK_PYTHON: lockPython };
+        env.DYLD_FRAMEWORK_PATH = frameworkSearchPathForPython(lockPython);
+        workerChild = spawnProcess(nodePath, [workerPath, "--request", requestPath], {
+          detached: true, cwd: privateUpdatesRoot, stdio: "ignore", env,
+        });
+        workerChild.once("error", (error) => { launchError = error || new Error("UPDATE_WORKER_NOT_STARTED"); });
+        if (typeof workerChild.unref === "function") workerChild.unref();
+        const ack = await awaitStartAck(ackPath, nonce, workerChild, () => Boolean(launchError));
+        if (!ack || ack.transactionId !== nonce) return unconfirmedStart(store);
+        if (ack.accepted !== true || ack.state !== "starting") {
+          removePendingRequest();
+          return emitOnce(startReply({
+            state: ack.state || "busy", reason: ack.reason || "UPDATE_ALREADY_RUNNING",
+            nonce, message: ack.message || "更新任务未能启动。",
+          }));
+        }
+      }
+
+      removePendingRequest();
+      return emitOnce(startReply({
+        ok: true, state: "starting", nonce,
+        message: "更新已交由后台处理，可关闭页面并稍后查看状态。",
+      }));
+    } catch (error) {
+      if (requestCreated && !workerChild && !workerExecutorStarted && (!ackPath || !fs.existsSync(ackPath))) {
+        removePendingRequest();
+      }
+      const reason = /^(?:UPDATE_[A-Z0-9_]+|PLATFORM_UPDATE_UNSUPPORTED)$/.test(String(error?.message || "")) ? error.message : "UPDATE_FAILED";
+      if (requestCreated && (workerChild || workerExecutorStarted)) {
+        return emitOnce(startReply({
+          state: "unknown", reason: "UPDATE_START_STATUS_UNKNOWN", nonce,
+          message: "更新启动状态尚未核实；系统已阻止重复安装。",
+        }));
+      }
+      const state = reason === "UPDATE_ALREADY_RUNNING" ? "busy" : "failed_safe";
+      return emitOnce(startReply({ state, reason, nonce: requestCreated ? nonce : "" }));
+    } finally {
+      localStart = false;
+    }
+  }
+
+  function isUpdating() {
+    if (localStart) return true;
+    if (platform !== "darwin" || !capabilities().autoUpdateSupported) return false;
+    try { return storeForStatus().isBusySync(runFileSync); }
+    catch { return true; }
+  }
+
+  return { capabilities, downloadAndInstallUpdate, getUpdateStatus, isUpdating };
 }
 
 module.exports = {
+  EXTENSION_ID,
+  INSTALL_TIMEOUT_MS,
+  NATIVE_HOST,
   allowedAssetUrl,
   capabilitiesFor,
+  checkPythonRuntime,
   compareVersions,
-  extensionIdFromKey,
   createMacOSUpdateEngine,
+  digestFile,
+  downloadAsset,
+  extensionIdFromKey,
+  findPackageRoot,
+  frameworkSearchPathForPython,
+  extractZip: (zipPath, extractRoot, options = {}) => {
+    const runFileSync = options.execFileSync || execFileSync;
+    const spawnProcess = options.spawn || spawn;
+    fs.mkdirSync(extractRoot, { recursive: true, mode: 0o700 });
+    return runProcess("/usr/bin/ditto", ["-x", "-k", zipPath, extractRoot], {
+      cwd: path.dirname(zipPath), stdio: "ignore",
+    }, 3 * 60 * 1000, spawnProcess);
+  },
+  installerEnvironment,
+  isRetryableDownloadError,
+  readJson,
+  runProcess,
+  validatePackage,
+  verifyInstalled,
+  verifyPackageChecksums,
 };

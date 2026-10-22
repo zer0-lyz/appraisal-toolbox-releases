@@ -28,6 +28,15 @@ async function verify(root,evidence) {
   const self=JSON.parse(execFileSync(spec.exe,[...spec.args,'--self-test'],{env,encoding:'utf8',timeout:120000}));assert(self.ok,JSON.stringify(self));assert(self.pythonSkillImportSmoke?.ok);
   const checks=['actual packaged host --self-test: four independent Python imports without interpreter/skill environment overrides'];
   const run=async message=>{const result=await probe(root,message,{env});assert(result.final.ok,JSON.stringify(result.final));return result.final;};
+  if(process.platform==='darwin') {
+    const status=await run({action:'get_update_status'});
+    assert.equal(status.action,'get_update_status');assert.equal(status.updateStatusSupported,true);
+    assert(['idle','complete','rolled_back','failed_safe'].includes(status.state),JSON.stringify(status));
+    if(status.state!=='idle')assert.equal(status.verified,true);
+    for(const key of ['nonce','canonicalInstallRoot','workerPid','installerPid','snapshotRoot','env'])assert.equal(Object.hasOwn(status,key),false,key);
+    fs.writeFileSync(path.join(evidence,'native-update-status-summary.json'),JSON.stringify({ok:true,evidenceType:'actual-packaged-native-status-protocol',state:status.state,verified:status.verified,updateStatusSupported:true,rawJournalReturned:false,browserGuiCovered:false},null,2)+'\n');
+    checks.push('actual packaged get_update_status: capability, terminal semantics and journal field boundary');
+  }
   const synthetic={title:'合成案例 中文 [1]',province:'浙江省',city:'杭州市',district:'萧山区',propertyType:'住宅用房',address:'合成路1号',transactionTime:'2026-08-01',transactionAmount:1000000,buildingArea:100,unitPrice:10000,url:'https://sf-item.taobao.com/sf_item/100000001.htm'};
   for(const type of ['auction','lease']) {
     const request={outputDirectory:path.join(evidence,'中文 输出 ['+type+']'),province:'浙江省',city:'杭州市',district:'萧山区',generateMap:false,startDate:'2026-06-01',endDate:'2026-10-12'};

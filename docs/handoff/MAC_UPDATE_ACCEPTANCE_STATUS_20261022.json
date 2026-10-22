@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "product": "评估工具箱",
+  "version": "0.2.3",
+  "buildNumber": 2026102101,
+  "localBuildSource": "e8dc0aca98ab3b23b4adaa02ed65bf84ef6ef32e",
+  "localBuildId": "mac-update-recovery-20261021-r6",
+  "localZipSha256": "80924f176bd63ec5ee02170555d26f5ac1193bbf009865b87f8dcb7117b3e470",
+  "signing": "unsigned",
+  "notarization": "not submitted",
+  "passed": [
+    "Mac update regressions 41/41, 0 skipped with extracted Python 3.14.6",
+    "shared source regressions 16/16",
+    "updates synthetic DOM 22/22",
+    "actual isolated fresh install",
+    "actual isolated upgrade and synthetic config retention",
+    "actual worker plus packaged installer",
+    "Edge write failure rollback with fingerprint and real Native self-test",
+    "packaged Native status protocol and four skill imports",
+    "all 153 local ZIP payload hashes and CRC"
+  ],
+  "failedCurrentLocal": [],
+  "notCovered": [
+    "ordinary desktop install",
+    "browser GUI/native connection",
+    "official release-network full update",
+    "Chrome/Edge actual reload and post-reload handshake",
+    "production Profile/data retention",
+    "legacy 0.2.3 helper to new transaction protocol in ordinary desktop",
+    "Gatekeeper/notarization",
+    "Windows desktop/full online update"
+  ],
+  "fullAcceptancePassed": false,
+  "ci": {
+    "runId": 39701457582,
+    "sourceCommit": "d34d184b53ff72df424c1aff1fc06899c03c2a27",
+    "macos": "success",
+    "windows": "success",
+    "macArtifactId": 12392358711,
+    "windowsArtifactId": 12393445915,
+    "macProductZipSha256ReportedByBuild": "e4dca052309a50f2cb81396b47733d4dc00e7ee710a63e1edfdbc3c02121fa93",
+    "macArtifactWrapperSha256ReportedByGitHub": "5a0fb94d0e6120f146a9b7a65a8cd02bff1153ffd6be90849375e5ea22424533",
+    "macArtifactIndependentlyDownloadedAndHashVerified": true,
+    "macPayloadFilesVerified": 153,
+    "buildTools": {
+      "node": "v24.14.0",
+      "python": "Python 3.9.6",
+      "pythonExecutableSha256": "7f30f076d0e9c38f772a76449fca9da8cf97f6a3d43b94c90a00e4f9ce7ad39e",
+      "macos": "15.7.9"
+    }
+  }
+}

@@ -51,3 +51,13 @@ Mac 的 `native-helper/update_engine_macos.js`、`native-helper/platform/macos.j
 更新引擎在校验下载 SHA 后启动解压器时，漏传 `commandLaunchSpec` 的参数数组，导致更新在解压前以 `args is not iterable` 失败。调用方现显式传空数组，跨平台命令启动器也将省略参数默认为空数组；Native 隔离夹具覆盖有效 SHA 后确实进入解压器启动步骤。
 
 本轮本地分支为 `codex/windows-update-acceptance-fix-20261018`，初始提交是 PR #12 候选源码快照，不带 PR 上游 Git 历史或远端；本地提交和包只作为隔离修复证据，不得声称已更新 PR head。CI 产物使用独立 buildId/ZIP SHA；未发布 stable、未改共享 Latest。历史最终夹具记录见 `C:\AppraisalToolboxAcceptance\v0.2.1\evidence\updates-v022-20261017\repair-validation-20261018-final\`，完整修复报告见 `C:\AppraisalToolboxAcceptance\v0.2.1\evidence\updates-v022-20261017\repair-validation-20261018-continuation\版本更新模块修复与隔离验收-20261018.md`。
+
+## 2026-10-21 Mac 更新事务独立适配（PR #15）
+
+本轮以正式 v0.2.3 / `9de4d81ca48f4aa4722775e010ba0f7dad2029b8` 为 Mac 源码基线，参照 PR #14 head `9f09d1c195232d2c1f1e2c13e6b154281fb672bc` 的安全性质与中文诊断，不整分支覆盖。完整 33 文件分类见 `MAC_UPDATE_RECOVERY_PLAN_20261021.md`，本轮实现文件、采用理由、双端影响、回滚办法与验证记录见 `MAC_UPDATE_RECOVERY_REVIEW_20261021.md`。
+
+共享 UI/协议采用能力协商、busy/recovery 与未知结果禁重试；Mac 进一步采用天源工作台后台任务与持久状态查询模式，完成核验后才请求扩展重载。Windows 无新状态能力时仍保留原流式行为。Mac 使用独立 POSIX flock、Python.org 3.14.6、nonce/root journal、安装快照与真实 Native 自检；未移植 Windows Global Mutex、SID ACL、guardian、PowerShell、注册表、SEA 或其恢复上下文。原有业务规则和平台标识保持。
+
+PR #14 run 20 (`39563782597`) 本次已重新读取为双端 success。Windows artifact `12329121918` 内 ZIP SHA-256 为 `13d9fd2f6262d7d614fc5e957119eee07e413a86d2e7f9ab6f3dfeaf7d7c1899`，Native EXE 为 `0a6e37134d7f03f1b96819ed3897dceb5833cc4927dcb195b78b1e73be07f17d`；sourceCommit 精确为 PR #14 head、sourceDirty=false，804 个载荷摘要一致。它是 CI artifact，包内 stable/release 元数据不构成新 Release 或正式发布。Mac artifact `12328283359` 仅确认列出，下载未完成，未声称已独立核验摘要。
+
+本轮不合并 main、不发布 Release、不更新 stable/latest、不部署正式插件。Windows GUI/官方源完整一键更新/Chrome-Edge reload/真实配置保留继续未覆盖，Mac fixture/隔离证据另列，不互相替代。
