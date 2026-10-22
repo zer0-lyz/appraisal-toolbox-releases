@@ -3,7 +3,7 @@
 独立于天源底稿系统运行的 Chrome 侧边栏扩展，收录评估业务中不依赖天源页面绑定的数据采集与测算工具。
 
 - 扩展 ID（由 manifest key 固定）：`aamfmhcbjgofhmannejoiilkkpchfkgm`
-- 当前稳定版源码版本：`0.2.4`（buildNumber `2026102201`）
+- 当前正式稳定版：`0.2.4`；Mac 隔离修复候选：`0.2.5`（buildNumber `2026102203`，尚未发布）
 - 许可：MIT
 
 ## 功能模块
