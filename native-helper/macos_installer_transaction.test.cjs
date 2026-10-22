@@ -358,11 +358,15 @@ test('installer ERR trap is inherited by guarded mutation functions on system Ba
 test('snapshot retains relative symlink bytes and proves equality with the live baseline', t => {
   const f=fixture(t), nonce=crypto.randomUUID();
   fs.writeFileSync(path.join(f.installRoot,'data.txt'),'original bytes');
+  fs.chmodSync(path.join(f.installRoot,'data.txt'),0o664);
+  fs.writeFileSync(path.join(f.installRoot,'.DS_Store'),'Finder metadata before snapshot');
   fs.symlinkSync('data.txt',path.join(f.installRoot,'relative-link'));
   const helper=require('./macos_installer_transaction.js');
   const snapshotRoot=path.join(f.root,'snapshot'), manifestBackupRoot=path.join(f.root,'manifests');
   const manifestPaths={chrome:path.join(f.home,'chrome.json'),edge:path.join(f.home,'edge.json')};
   const saved=helper.snapshotInstallation({root:f.installRoot,snapshotRoot,manifestBackupRoot,manifestPaths,nonce,canonicalRoot:f.installRoot});
   assert.equal(fs.readlinkSync(path.join(snapshotRoot,'relative-link')),'data.txt');
+  assert.equal(fs.statSync(path.join(snapshotRoot,'data.txt')).mode & 0o777,0o664);
+  fs.writeFileSync(path.join(f.installRoot,'.DS_Store'),'Finder metadata changed independently');
   assert.equal(helper.verifySnapshot({root:f.installRoot,snapshotRoot,manifestBackupRoot,manifestPaths,nonce,canonicalRoot:f.installRoot,expectedFingerprint:saved.originalFingerprint}).ok,true);
 });

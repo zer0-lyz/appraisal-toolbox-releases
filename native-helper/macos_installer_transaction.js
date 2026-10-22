@@ -103,6 +103,7 @@ function walkTree(root) {
   const entries = [];
   function walk(dir, relative) {
     for (const name of fs.readdirSync(dir).sort()) {
+      if (name === ".DS_Store") continue; // Finder can rewrite this metadata independently of the transaction.
       const abs = path.join(dir, name);
       const rel = path.join(relative, name).split(path.sep).join("/");
       const st = fs.lstatSync(abs);
@@ -153,6 +154,13 @@ function stateFingerprint(root, records) { return sha256(JSON.stringify({ tree: 
 
 function copyTree(source, destination) {
   fs.cpSync(source, destination, { recursive: true, preserveTimestamps: true, dereference: false, verbatimSymlinks: true, errorOnExist: true });
+  function preserveMode(from, to) {
+    const stat = fs.lstatSync(from);
+    if (stat.isSymbolicLink()) return;
+    fs.chmodSync(to, stat.mode & 0o777);
+    if (stat.isDirectory()) for (const name of fs.readdirSync(from)) preserveMode(path.join(from, name), path.join(to, name));
+  }
+  preserveMode(source, destination);
 }
 function captureManifestSnapshot(manifestBackupRoot, records) {
   fs.mkdirSync(manifestBackupRoot, { recursive: false, mode: 0o700 });

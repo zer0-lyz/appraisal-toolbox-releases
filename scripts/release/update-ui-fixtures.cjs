@@ -17,7 +17,7 @@ const workerBudgetReferenceMinutes = budgetMinutes('native-helper/macos_update_w
 assert(uiPollBudgetMinutes > workerBudgetReferenceMinutes, 'UI status polling must outlast the worker phase-budget reference');
 const idle = { ok: true, action: 'get_update_status', updateStatusSupported: true, state: 'idle', phase: 'idle', verified: false, recoveryBlocked: false };
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
-const flush = async predicate => { for (let i = 0; i < 100 && !predicate(); i++) await new Promise(setImmediate); assert(predicate(), 'fixture event did not arrive'); };
+const flush = async predicate => { const deadline = Date.now() + 5000; while (!predicate() && Date.now() < deadline) await new Promise(done => setTimeout(done, 5)); assert(predicate(), 'fixture event did not arrive'); };
 
 async function fixture(options = {}) {
   const platform = options.platform || 'macos-arm64';
