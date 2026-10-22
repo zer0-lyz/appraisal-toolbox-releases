@@ -246,10 +246,8 @@ def _list_record_matches_request(request: Dict[str, Any], record: Dict[str, Any]
         return False
 
     content_fields = parse_content_fields(record.get("content", ""))
-    if request.get("landUses"):
-        values = _field_values(record, content_fields, ("landUse", "use", "assignmentPurpose", "用途", "土地用途"))
-        if values and not _contains_any(values, request["landUses"]):
-            return False
+    if request.get("landUses") and not _land_use_matches_request(request, record, content_fields, allow_unknown=True):
+        return False
 
     if request.get("tradeMethods"):
         values = _field_values(record, {}, ("tradeType", "tradeMethod", "tradeWay", "dealType", "交易方式"))
@@ -568,6 +566,83 @@ def _contains_any(values: Iterable[str], choices: Iterable[str]) -> bool:
     return False
 
 
+def _land_use_code_category(code: Any) -> Optional[str]:
+    value = re.sub(r"\s+", "", str(code or "").upper())
+    if not value:
+        return None
+    modern = value.startswith("V3-")
+    family = value[3:] if modern else value
+    if family.startswith("07"):
+        return "住宅用地"
+    if (modern and family.startswith("09")) or (not modern and family.startswith("05")):
+        return "商服用地"
+    if (modern and family.startswith(("10", "11"))) or (not modern and family.startswith("06")):
+        return "工矿仓储"
+    if (modern and family.startswith(("08", "12", "15"))) or (not modern and family.startswith(("08", "09", "10", "12", "15"))):
+        return "其他用地"
+    return None
+
+
+def _land_use_categories(record: Dict[str, Any], detail: Dict[str, Any]) -> set[str]:
+    coded_categories: set[str] = set()
+    names: List[str] = []
+    plan_use = record.get("planUse") if isinstance(record, dict) else None
+    if isinstance(plan_use, str):
+        try:
+            plan_use = json.loads(plan_use)
+        except (TypeError, json.JSONDecodeError):
+            plan_use = []
+    for item in plan_use if isinstance(plan_use, list) else []:
+        if isinstance(item, dict):
+            name = _text(item.get("NAME_") or item.get("name"), 100)
+            if name:
+                names.append(name)
+            for code in (item.get("PARENTKEY_"), item.get("KEY_"), item.get("parentKey"), item.get("key")):
+                category = _land_use_code_category(code)
+                if category:
+                    coded_categories.add(category)
+        elif item:
+            names.append(_text(item, 100))
+    for source in (record, detail):
+        if not isinstance(source, dict):
+            continue
+        for name in (source.get("landUse"), source.get("assignmentPurpose"), source.get("use"), source.get("用途"), source.get("土地用途")):
+            text = _text(name, 200)
+            if text:
+                names.append(text)
+    if coded_categories:
+        return coded_categories
+    categories: set[str] = set()
+    for name in names:
+        if any(term in name for term in ("住宅", "住房", "商品房", "居住")):
+            categories.add("住宅用地")
+        elif any(term in name for term in ("商服", "商业", "商务金融", "零售商业", "批发市场", "餐饮", "旅馆", "服务业")):
+            categories.add("商服用地")
+        elif any(term in name for term in ("工业", "工矿", "仓储", "物流仓储")):
+            categories.add("工矿仓储")
+        elif any(term in name for term in ("其他用地", "公共管理与公共服务", "教育用地", "文化设施", "体育场馆", "医疗卫生", "机关团体", "公用设施", "公园与绿地", "风景名胜", "港口码头", "殡葬", "社会停车场", "福利用地")):
+            categories.add("其他用地")
+    return categories
+
+
+def _land_use_matches_request(
+    request: Dict[str, Any], record: Dict[str, Any], detail: Dict[str, Any], allow_unknown: bool,
+) -> bool:
+    choices = request.get("landUses") or []
+    if not choices:
+        return True
+    if record.get("_sourceEndpoint") == "landbidding" and len(choices) == 1:
+        # The official list API's landUse=1..4 filter is authoritative for a single selection.
+        return True
+    categories = _land_use_categories(record, detail)
+    if categories:
+        return bool(categories.intersection(choices))
+    values = _field_values(record, detail, ("landUse", "use", "assignmentPurpose", "用途", "土地用途"))
+    if values:
+        return _contains_any(values, choices)
+    return allow_unknown
+
+
 def _quote_window(request: Dict[str, Any], today: Optional[dt.date] = None) -> Tuple[Optional[dt.date], Optional[dt.date]]:
     today = today or dt.date.today()
     preset = request["quotePreset"]
@@ -618,10 +693,8 @@ def filter_records(
         if request["location"] and request["location"].lower() not in f"{district} {location}".lower():
             continue
 
-        if request["landUses"]:
-            values = _field_values(record, detail, ("landUse", "use", "assignmentPurpose", "用途", "土地用途"))
-            if not _contains_any(values + [detail.get("土地用途", "")], request["landUses"]):
-                continue
+        if request["landUses"] and not _land_use_matches_request(request, record, detail, allow_unknown=False):
+            continue
 
         if request["tradeMethods"]:
             values = _field_values(record, detail, ("tradeType", "tradeMethod", "tradeWay", "dealType", "交易方式"))
@@ -680,8 +753,10 @@ def filter_records(
         warnings.append(f"{counts['unknownArea']} 条记录缺少出让面积，已从面积区间筛选中排除。")
     if counts["unknownQuoteStart"]:
         warnings.append(f"{counts['unknownQuoteStart']} 条记录缺少报价开始时间，已从报价时间筛选中排除。")
-    if request["tradeMethods"] or request["tradeStages"] or request["landUses"]:
-        unsupported.append("土地用途、交易方式或阶段等接口未提供稳定查询参数，系统在候选列表和详情阶段复核。")
+    if request["landUses"] and len(request["landUses"]) > 1:
+        unsupported.append("官网用途接口一次只接受一个分类码；多选由本地按官网用途编码复核。")
+    if request["tradeMethods"] or request["tradeStages"]:
+        unsupported.append("交易方式或阶段等条件未全部由列表接口支持，系统在候选列表和详情阶段复核。")
     return output, {
         "warnings": warnings,
         "unsupportedFilters": unsupported,
@@ -704,6 +779,30 @@ def _land_bidding_term(record: Dict[str, Any], detail_data: Dict[str, Any]) -> s
     assignment_period = _text(detail_data.get("assignmentPeriod"), 100)
     match = re.search(r"(\d+(?:\.\d+)?)\s*年", assignment_period)
     return f"{match.group(1)}年" if match else ""
+
+
+def _plot_ratio_text(*sources: Any) -> str:
+    for raw in sources:
+        if raw in (None, ""):
+            continue
+        value = raw
+        if isinstance(raw, str):
+            try:
+                value = json.loads(raw)
+            except (TypeError, json.JSONDecodeError):
+                return _text(raw, 160)
+        if isinstance(value, dict):
+            parts = []
+            for marker in ("X", "S"):
+                ratio = _text(value.get(f"RJL_{marker}"), 40)
+                if ratio:
+                    operator = _text(value.get(f"RJL_{marker}_FH"), 8)
+                    parts.append(f"{marker}{operator}{ratio}")
+            if parts:
+                return "；".join(parts)
+            return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:160]
+        return _text(value, 160)
+    return ""
 
 
 def enrich_record(record: Dict[str, Any], detail_fetcher: Callable[[str], Dict[str, Any]]) -> Dict[str, Any]:
@@ -757,6 +856,7 @@ def enrich_record(record: Dict[str, Any], detail_fetcher: Callable[[str], Dict[s
         "detail_url": detail_url,
         "location": location,
         "land_use": land_use,
+        "plot_ratio": _plot_ratio_text(record.get("rjl"), detail_data.get("plotRatio"), detail.get("容积率")),
         "area_mu": area_mu,
         "area_sqm": area_sqm,
         "start_price": start_price,
@@ -786,7 +886,7 @@ def _coord_fields(item: Dict[str, Any]) -> Dict[str, Any]:
 
 
 OUTPUT_COLUMNS = [
-    "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途",
+    "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途", "容积率",
     "土地面积(亩)", "土地面积(平方米)", "出让年限",
     "成交单价(元/平方米)", "成交总价(万元)", "受让单位", "发布时间", "详情页网址",
     "交易形式", "交易方式", "交易阶段", "坐标状态", "坐标类型",
@@ -806,6 +906,7 @@ def row_from_item(item: Dict[str, Any], coord_path: str = "", map_path: str = ""
         "地块编号（宗地编码）": _text(record.get("sourceCode")),
         "地块位置": item["location"],
         "土地用途": item["land_use"],
+        "容积率": item.get("plot_ratio") or _plot_ratio_text(record.get("rjl"), detail_data.get("plotRatio"), detail.get("容积率")),
         "土地面积(亩)": item["area_mu"] if item["area_mu"] is not None else "",
         "土地面积(平方米)": item["area_sqm"] if item["area_sqm"] is not None else "",
         "出让年限": item.get("term") or _text(detail.get("出让年限")),
@@ -932,7 +1033,7 @@ def _table_cell(value: Any) -> str:
 
 def write_result_html(path: Path, rows: List[Dict[str, Any]], request: Dict[str, Any], summary: Dict[str, Any], file_names: Dict[str, str]) -> None:
     columns = [
-        "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途",
+        "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途", "容积率",
         "土地面积(亩)", "土地面积(平方米)", "出让年限",
         "成交单价(元/平方米)", "成交总价(万元)", "受让单位", "发布时间", "详情页网址",
         "交易方式", "交易阶段", "坐标状态",
@@ -1215,6 +1316,7 @@ def _legacy_items_from_workbook(path: Path) -> Dict[str, Any]:
             "detail_url": detail_url,
             "location": _text(row.get("地块位置")),
             "land_use": _text(row.get("土地用途")),
+            "plot_ratio": _text(row.get("容积率")),
             "area_mu": row.get("土地面积(亩)"),
             "area_sqm": row.get("土地面积(平方米)"),
             "start_price": row.get("起始单价(元/平方米)"),
@@ -1370,6 +1472,7 @@ def execute_request(
                     "_location": item["location"],
                     "_area_mu": item["area_mu"] if item["area_mu"] is not None else "",
                     "_use": item["land_use"],
+                    "_plot_ratio": item.get("plot_ratio") or _plot_ratio_text(record.get("rjl"), item.get("detail_data", {}).get("plotRatio")),
                     "_trade_method": _text(
                         record.get("tradeType")
                         or record.get("tradeMethod")

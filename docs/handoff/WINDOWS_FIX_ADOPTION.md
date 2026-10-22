@@ -65,3 +65,9 @@ PR #14 run 20 (`39563782597`) 本次已重新读取为双端 success。Windows a
 ## 2026-10-22 双端发布整合
 
 Mac PR #15 的持久状态轮询与事务恢复已与 Windows PR #14 的 Windows updater/installer 合并到同一发布分支。共享 UI 保留 capability negotiation、Windows legacy stream 与 Mac verified-status polling；Windows `update_engine.js` 和 `windows/installer/` 继续使用其 Windows 专属锁、journal、guardian 与注册核验实现。发布前将两端从同一最终源码提交重建；此前 CI artifacts 不充当正式版包。真实 Windows 桌面更新、Mac/Windows 浏览器 GUI、官方源端到端更新与产品签名仍按未覆盖记录。
+
+## 2026-10-22 浙江土地市场网用途/容积率修复（Mac 先行）
+
+共享 `skills/zj-land-publicity/land_publicity_runner.py` 与 `scrape_zj_land.py` 修复了单选用途二次过滤漏掉“普通商品住房”等名称变体的问题；单选以官网 `landUse=1..4` 查询为准，多选依据官方 `planUse` 分类编码复核。结果新增容积率，读列表 `rjl` / 详情 `plotRatio`，X/S 及比较符按原值显示在 Excel、独立结果页和地图弹窗。Mac 对照官网余姚 735 条，四类分类数量和官网分别为 145/85/474/31，未分类及错分为 0；源模块回归 12/12。证据见 `LAND_PUBLICITY_USE_RATIO_VALIDATION_20261022.md`。
+
+这是共享业务载荷，没有改 Windows adapter、Native Host 或安装器；Windows 仍需用其目标 runtime 从后续共同源码构建，并验证单选/多选用途、Excel/HTML/地图容积率，以及 SEA/真实桌面安装链。Mac 真实浏览器 GUI 也未覆盖。本记录不把 API/夹具证据当成双端完整验收，不改变 stable/latest 或 main。

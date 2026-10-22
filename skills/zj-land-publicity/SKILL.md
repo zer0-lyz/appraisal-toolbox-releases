@@ -39,11 +39,12 @@ description: "抓取浙江省自然资源网上交易系统（zjzrzyjy.com）土
   - `enrollStartTime`: 查询起始时间戳（毫秒）
   - `nowTime`: 查询结束时间戳（毫秒）
   - `resourceStage=CJ`: 只读取成交结果阶段
+  - `landUse`: 可选单一用途分类码，1住宅、2商服、3工矿仓储、4其他
 - **Referer**: `https://www.zjzrzyjy.com/landView/land-bidding`
 
 运行器从官网行政区树解析地市/区县代码；接口返回的 `ggPubTime` 是成交公示发布时间，日期筛选最终以该字段复核。
 
-土地用途、位置关键词、交易方式等未被该接口支持的条件，不会伪装成服务器端筛选；运行器通过 `record_filter` 在详情请求前收窄候选，缺失字段的记录保留并交由详情阶段判断。
+土地用途单选时通过官网 `landUse` 分类码（1住宅、2商服、3工矿仓储、4其他）筛选；多选时保留列表候选并按 `planUse` 的官方分类编码复核。位置关键词、部分交易方式等接口未支持的条件由运行器在本地复核；缺失字段的候选记录保留并交由详情阶段判断。
 
 ### 附件文件接口（获取出让公告、勘测图等下载链接）
 - **URL**: `https://www.zjzrzyjy.com/trade/view/landbidding/queryLandResourceUploadFile`
@@ -68,7 +69,8 @@ description: "抓取浙江省自然资源网上交易系统（zjzrzyjy.com）土
 | `xzqName` | 行政区名称，归一化为 `districtName` |
 | `regionCode` | 行政区代码，归一化为 `districtCode` |
 | `ggPubTime` | 成交公示发布时间，归一化为 `releaseTime` |
-| `planUse` | JSON 土地用途，归一化为 `landUse` |
+| `planUse` | JSON 土地用途及官方分类编码，归一化为 `landUse` |
+| `rjl` / 详情 `plotRatio` | 容积率原始值，按官网 X/S 标记及比较符保留 |
 | `resourceLocation` | 地块位置 |
 | `landAreaForAre` / `landArea` | 土地面积（亩）/平方米 |
 | `startPrice` / `cjj` | 起始价/成交价，接口单位通常为万元 |
@@ -93,7 +95,8 @@ description: "抓取浙江省自然资源网上交易系统（zjzrzyjy.com）土
 | 行政区 | districtName | API |
 | 地块编号（宗地编码） | sourceCode | API |
 | 地块位置 | 地块位置描述 | HTML解析 |
-| 土地用途 | 如二类工业用地 | HTML解析 |
+| 土地用途 | 如二类工业用地 | 官网 `planUse` / 详情 |
+| 容积率 | 官网 X/S 原始值，如 `X≤1.01；S≤1.6` | 列表 `rjl`，缺失时详情 `plotRatio` |
 | 土地面积(亩) | 亩数 | HTML解析 |
 | 土地面积(平方米) | 平方米（计算值） | 亩×666.67 |
 | 出让年限 | 如 50年 | HTML解析 |
@@ -136,9 +139,9 @@ python scrape_zj_land.py 绍兴 2025 "/Volumes/A区/下载/绍兴数据.xlsx" --
 
 ## 已知限制
 
-1. **容积率**: source-detail 页面为 SPA，API/curl 无法直接获取，需 Playwright
-2. **起始价**: 同上
-3. **规划指标**: 同上（绿化率、建筑密度等）
+1. **容积率**: 列表 `rjl` 与详情 `plotRatio` 可读取；结果保留官网 X/S 字段标记和比较符，不擅自解释为上下限
+2. **起始价**: 少数记录仍需详情页渲染或附件核验
+3. **规划指标**: 绿化率、建筑密度等字段需逐项核实接口是否提供
 4. **坐标缺失**: 少量记录可能没有 `resourceCoordinate`，会退回到 PDF 渲染辅助流程
 
 ## 地图底图稳定性
