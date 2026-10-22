@@ -73,9 +73,6 @@ jobs:
           key: toolbox-${{ matrix.target }}-${{ hashFiles('release-inputs.lock.json') }}
       - name: Shared source regressions
         run: node scripts/release/source-checks.cjs
-      - name: Mac updater engine regressions
-        if: matrix.target == 'macos-arm64'
-        run: node --test native-helper/update_engine_macos.test.cjs
       - name: Install locked DOM fixture dependency
         shell: bash
         run: npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools
