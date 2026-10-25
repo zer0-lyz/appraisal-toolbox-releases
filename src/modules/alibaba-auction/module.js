@@ -11,6 +11,7 @@ import {
 } from "../../core/alibaba-page-state.js";
 // 区划目录已下沉到共享数据层，供阿里司法拍卖与阿里资产租赁两个模块复用。
 import { ALIBABA_REGION_CATALOG } from "../../data/china-regions.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const PROPERTY_TYPE_CATEGORY = {
   residential: "50025969",
@@ -2414,6 +2415,7 @@ export const alibabaAuctionModule = {
     let excelPath = "";
     let mapPath = "";
     let running = false;
+    const pickerGuard = {};
     let opening = false;
     let exporting = false;
     let runControl = null;
@@ -2699,27 +2701,28 @@ export const alibabaAuctionModule = {
     }
 
     async function chooseOutputDirectory() {
-      try {
-        const result = await context.sendNativeMessage({ action: "select_alibaba_auction_output_directory" }, 130000);
-        const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
-        if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaAuctionParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
-          return;
-        }
-        config.outputDirectory = selected;
-        if (!config.historyDirectory) config.historyDirectory = selected;
-        elements.alibabaAuctionOutputDirectory.value = selected;
-        renderConfig();
-        await context.storage.save(storageState());
-        const folderMessage = result.directoryName
-          ? `${result.createdDirectory === false ? "已选择" : "已创建并选择"}专用子文件夹：${result.directoryName}`
-          : "输出目录已选择";
-        const parameterMessage = parametersApplied() ? "" : "参数有改动，需重新应用。";
-        setMessage(elements.alibabaAuctionParameterMessage, `${folderMessage}，结果页、Excel 和地图会保存到这里。${parameterMessage}`, parametersApplied() ? "ok" : "warn");
-      } catch (error) {
-        showUserErrorDiagnostics(error, context.document);
-        setMessage(elements.alibabaAuctionParameterMessage, `选择目录失败：${userErrorMessage(error)}`, "error");
-      }
+      return await runNativePickerFeedback({
+        button: elements.chooseAlibabaAuctionOutput,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseAlibabaAuctionOutput.disabled = busy || running;
+          elements.chooseAlibabaAuctionHistoryDirectory.disabled = busy || running;
+        },
+        busyText: "正在打开司法拍卖输出目录选择窗口…",
+        cancelText: "已取消输出目录选择，原目录保留。",
+        failurePrefix: "选择输出目录失败",
+        request: () => context.sendNativeMessage({ action: "select_alibaba_auction_output_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.outputDirectory = selected;
+          if (!config.historyDirectory) config.historyDirectory = selected;
+          elements.alibabaAuctionOutputDirectory.value = selected;
+          renderConfig();
+        },
+        persist: () => context.storage.save(storageState()),
+        successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}专用成果子文件夹“${result.directoryName || "阿里司法拍卖"}”：${selected}。结果页、Excel 和地图会保存到这里。${parametersApplied() ? "" : "参数有改动，需重新应用。"}`,
+      });
     }
 
     function pathDirectory(value) {
@@ -2729,24 +2732,30 @@ export const alibabaAuctionModule = {
     }
 
     async function chooseHistoryDirectory() {
-      try {
-        const result = await context.sendNativeMessage({ action: "select_alibaba_auction_history_directory" }, 130000);
-        const selected = result?.path || result?.paths?.[0] || "";
-        if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaAuctionResultMessage, userErrorMessage(result?.reason || "未选择历史数据目录"), "warn");
-          return;
-        }
-        config.historyDirectory = selected;
-        config.historyPath = "";
-        historyCatalog = [];
-        historyCanRefresh = false;
-        renderConfig();
-        await context.storage.save(storageState());
-        await loadHistoryCatalog();
-      } catch (error) {
-        showUserErrorDiagnostics(error, context.document);
-        setMessage(elements.alibabaAuctionResultMessage, `选择历史目录失败：${userErrorMessage(error)}`, "error");
-      }
+      const outcome = await runNativePickerFeedback({
+        button: elements.chooseAlibabaAuctionHistoryDirectory,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseAlibabaAuctionOutput.disabled = busy || running;
+          elements.chooseAlibabaAuctionHistoryDirectory.disabled = busy || running;
+        },
+        busyText: "正在打开司法拍卖历史目录选择窗口…",
+        cancelText: "已取消历史目录选择，原目录保留。",
+        failurePrefix: "选择历史目录失败",
+        request: () => context.sendNativeMessage({ action: "select_alibaba_auction_history_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.historyDirectory = selected;
+          config.historyPath = "";
+          historyCatalog = [];
+          historyCanRefresh = false;
+          renderConfig();
+        },
+        persist: () => context.storage.save(storageState()),
+        successText: (_result, selected) => `已选择历史数据目录：${selected}`,
+      });
+      if (outcome?.persisted) await loadHistoryCatalog();
     }
 
     async function loadHistoryCatalog() {
@@ -3110,7 +3119,7 @@ export const alibabaAuctionModule = {
         renderConfig();
         renderResults();
       },
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
       dispose() {},
     };
   },

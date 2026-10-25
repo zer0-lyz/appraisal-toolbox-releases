@@ -51,12 +51,14 @@ test('actual shell stream settles legacy rejection and multi-frame progress/term
   const r=await sandbox.stream({action:'download_and_install_update'},p=>progresses.push(p));assert.equal(r,messages.at(-1));assert.equal(disconnects,1);assert.equal(progresses.length,messages.length-1);
  }
 });
-test('Windows picker exit 1 is failure; cancel exit 2 remains cancellation',async()=>{
+test('Windows picker requires a trusted cancel marker; nonzero process exits are failures',async()=>{
  const {createWindowsAdapter}=require('../../native-helper/platform/windows.js');
- for(const [code,cancelled] of [[1,false],[2,true]]){
+ for(const code of [1,2]){
   const adapter=createWindowsAdapter({execFile:(exe,args,options,done)=>done(Object.assign(new Error('fixture'),{code}),'','fixture failure')});
-  const r=await adapter.chooseDirectory('fixture');assert.equal(r.cancelled,cancelled);assert.equal(r.reason,cancelled?'FILE_SELECTION_CANCELLED':'FILE_PICKER_FAILED');
+  const r=await adapter.chooseDirectory('fixture');assert.equal(r.cancelled,false);assert.equal(r.reason,'FILE_PICKER_PROCESS_FAILED');
  }
+ const cancelled=createWindowsAdapter({execFile:(exe,args,options,done)=>done(null,'APPRAISAL_PICKER_RESULT:{"ok":false,"cancelled":true,"paths":[]}','')});
+ const r=await cancelled.chooseDirectory('fixture');assert.equal(r.cancelled,true);assert.equal(r.reason,'FILE_SELECTION_CANCELLED');
 });
 test('all three inherited workbook tools retain their scripts and development status',()=>{
  const module=fs.readFileSync(path.join(root,'src/modules/workbook-tools/module.js'),'utf8');

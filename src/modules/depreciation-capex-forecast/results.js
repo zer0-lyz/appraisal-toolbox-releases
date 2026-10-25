@@ -7,6 +7,7 @@ import {
   renderTable,
   setMessage,
 } from "./page-common.js";
+import { runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const elements = {
   resultStatus: document.getElementById("resultStatus"),
@@ -20,6 +21,7 @@ const elements = {
   exportWorkbook: document.getElementById("exportWorkbook"),
   openDetails: document.getElementById("openDetails"),
 };
+const pickerGuard = {};
 
 function issuesFrom(result) {
   const source = result.issues || result.errors || result.problems || result.checks?.issues || [];
@@ -71,27 +73,32 @@ async function refresh() {
 }
 
 async function exportWorkbook() {
-  elements.exportWorkbook.disabled = true;
-  try {
-    const selected = await nativeRequest({ action: ACTIONS.selectOutputDirectory }, 130_000);
-    const selectedDirectory = selected.outputDirectory || selected.path || selected.paths?.[0] || "";
-    if (selected.cancelled || selected.canceled || !selectedDirectory) {
-      setMessage(elements.exportStatus, "已取消导出", "");
-      return;
-    }
-    const result = await nativeRequest({
-      action: ACTIONS.export,
-      outputDirectory: selectedDirectory,
-      outputPath: selected.outputPath || "",
-    }, 120_000);
-    const filePath = result.outputPath || result.path || result.file?.path || "";
-    const size = result.size || result.file?.size;
-    setMessage(elements.exportStatus, `底稿已导出${filePath ? `：${filePath}` : ""}${size ? `（${size} 字节）` : ""}`, "ok");
-  } catch (error) {
-    setMessage(elements.exportStatus, error.message, "error");
-  } finally {
-    elements.exportWorkbook.disabled = false;
-  }
+  return await runNativePickerFeedback({
+    button: elements.exportWorkbook,
+    documentRef: document,
+    guard: pickerGuard,
+    busyText: "正在打开折旧底稿输出目录选择窗口…",
+    cancelText: "已取消底稿导出，未生成新文件。",
+    failurePrefix: "选择输出目录失败",
+    request: () => nativeRequest({ action: ACTIONS.selectOutputDirectory }, 130_000),
+    resolveSelection: (selected) => selected.outputDirectory || selected.path || selected.paths?.[0] || "",
+    onSelected: async (selection, selectedDirectory) => {
+      try {
+        const result = await nativeRequest({
+          action: ACTIONS.export,
+          outputDirectory: selectedDirectory,
+          outputPath: selection.outputPath || "",
+        }, 120_000);
+        const filePath = result.outputPath || result.path || result.file?.path || "";
+        const size = result.size || result.file?.size;
+        setMessage(elements.exportStatus, `底稿已导出${filePath ? `：${filePath}` : ""}${size ? `（${size} 字节）` : ""}`, "ok");
+        return { handled: true, text: `已选择成果子文件夹：${selectedDirectory}；底稿已导出${filePath ? `：${filePath}` : ""}${size ? `（${size} 字节）` : ""}`, kind: "ok" };
+      } catch (error) {
+        setMessage(elements.exportStatus, `成果目录已选择：${selectedDirectory}；底稿导出失败：${error.message}`, "error");
+        return { handled: true, text: `成果目录已选择：${selectedDirectory}；底稿导出失败：${error.message}`, kind: "error", error };
+      }
+    },
+  });
 }
 
 elements.refreshResults.addEventListener("click", refresh);

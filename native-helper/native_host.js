@@ -2,6 +2,7 @@
 
 const { execFile, spawn } = require("node:child_process");
 const { buildRunnerDiagnostics, redactDiagnosticText, appendStderrTail } = require("./diagnostics.js");
+const { chooseManagedOutputDirectory: chooseManagedOutputDirectoryFlow } = require("./managed-output-directory.js");
 const landPublicityHttp = require("./land-publicity-http.js");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -1912,57 +1913,57 @@ function startCliLogin() {
 }
 
 async function chooseDirectory(prompt) {
-  return await platformAdapter.chooseDirectory(prompt);
+  const result = await platformAdapter.chooseDirectory(prompt);
+  if (!result?.ok || selectedDirectoryPath(result)) return result;
+  return {
+    ...result,
+    ok: false,
+    cancelled: false,
+    reason: "FILE_PICKER_EMPTY_RESULT",
+    path: "",
+    paths: [],
+    diagnostics: result?.diagnostics || {
+      exitCode: null,
+      stderrTail: ["阶段: response_validation", "错误码: FILE_PICKER_EMPTY_RESULT"],
+    },
+    security: { credentialsReturned: false },
+  };
 }
 
 function selectedDirectoryPath(result) {
   return String(result?.outputDirectory || result?.path || result?.paths?.[0] || "").trim();
 }
 
+function requirePickerPaths(result, action) {
+  if (!result?.ok) return { ...result, action };
+  const paths = Array.isArray(result.paths)
+    ? result.paths.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+  if (paths.length) return { ...result, action, paths };
+  return {
+    ...result,
+    ok: false,
+    cancelled: false,
+    action,
+    path: "",
+    paths: [],
+    reason: "FILE_PICKER_EMPTY_RESULT",
+    diagnostics: result?.diagnostics || {
+      exitCode: null,
+      stderrTail: ["阶段: response_validation", "错误码: FILE_PICKER_EMPTY_RESULT"],
+    },
+    security: { credentialsReturned: false },
+  };
+}
+
 async function chooseManagedOutputDirectory(prompt, directoryName, action, failureReason) {
-  const result = await chooseDirectory(prompt);
-  const rawParentPath = selectedDirectoryPath(result);
-  if (!result?.ok || !rawParentPath) {
-    return {
-      ...result,
-      action,
-      path: "",
-      paths: [],
-      security: { credentialsReturned: false },
-    };
-  }
-  try {
-    const parentPath = validateExportDirectory(rawParentPath);
-    const folderName = String(directoryName || "").trim();
-    if (!folderName || folderName === "." || folderName === ".." || path.basename(folderName) !== folderName) {
-      throw new Error("EXPORT_DIRECTORY_NAME_INVALID");
-    }
-    const outputPath = path.basename(parentPath) === folderName ? parentPath : path.join(parentPath, folderName);
-    const alreadyExists = fs.existsSync(outputPath);
-    fs.mkdirSync(outputPath, { recursive: true, mode: 0o700 });
-    const selectedPath = fs.realpathSync(outputPath);
-    return {
-      ...result,
-      ok: true,
-      action,
-      path: selectedPath,
-      paths: [selectedPath],
-      outputDirectory: selectedPath,
-      parentPath,
-      directoryName: folderName,
-      createdDirectory: !alreadyExists,
-      security: { credentialsReturned: false },
-    };
-  } catch {
-    return {
-      ok: false,
-      action,
-      path: "",
-      paths: [],
-      reason: failureReason,
-      security: { credentialsReturned: false },
-    };
-  }
+  return await chooseManagedOutputDirectoryFlow({
+    prompt,
+    directoryName,
+    action,
+    legacyReason: failureReason,
+    selectDirectory: chooseDirectory,
+  });
 }
 
 async function chooseExportDirectory(message = {}) {
@@ -1976,18 +1977,12 @@ async function chooseExportDirectory(message = {}) {
 
 async function chooseWorkbookFiles() {
   const result = await platformAdapter.chooseWorkbookFiles();
-  return {
-    ...result,
-    action: "print_workbook_files_selected",
-  };
+  return requirePickerPaths(result, "print_workbook_files_selected");
 }
 
 async function chooseTableFormatWordFiles() {
   const result = await platformAdapter.chooseWordFiles();
-  return {
-    ...result,
-    action: "table_format_word_files_selected",
-  };
+  return requirePickerPaths(result, "table_format_word_files_selected");
 }
 
 async function chooseWorkbookDirectory() {

@@ -1,6 +1,7 @@
 import { userErrorMessage, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { tableFormatTemplate } from "./template.js";
 import { nativeErrorMessage } from "../../core/native-errors.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const DEFAULT_CONFIG = {
   outputMode: "copy_in_source",
@@ -94,6 +95,7 @@ export const tableFormatModule = {
     let config = { ...DEFAULT_CONFIG };
     let inputPaths = [];
     let running = false;
+    const pickerGuard = {};
 
     // 主操作门禁：按钮禁用态与前置条件实时同步，原因紧贴按钮持续显示。
     function renderRunGate() {
@@ -103,6 +105,8 @@ export const tableFormatModule = {
       let reason = "";
       if (running) {
         reason = "正在执行表格设置…";
+      } else if (pickerGuard.busy) {
+        reason = "正在选择文件或目录，请稍候";
       } else if (!inputPaths.length) {
         reason = "请先选择至少一个 .docx 文件";
       } else if (config.outputMode === "new_directory" && !config.outputDirectory) {
@@ -171,50 +175,57 @@ export const tableFormatModule = {
 
     async function chooseFiles() {
       if (running) return;
-      try {
-        const result = await context.sendNativeMessage({ action: "select_table_format_word_files" }, 130000);
-        if (!result?.ok) {
-          if (result?.cancelled) {
-            context.setStatus("已取消选择 Word 文档", "warn");
-            return;
-          }
-          throw new Error(result?.reason || "TABLE_FORMAT_INPUT_SELECTION_FAILED");
-        }
-        inputPaths = [...new Set(Array.isArray(result.paths) ? result.paths : [])];
-        renderInputList();
-        renderProgress({ percent: 0, total: inputPaths.length, successCount: 0, failedCount: 0, message: `已选择 ${inputPaths.length} 个 Word 文档` });
-        setMessage(elements.tableFormatResultMessage, "文件已选择，请确认输出方式后开始执行。", "ok");
-        context.setStatus(`已选择 ${inputPaths.length} 个 Word 文档`, "ok");
-      } catch (error) {
-        setMessage(elements.tableFormatResultMessage, `选择文件失败：${userErrorMessage(error)}`, "error");
-        context.setStatus(`选择文件失败：${userErrorMessage(error)}`, "error");
-      }
+      return await runNativePickerFeedback({
+        button: elements.chooseTableFormatFiles,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseTableFormatFiles.disabled = busy || running;
+          elements.chooseTableFormatOutput.disabled = busy || running;
+          renderRunGate();
+        },
+        busyText: "正在打开 Word 文件选择窗口…",
+        cancelText: "已取消 Word 文档选择，原文件列表保留。",
+        failurePrefix: "选择 Word 文件失败",
+        request: () => context.sendNativeMessage({ action: "select_table_format_word_files" }, 130000),
+        resolveSelection: (result) => Array.isArray(result.paths) ? [...new Set(result.paths)] : [],
+        onSelected: (_result, selected) => {
+          inputPaths = selected;
+          renderInputList();
+          renderProgress({ percent: 0, total: inputPaths.length, successCount: 0, failedCount: 0, message: `已选择 ${inputPaths.length} 个 Word 文档` });
+        },
+        successText: (_result, selected) => `已选择 ${selected.length} 个 Word 文档，请确认输出方式后开始执行。`,
+      });
     }
 
     async function chooseOutputDirectory() {
       if (running) return;
-      try {
-        const result = await context.sendNativeMessage({ action: "select_table_format_output_directory" }, 130000);
-        if (!result?.ok) {
-          if (result?.cancelled) {
-            context.setStatus("已取消选择目标文件夹", "warn");
-            return;
-          }
-          throw new Error(result?.reason || "TABLE_FORMAT_OUTPUT_SELECTION_FAILED");
-        }
-        config.outputDirectory = String(result.outputDirectory || result.path || result.paths?.[0] || "");
-        elements.tableFormatOutputDirectory.value = config.outputDirectory;
-        await context.storage.save(config);
-        setMessage(elements.tableFormatResultMessage, `已选择并创建专用子文件夹：${result.directoryName || "表格格式设置"}。`, "ok");
-        context.setStatus(`已选择目标文件夹：${config.outputDirectory}`, "ok");
-      } catch (error) {
-        setMessage(elements.tableFormatResultMessage, `选择目标文件夹失败：${userErrorMessage(error)}`, "error");
-        context.setStatus(`选择目标文件夹失败：${userErrorMessage(error)}`, "error");
-      }
+      return await runNativePickerFeedback({
+        button: elements.chooseTableFormatOutput,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseTableFormatFiles.disabled = busy || running;
+          elements.chooseTableFormatOutput.disabled = busy || running;
+          renderRunGate();
+        },
+        busyText: "正在打开表格设置输出目录选择窗口…",
+        cancelText: "已取消输出目录选择，原目录保留。",
+        failurePrefix: "选择输出目录失败",
+        request: () => context.sendNativeMessage({ action: "select_table_format_output_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.outputDirectory = selected;
+          renderOutputMode();
+        },
+        persist: () => context.storage.save(config),
+        successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}表格格式设置成果子文件夹“${result.directoryName || "表格格式设置"}”：${selected}`,
+      });
     }
 
     async function run() {
-      if (running) return;
+      if (running || pickerGuard.busy) return;
       if (!inputPaths.length) {
         setMessage(elements.tableFormatResultMessage, "请先选择一个或多个 .docx 文件。", "error");
         context.setStatus("表格设置缺少输入文件", "error");
@@ -305,7 +316,7 @@ export const tableFormatModule = {
         renderInputList();
         renderOutputMode();
       },
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
       dispose() {},
     };
   },

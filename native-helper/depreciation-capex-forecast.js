@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { randomBytes, createHash } = require("node:crypto");
 const { redactDiagnosticText, buildRunnerDiagnostics } = require("./diagnostics.js");
+const { ensureManagedOutputDirectory } = require("./managed-output-directory.js");
 const { resolvePythonBin } = require("./runtime_config.js");
 const { nativeHelperDataDirectory } = require("./runtime_paths.js");
 
@@ -61,19 +62,7 @@ function selectedPath(result) {
 }
 
 function managedOutputDirectory(value) {
-  const parentPath = fs.realpathSync(ensureAbsolutePath(value, "EXPORT_DIRECTORY_INVALID"));
-  if (!fs.statSync(parentPath).isDirectory()) throw new Error("EXPORT_DIRECTORY_NOT_DIRECTORY");
-  const outputPath = path.basename(parentPath) === "折旧摊销预测"
-    ? parentPath
-    : path.join(parentPath, "折旧摊销预测");
-  const alreadyExists = fs.existsSync(outputPath);
-  fs.mkdirSync(outputPath, { recursive: true, mode: 0o700 });
-  return {
-    path: fs.realpathSync(outputPath),
-    parentPath,
-    directoryName: "折旧摊销预测",
-    createdDirectory: !alreadyExists,
-  };
+  return ensureManagedOutputDirectory(value, "折旧摊销预测");
 }
 
 function atomicWriteJson(filePath, payload) {
@@ -292,15 +281,39 @@ function createDepreciationCapexForecastService(options = {}) {
 
   async function selectXlsx() {
     if (!platformAdapter?.chooseXlsxFile) {
-      return { ok: false, reason: "PLATFORM_FILE_PICKER_UNSUPPORTED", security: security() };
+      return { ok: false, cancelled: false, reason: "PLATFORM_FILE_PICKER_UNSUPPORTED", action: "depreciation_capex_forecast_xlsx_selection_failed", namespace: NAMESPACE, security: security() };
     }
     const result = await platformAdapter.chooseXlsxFile();
     const selected = result?.paths?.[0] || "";
-    if (!result?.ok || !selected) {
-      return { ...result, action: "depreciation_capex_forecast_xlsx_selection_cancelled", namespace: NAMESPACE, security: security() };
+    if (!result?.ok) {
+      const cancelled = result?.cancelled === true || result?.canceled === true;
+      return {
+        ...result,
+        cancelled,
+        action: cancelled
+          ? "depreciation_capex_forecast_xlsx_selection_cancelled"
+          : "depreciation_capex_forecast_xlsx_selection_failed",
+        namespace: NAMESPACE,
+        security: security(),
+      };
+    }
+    if (!selected) {
+      return {
+        ...result,
+        ok: false,
+        cancelled: false,
+        reason: "FILE_PICKER_EMPTY_RESULT",
+        action: "depreciation_capex_forecast_xlsx_selection_failed",
+        namespace: NAMESPACE,
+        diagnostics: result?.diagnostics || {
+          exitCode: null,
+          stderrTail: ["阶段: response_validation", "错误码: FILE_PICKER_EMPTY_RESULT"],
+        },
+        security: security(),
+      };
     }
     if (!isXlsxPath(selected)) {
-      return { ok: false, reason: "IMPORT_SOURCE_MUST_BE_XLSX", namespace: NAMESPACE, security: security() };
+      return { ok: false, cancelled: false, reason: "IMPORT_SOURCE_MUST_BE_XLSX", action: "depreciation_capex_forecast_xlsx_selection_failed", namespace: NAMESPACE, security: security() };
     }
     return {
       ok: true,
@@ -351,15 +364,34 @@ function createDepreciationCapexForecastService(options = {}) {
 
   async function selectOutputDirectory() {
     if (!platformAdapter?.chooseDirectory) {
-      return { ok: false, reason: "PLATFORM_FILE_PICKER_UNSUPPORTED", security: security() };
+      return { ok: false, cancelled: false, reason: "PLATFORM_FILE_PICKER_UNSUPPORTED", action: "depreciation_capex_forecast_output_directory_selection_failed", namespace: NAMESPACE, security: security() };
     }
     const result = await platformAdapter.chooseDirectory("选择折旧摊销预测底稿导出目录");
     const selected = selectedPath(result);
-    if (!result?.ok || !selected) {
+    if (!result?.ok) {
+      const cancelled = result?.cancelled === true || result?.canceled === true;
       return {
         ...result,
-        action: "depreciation_capex_forecast_output_directory_selection_cancelled",
+        cancelled,
+        action: cancelled
+          ? "depreciation_capex_forecast_output_directory_selection_cancelled"
+          : "depreciation_capex_forecast_output_directory_selection_failed",
         namespace: NAMESPACE,
+        security: security(),
+      };
+    }
+    if (!selected) {
+      return {
+        ...result,
+        ok: false,
+        cancelled: false,
+        reason: "FILE_PICKER_EMPTY_RESULT",
+        action: "depreciation_capex_forecast_output_directory_selection_failed",
+        namespace: NAMESPACE,
+        diagnostics: result?.diagnostics || {
+          exitCode: null,
+          stderrTail: ["阶段: response_validation", "错误码: FILE_PICKER_EMPTY_RESULT"],
+        },
         security: security(),
       };
     }
@@ -626,7 +658,14 @@ function createDepreciationCapexForecastService(options = {}) {
     try {
       return await handler(input);
     } catch (error) {
-      return { ok: false, reason: safeReason(error), namespace: NAMESPACE, security: security() };
+      return {
+        ok: false,
+        reason: error?.reason || safeReason(error),
+        errorCode: error?.code || undefined,
+        diagnostics: error?.diagnostics,
+        namespace: NAMESPACE,
+        security: security(),
+      };
     }
   }
 

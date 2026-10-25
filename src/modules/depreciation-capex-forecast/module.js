@@ -7,6 +7,7 @@ import {
 } from "./template.js";
 import { nativeErrorMessage } from "../../core/native-errors.js";
 import { sendQueuedDepreciationNativeMessage, showNativeDiagnostics } from "../../core/native-messaging.mjs";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const ACTIONS = Object.freeze({
   prepare: "prepare",
@@ -59,8 +60,10 @@ function elementMap(documentRef) {
 function nativeMessage(chromeApi, message, timeoutMs = 30_000) {
   const operation = message.operation || message.action;
   const payload = { ...message, action: NATIVE_ACTION, operation };
+  const isPickerOperation = operation === ACTIONS.selectWorkbook || operation === ACTIONS.selectOutputDirectory;
   return sendQueuedDepreciationNativeMessage(chromeApi, payload, timeoutMs).then((response) => {
-    if (!response || response.ok === false) {
+    const explicitCancellation = response?.cancelled === true || response?.canceled === true;
+    if (!response || (response.ok === false && !(isPickerOperation && explicitCancellation))) {
       showNativeDiagnostics(response);
       const error = new Error(nativeErrorMessage(response?.reason || response?.message || "NATIVE_HOST_UNAVAILABLE"));
       error.code = response?.reason || "";
@@ -69,7 +72,11 @@ function nativeMessage(chromeApi, message, timeoutMs = 30_000) {
     }
     return response;
   }).catch((error) => {
-    throw new Error(userErrorMessage(error));
+    const wrapped = new Error(userErrorMessage(error));
+    wrapped.name = error?.name || "Error";
+    wrapped.code = error?.code || "";
+    wrapped.diagnostics = error?.diagnostics;
+    throw wrapped;
   });
 }
 
@@ -201,6 +208,7 @@ export const depreciationCapexModule = {
     let context;
     let elements;
     let lastPreflight = null;
+    const pickerGuard = {};
 
     async function call(action, payload = {}, timeoutMs = 30_000) {
       return await nativeMessage(context.chrome, { action: NATIVE_ACTION, operation: action, ...payload }, timeoutMs);
@@ -234,20 +242,40 @@ export const depreciationCapexModule = {
     }
 
     async function importWorkbook() {
-      try {
-        const selected = await call(ACTIONS.selectWorkbook, {}, 130_000);
-        const selectedPath = selected.path || selected.sourcePath;
-        if (selected.cancelled || selected.canceled || !selectedPath) {
-          setMessage(elements.depreciationStatusMessage, "已取消导入", "");
-          return;
+      const cancelText = "已取消工作簿导入，当前工作簿保留。";
+      const outcome = await runNativePickerFeedback({
+        button: elements.importDepreciationWorkbook,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        busyText: "正在打开折旧工作簿文件选择窗口…",
+        cancelText,
+        failurePrefix: "选择工作簿失败",
+        request: () => call(ACTIONS.selectWorkbook, {}, 130_000),
+        resolveSelection: (result) => result.path || result.sourcePath || result.paths?.[0] || "",
+        onSelected: async (_selection, selectedPath) => {
+          try {
+            const result = await call(ACTIONS.importWorkbook, { sourcePath: selectedPath, path: selectedPath }, 60_000);
+            renderStatus(elements, result);
+            applyParameters(elements, result.parameters || {});
+            return { handled: true, text: `已选择并导入工作簿：${selectedPath}。${result.message || "已复制为本机安全工作副本。"}`, kind: "ok" };
+          } catch (error) {
+            return { handled: true, text: `已选择工作簿：${selectedPath}；导入失败：${userErrorMessage(error)}。当前工作簿保持原状态。`, kind: "error", error };
+          }
+        },
+      });
+      if (outcome?.cancelled === true) {
+        setMessage(elements.depreciationStatusMessage, cancelText, "warn");
+        const row = elements.importDepreciationWorkbook?.closest?.(".button-row")
+          || elements.importDepreciationWorkbook?.parentElement;
+        const feedback = row?.nextElementSibling;
+        if (feedback?.classList.contains("native-picker-feedback")) {
+          feedback.textContent = cancelText;
+          feedback.dataset.kind = "warn";
         }
-        const result = await call(ACTIONS.importWorkbook, { sourcePath: selectedPath, path: selectedPath }, 60_000);
-        renderStatus(elements, result);
-        applyParameters(elements, result.parameters || {});
-        setMessage(elements.depreciationStatusMessage, result.message || "已导入为本机安全工作副本", "ok");
-      } catch (error) {
-        setMessage(elements.depreciationStatusMessage, error.message, "error");
+        context.setStatus?.(cancelText, "warn");
       }
+      return outcome;
     }
 
     async function saveParameters() {
@@ -349,7 +377,7 @@ export const depreciationCapexModule = {
         await refreshStatus();
       },
 
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
 
       async dispose() {
         await context?.storage.save({ withDetails: elements?.depreciationWithDetails?.checked === true });

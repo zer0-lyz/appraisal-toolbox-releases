@@ -7,8 +7,11 @@ for(const file of files)if(/\.(?:js|mjs|cjs)$/.test(file))execFileSync(process.e
 const landPublicityModule=fs.readFileSync(path.join(root,'src/modules/land-publicity/module.js'),'utf8');
 if(landPublicityModule.includes('land-publicity health check failed:'))throw new Error('Non-fatal land data-source status must not appear in chrome://extensions errors.');
 for(const file of ['windows/tests/alibaba-module-regression.mjs','windows/tests/result-buttons.test.mjs','windows/tests/lease-outcome-regression.mjs','windows/tests/current-browser-results.test.mjs','windows/tests/map-settings.test.mjs','windows/tests/round2-ui-regression.mjs'])execFileSync(process.execPath,[path.join(root,file),path.join(evidence,path.basename(file))],{stdio:'inherit'});
+for(const file of ['native-helper/managed-output-directory.test.cjs','native-helper/depreciation-capex-picker.test.cjs'])execFileSync(process.execPath,[path.join(root,file),path.join(evidence,path.basename(file,'.test.cjs')+'.json')],{stdio:'inherit'});
+execFileSync(process.execPath,[path.join(root,'windows/tests/native-picker-feedback-regression.mjs'),path.join(evidence,'native-picker-feedback-regression.json')],{stdio:'inherit'});
 execFileSync(process.execPath,['--test',path.join(root,'scripts/release/build.test.cjs'),path.join(root,'scripts/release/intake-contracts.test.cjs'),path.join(root,'native-helper/update_status_protocol.test.cjs')],{stdio:'inherit'});
 if(process.platform==='win32'){
+ execFileSync(process.execPath,[path.join(root,'native-helper/platform/windows-picker.test.cjs'),path.join(evidence,'windows-picker-adapter-regression.json')],{stdio:'inherit'});
  const suites=['scripts/release/update-engine-timeout.test.cjs','scripts/release/update-lock-process.test.cjs','scripts/release/update-recovery-context.test.cjs','scripts/release/update-transaction-identity.test.cjs'];
  execFileSync(process.execPath,['--test','--test-concurrency=1',...suites.map(file=>path.join(root,file))],{stdio:'inherit'});
 }

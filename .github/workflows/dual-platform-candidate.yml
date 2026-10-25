@@ -69,11 +69,11 @@ jobs:
         with:
           path: ${{ runner.temp }}/toolbox-cache
           key: toolbox-${{ matrix.target }}-${{ hashFiles('release-inputs.lock.json') }}
-      - name: Shared source regressions
-        run: node scripts/release/source-checks.cjs
       - name: Install locked DOM fixture dependency
         shell: bash
         run: npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools
+      - name: Shared source regressions
+        run: node scripts/release/source-checks.cjs
       - name: Update UI platform fixtures
         shell: bash
         run: node scripts/release/update-ui-fixtures.cjs scripts/release/test-tools/node_modules "$RUNNER_TEMP/update-ui-summary.json"
