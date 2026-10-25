@@ -8,7 +8,7 @@ const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).d
 function sourceState() {
   const commit = execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], {encoding:'utf8'}).trim();
   const dirty = execFileSync('git', ['-C', root, 'status', '--porcelain', '--untracked-files=all'], {encoding:'utf8'}).trim();
-  if (dirty) throw new Error('Build requires a clean source tree, including untracked files');
+  if (dirty) throw new Error(`Build requires a clean source tree, including untracked files:\n${dirty}`);
   return {commit, dirty:false};
 }
 function inventory(directory) {
