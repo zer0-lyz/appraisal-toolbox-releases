@@ -38,8 +38,8 @@ async function main() {
   try {
     const parent = fs.mkdtempSync(path.join(root, "中文 空格 父目录-"));
     const result = ensureManagedOutputDirectory(parent, folderName);
-    const expected = path.join(parent, folderName);
-    assert.equal(result.path, fs.realpathSync(expected));
+    const expected = fs.realpathSync(path.join(parent, folderName));
+    assert.equal(result.path, expected);
     assert.equal(result.createdDirectory, true);
     assert(fs.statSync(result.path).isDirectory());
     checks.push("真实临时文件系统：中文/空格上级目录下创建专用成果文件夹");
