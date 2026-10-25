@@ -22,6 +22,7 @@ bash macos/test-isolated-install.sh /tmp/toolbox-mac-candidate/<manifest.package
 
 ```powershell
 # 官方 v24.18.1 node.exe 必须与锁 SHA 一致；不可用其他 Node 替代。
+npm ci --ignore-scripts --no-audit --no-fund --prefix scripts/release/test-tools
 ./windows/bootstrap-build-tools.ps1 -ToolsDirectory C:/ToolboxBuildCache/tools
 node scripts/release/build.cjs --target windows-x64 --version 0.2.2 --build-id windows-candidate-20261017 --build-number 2026101701 --output C:/ToolboxCandidate --cache C:/ToolboxBuildCache --tools C:/ToolboxBuildCache/tools --base-archive C:/Inputs/appraisal-toolbox-v0.2.1-windows-x64-full.zip
 ```
@@ -31,6 +32,8 @@ node scripts/release/build.cjs --target windows-x64 --version 0.2.2 --build-id w
 `--reuse-native <旧build-result.json>` 要求旧ZIP、EXE、bundle SHA 及全部 native-helper/skills 字节与路径集合相同。无匹配或有文件增删时拒绝复用；同业务/安装器修改仍重封装 extension/新 lock/metadata。Mac 源 host 每轮复制，不需要 SEA 缓存。工具/运行时按摘要复用，不以文件名或存在性判定安全命中。
 
 ## CI与验收
+
+`build.cjs` 先运行 `scripts/release/source-checks.cjs`。执行构建前先按 `scripts/release/test-tools/package-lock.json` 安装锁定的 DOM fixture 依赖；shared regressions 会运行目录选择真实临时文件系统、折旧选择协议和各生产模块的 DOM 回归。Windows x64 上还会校验系统 PowerShell adapter 的结构化响应与实际 EncodedCommand 语法，不弹出选择窗口。DOM/adapter fixture 仍不是桌面 GUI 验收。
 
 `.github/workflows/dual-platform-candidate.yml`：同一个 PR merge commit 在 macos-15 arm64 与 windows-2022 x64 构建，contents:read，无发布凭据/无自动 Release/无 Latest 修改。每端 source checks + candidate build + actual packaged-host imports/合成Excel/NM；Mac增加真实脚本隔离安装/升级/回滚。Windows CI只做NM/离线，不调用Windows正式安装器，不宣称普通桌面/MSIX通过。
 

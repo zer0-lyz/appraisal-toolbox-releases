@@ -1,4 +1,5 @@
 import { userErrorMessage, showUserErrorDiagnostics } from "../../core/user-errors.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 // 三个本地 Excel 工具共用交互；只调用工具箱本机助手，不连接天源页面。
 let activeJob = null;
@@ -34,6 +35,8 @@ export const workbookToolModules = definitions.map(definition => ({
     let inputs = [];
     let config = { outputMode: "copy_in_source", outputDirectory: "" };
     let selecting = false;
+    let selectingEpoch = 0;
+    const pickerGuard = {};
     const job = { refresh: () => renderGate() };
     const fileName = value => String(value || "").split(/[\\/]/).pop();
     function message(text, kind = "") {
@@ -73,36 +76,63 @@ export const workbookToolModules = definitions.map(definition => ({
       controls.progressText.textContent = payload.event === "complete" ? "处理结束" : `正在处理 ${payload.current || 0}/${payload.total || inputs.length}`;
     }
     async function select(kind) {
-      if (activeJob || selecting) return;
-      selecting = true; refreshAll();
-      message(kind === "files" ? "正在打开系统文件选择窗口，请选择 Excel 文件…" : "正在打开系统文件夹选择窗口…");
+      if (activeJob || pickerGuard.busy) return;
+      const epoch = ++selectingEpoch;
       try {
-        const result = await context.sendNativeMessage({ action: kind === "files" ? "select_print_workbook_files" : "select_print_workbook_directory" }, 130000);
-        if (result?.cancelled) { message("已取消选择，文件列表未改变。", "warn"); return; }
-        if (!result?.ok) throw Object.assign(new Error(result?.reason || "FILE_PICKER_FAILED"), { diagnostics: result?.diagnostics });
-        const paths = [...new Set(result.paths || [])];
-        if (definition.type === "link" && kind === "files" && paths.some(value => !/\.xlsx$/i.test(value))) {
-          message("公式恢复仅支持 .xlsx，请重新选择；宏工作簿暂不支持。", "warn");
-          return;
-        }
-        inputs = paths; renderInputs();
-        message(kind === "folder" ? "将递归处理文件夹中的工作簿；请使用单独的待处理文件夹。" : "文件已选择，请确认输出方式。", "ok");
-      } catch (error) { message(failureText(error), "error"); showUserErrorDiagnostics(error, context.document); }
-      finally { selecting = false; refreshAll(); }
+        return await runNativePickerFeedback({
+          button: kind === "files" ? controls.files : controls.folder,
+          documentRef: context.document,
+          guard: pickerGuard,
+          setStatus: context.setStatus,
+          onBusyChange: (busy) => { selecting = busy; refreshAll(); },
+          busyText: kind === "files" ? "正在打开 Excel 文件选择窗口，请完成选择…" : "正在打开工作簿文件夹选择窗口…",
+          cancelText: kind === "files" ? "已取消文件选择，原文件列表保留。" : "已取消文件夹选择，原输入保留。",
+          failurePrefix: kind === "files" ? "选择工作簿失败" : "选择工作簿文件夹失败",
+          errorMessage: failureText,
+          request: () => context.sendNativeMessage({ action: kind === "files" ? "select_print_workbook_files" : "select_print_workbook_directory" }, 130000),
+          resolveSelection: (result) => kind === "files"
+            ? [...new Set(Array.isArray(result.paths) ? result.paths : [])]
+            : result.path || result.paths?.[0] || "",
+          onSelected: (_result, selected) => {
+            const paths = Array.isArray(selected) ? selected : [selected];
+            if (definition.type === "link" && kind === "files" && paths.some(value => !/\.xlsx$/i.test(value))) {
+              return { handled: true, text: "公式恢复仅支持 .xlsx，请重新选择；宏工作簿暂不支持。原文件列表保留。", kind: "warn" };
+            }
+            inputs = paths;
+            renderInputs();
+          },
+          successText: (_result, selected) => kind === "folder"
+            ? `已选择工作簿文件夹：${selected}。将递归处理其中的工作簿；请使用单独的待处理文件夹。`
+            : `已选择 ${selected.length} 个工作簿，请确认输出方式。${selected[0] ? ` 首个文件：${selected[0]}` : ""}`,
+        });
+      } finally {
+        if (epoch !== selectingEpoch) return;
+        if (!pickerGuard.busy) { selecting = false; refreshAll(); }
+      }
     }
     async function selectOutput() {
-      if (activeJob || selecting) return;
-      selecting = true; refreshAll();
-      message("正在打开系统输出目录选择窗口…");
+      if (activeJob || pickerGuard.busy) return;
+      const epoch = ++selectingEpoch;
       try {
-        const result = await context.sendNativeMessage({ action: "select_print_output_directory", directoryName: definition.name }, 130000);
-        if (result?.cancelled) { message("已取消选择输出目录。", "warn"); return; }
-        if (!result?.ok) throw Object.assign(new Error(result?.reason || "FILE_PICKER_FAILED"), { diagnostics: result?.diagnostics });
-        config.outputDirectory = String(result.outputDirectory || result.path || result.paths?.[0] || "");
-        await context.storage.save(config);
-        message("已选择专用输出目录。", "ok");
-      } catch (error) { message(failureText(error), "error"); showUserErrorDiagnostics(error, context.document); }
-      finally { selecting = false; refreshAll(); }
+        return await runNativePickerFeedback({
+          button: controls.output,
+          documentRef: context.document,
+          guard: pickerGuard,
+          setStatus: context.setStatus,
+          onBusyChange: (busy) => { selecting = busy; refreshAll(); },
+          busyText: "正在打开工作簿成果目录选择窗口…",
+          cancelText: "已取消输出目录选择，原目录保留。",
+          failurePrefix: "选择输出目录失败",
+          errorMessage: failureText,
+          request: () => context.sendNativeMessage({ action: "select_print_output_directory", directoryName: definition.name }, 130000),
+          onSelected: (_result, selected) => { config.outputDirectory = selected; renderGate(); },
+          persist: () => context.storage.save(config),
+          successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}专用成果子文件夹“${result.directoryName || definition.name}”：${selected}`,
+        });
+      } finally {
+        if (epoch !== selectingEpoch) return;
+        if (!pickerGuard.busy) { selecting = false; refreshAll(); }
+      }
     }
     function renderResults(results) {
       controls.results.replaceChildren();
@@ -182,7 +212,9 @@ export const workbookToolModules = definitions.map(definition => ({
         jobs.add(job); context.scope.add(() => jobs.delete(job));
         renderInputs();
       },
-      activate() { renderGate(); }, deactivate() {}, dispose() {},
+      activate() { renderGate(); },
+      deactivate() { selectingEpoch += 1; invalidatePickerFeedback(pickerGuard); selecting = false; refreshAll(); },
+      dispose() { selectingEpoch += 1; invalidatePickerFeedback(pickerGuard); selecting = false; refreshAll(); },
     };
   },
 }));

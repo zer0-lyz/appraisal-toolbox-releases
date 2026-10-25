@@ -79,3 +79,23 @@ Mac PR #15 的持久状态轮询与事务恢复已与 Windows PR #14 的 Windows
 - Mac 对官网目录下 92 个区县代码逐个查询，92/92 返回与选择代码一致的区县记录；四类覆盖住宅297、商服482、工矿仓储2331、其他214条。住宅297/297与商服482/482列表记录均提取到容积率。
 - 这是平台无关的共享 Python 业务修复；Windows adapter、Native host、安装器没有改动。Windows 新候选需从该提交在 Windows 目标 runtime 重建，并复验单选/多选、`V3-13/V3-14`、Excel/HTML/地图容积率；CI/公开接口结果不能替代 Windows 桌面验收。
 - Mac 详细逐区县证据：`LAND_PUBLICITY_REGION_SAMPLE_20261022.json`。
+
+## 2026-10-25 Windows目录选择修复承接
+
+实现与候选构建来源：`9be82a4bd0e4934e3a28eeb67956fca5cd769a9d`（基线v0.2.5 `46682a74fb8a0f84b38e3ae80c27ba03b75de1ad`）。本节是构建完成后追加的文档记录，不能把文档提交当成该候选的构建源码。
+
+- 原流程保留：选择上级目录→创建/复用对应功能子目录→成果存入该子目录。共用 `native-helper/managed-output-directory.js` 增加最终目录写入验证、有归属的临时探针清理、明确stage/系统错误码和脱敏诊断；失败不抹掉前端已有有效选择。
+- Windows专属：`native-helper/platform/windows.js` 改用系统PowerShell绝对路径、统一WinForms owner、固定marker+JSON结果协议。只认明确取消结果，空/畸形响应、进程启动/异常退出/真正超时分别处理。Mac不要复制PowerShell实现；`platform/macos.js`、`platform/common.js`及Mac更新/安装adapter保持字节。
+- 共享UI：`src/core/native-picker-feedback.js` 统一触发按钮附近等待/终态、忙态防重复、失败重试、取消及设置保存失败提示；折旧主页面和独立页面的消息wrapper保留明确选择取消，普通业务错误继续拒绝。土地、阿里两模块、表格、安居客、工作簿开发入口接入，抓取/成交/地图业务规则不变。
+- 自动防回归：`source-checks.cjs` 接入真实临时FS、选择协议、实际模块DOM测试；Windows分支额外运行PowerShell adapter协议和生成脚本语法检查。CI在source-checks前安装锁定jsdom依赖。Mac共享代码可以审查吸收，但Mac系统选择窗口/GUI仍需单独实机复验。
+- 结果：相关源检查、隔离FS/协议/DOM以及最终候选EXE在隔离配置下7技能import通过；普通桌面安装、Chrome/Edge实际系统选择窗口、第三方受影响电脑和真实安全软件策略仍未覆盖。具体用户失败原因未确证，权限只是一种待核验触发条件。
+- Windows候选：产品0.2.5/buildNumber2026102401、buildId `windows-picker-feedback-20261024.1`、channel=candidate/runtimeBuildKind=local。新EXE SHA-256 `0dfd400699ae6b8dfd5e8b84b7165a09b83c3c2bfdf280d17c155512f7ce963a`，Authenticode NotSigned。最终短根ZIP SHA-256 `9be0e11a0d0e1b5d30910c812983a9e22f780f12457db639d8c5e3614bfd4f1b`；顶层 `AppraisalToolbox/`，817文件、816内部摘要一致，重封装仅变根目录。
+- 本轮未发布GitHub/修改stable/latest，未安装到真实用户运行时。Mac接续时必须继续保留这些未覆盖项，不把源码/夹具/包完整性通过转写为GUI通过。
+
+## v0.2.6 折旧导入取消终态补强（2026-10-25）
+
+ZCode 对 Windows v0.2.5 picker-feedback 候选的普通桌面验收中记录 D2：取消“导入 .xlsx 工作簿”后全局状态及按钮附近提示仍停留在“正在打开…”。修复位于共享 `src/modules/depreciation-capex-forecast/module.js::importWorkbook`：共享 picker handler 返回明确 `cancelled` 后，再把当前工作簿状态、局部反馈和全局状态统一落到“已取消工作簿导入，当前工作簿保留。”；不修改平台选择器或导入/工作簿数据。
+
+Mac 使用同一共享模块和 `runNativePickerFeedback`，其独立 `native-helper/platform/macos.js::chooseXlsxFile` 经 `common.pickerFailure` 将 AppleScript `User canceled` 响应规范为 `cancelled:true`。新增跨平台回归覆盖 Mac adapter 的取消规范化，并由模块 DOM 回归断言局部、模块、全局三处终态及按钮恢复；这说明同一时序风险适用于 Mac 代码路径并由共享修复覆盖，不代表已观察到 Mac 实机缺陷。
+
+本轮 GUI 证据绑定 Windows 候选包 `windows-picker-feedback-20261024.1`；其中 D2 是修复前失败记录。补丁后通过的是共享 DOM/协议与 Mac adapter 合成回归，修复后的 Windows/macOS 实际系统对话框 GUI 仍须分别验收，不将候选安装或协议回归改写为修复后 GUI 通过。

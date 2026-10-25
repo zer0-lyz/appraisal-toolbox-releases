@@ -9,6 +9,27 @@ const exactMessages = Object.freeze({
   WORKBOOK_OPERATION_TIMEOUT: "等待工作簿操作超时。请确认其他计算已结束，检查本机运行环境后重试。",
   DEPRECIATION_WORKFLOW_TIMEOUT: "折旧测算等待超时。请确认工作簿未被其他操作占用，检查本机运行环境后重试。",
   DEPRECIATION_LEGACY_PATH_REQUIRES_IMPORT: "该位置属于旧项目工作区。原工作簿保持原位；请通过“导入工作簿”复制到评估工具箱工作区。",
+  FILE_PICKER_FAILED: "系统文件或文件夹选择窗口未能完成。请关闭异常弹窗后重试；如果持续发生，请修复本机助手。",
+  FILE_PICKER_PROCESS_START_FAILED: "系统选择窗口无法启动。请检查本机助手是否被安全软件拦截，再重试或修复安装。",
+  FILE_PICKER_TIMEOUT: "等待系统选择窗口超时。请完成或关闭现有选择窗口后重试。",
+  FILE_PICKER_PROCESS_FAILED: "系统选择窗口异常退出。请重新选择；如果持续发生，请修复本机助手。",
+  FILE_PICKER_PROTOCOL_INVALID: "系统选择窗口没有返回有效结果。请重新选择；如果持续发生，请修复本机助手。",
+  FILE_PICKER_EMPTY_RESULT: "系统选择窗口没有返回所选项目。请重新选择并重试。",
+  APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED: "当前本机助手版本不支持此操作。请安装当前平台的完整安装包，并重新加载原插件后重试。",
+  UNKNOWN_ACTION: "当前本机助手不认识此操作。请安装当前平台的完整安装包，并重新加载原插件后重试。",
+  MANAGED_OUTPUT_PERMISSION_DENIED: "无法在所选位置创建或写入专用成果子文件夹。请检查该位置的创建和写入权限，或选择可写的位置后重试。",
+  MANAGED_OUTPUT_READ_ONLY: "所选位置为只读，无法写入成果。请改选可写位置后重试。",
+  MANAGED_OUTPUT_DISK_FULL: "所选磁盘空间不足，无法验证成果目录的写入能力。请释放空间或选择其他位置后重试。",
+  MANAGED_OUTPUT_NAME_CONFLICT: "专用成果文件夹名称已被同名文件占用。请在上级目录中移走或重命名该文件后重试。",
+  MANAGED_OUTPUT_PATH_UNAVAILABLE: "所选上级目录或成果文件夹当前不可访问。请确认磁盘、网络位置或移动设备已连接，再重试。",
+  MANAGED_OUTPUT_CREATE_FAILED: "无法创建或验证专用成果子文件夹。请检查所选位置后重试。",
+  EXPORT_DIRECTORY_CREATE_FAILED: "无法创建或验证专用导出子文件夹。请检查所选位置后重试。",
+  PRINT_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证专用成果子文件夹。请检查所选位置后重试。",
+  TABLE_FORMAT_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证表格设置成果文件夹。请检查所选位置后重试。",
+  LAND_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证土地公示成果文件夹。请检查所选位置后重试。",
+  ALIBABA_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证司法拍卖成果文件夹。请检查所选位置后重试。",
+  ANJUKE_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证安居客成果文件夹。请检查所选位置后重试。",
+  ALIBABA_LEASE_OUTPUT_DIRECTORY_CREATE_FAILED: "无法创建或验证资产租赁成果文件夹。请检查所选位置后重试。",
   LAND_PUBLICITY_RUN_FAILED: "土地公示抓取失败。请检查筛选条件和浙江土地市场网连接后重试。",
   LAND_RUNNER_FAILED: "土地公示处理失败。请查看诊断信息，并检查本机运行环境后重试。",
   LAND_REGION_CATALOG_UNAVAILABLE: "行政区目录暂不可用。请检查浙江土地市场网连接后刷新行政区。",
@@ -43,7 +64,7 @@ export function classifyNativeMessagingError(value) {
 
 function extractNativeErrorCode(value) {
   const text = String(value?.message || value || "");
-  return text.match(/\b(?:RESULT_HTML_[A-Z0-9_]+|RESULT_FRONTEND_UPDATE_REQUIRED|FILE_ASSOCIATION_MISSING|NATIVE_PATH_OPEN_FAILED|LAND_HISTORY_[A-Z0-9_]+|LAND_[A-Z0-9_]+|NATIVE_HELPER_TIMEOUT|NATIVE_HOST_UNAVAILABLE|NATIVE_HOST_START_FAILED|NATIVE_STREAM_IDLE_TIMEOUT|FILE_BUSY|WORKBOOK_OPERATION_TIMEOUT|DEPRECIATION_WORKFLOW_TIMEOUT|DEPRECIATION_LEGACY_PATH_REQUIRES_IMPORT)\b/)?.[0]
+  return text.match(/\b(?:RESULT_HTML_[A-Z0-9_]+|RESULT_FRONTEND_UPDATE_REQUIRED|FILE_ASSOCIATION_MISSING|NATIVE_PATH_OPEN_FAILED|FILE_PICKER_[A-Z0-9_]+|APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED|UNKNOWN_ACTION|MANAGED_OUTPUT_[A-Z0-9_]+|EXPORT_DIRECTORY_CREATE_FAILED|(?:EXPORT|PRINT|TABLE_FORMAT|LAND|ALIBABA|ANJUKE|ALIBABA_LEASE)_OUTPUT_DIRECTORY_CREATE_FAILED|LAND_HISTORY_[A-Z0-9_]+|LAND_[A-Z0-9_]+|NATIVE_HELPER_TIMEOUT|NATIVE_HOST_UNAVAILABLE|NATIVE_HOST_START_FAILED|NATIVE_STREAM_IDLE_TIMEOUT|FILE_BUSY|WORKBOOK_OPERATION_TIMEOUT|DEPRECIATION_WORKFLOW_TIMEOUT|DEPRECIATION_LEGACY_PATH_REQUIRES_IMPORT)\b/)?.[0]
     || classifyNativeMessagingError(value);
 }
 

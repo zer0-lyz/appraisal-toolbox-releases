@@ -3,6 +3,7 @@ import { landPublicityTemplate } from "./template.js";
 import { classifyNativeMessagingError, nativeErrorMessage } from "../../core/native-errors.js";
 import { showNativeDiagnostics } from "../../core/native-messaging.mjs";
 import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const FIXED_TRADE_FORM = "国有土地";
 const FIXED_TRADE_METHODS = ["挂牌出让", "拍卖出让"];
@@ -143,6 +144,7 @@ export const landPublicityModule = {
     let config = { ...DEFAULT_CONFIG };
     let lastResult = null;
     let running = false;
+    const pickerGuard = {};
     let regionCatalog = [];
     let regionLoading = null;
     let historyCatalog = [];
@@ -407,25 +409,27 @@ export const landPublicityModule = {
     }
 
     async function chooseOutputDirectory() {
-      try {
-        const result = await context.sendNativeMessage({ action: "select_land_publicity_output_directory" }, 130000);
-        const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
-        if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.landPublicityResultMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
-          return;
-        }
-        config.outputDirectory = selected;
-        if (!config.historyDirectory) config.historyDirectory = selected;
-        elements.landPublicityOutputDirectory.value = selected;
-        await context.storage.save(config);
-        const folderMessage = result.directoryName
-          ? `${result.createdDirectory === false ? "已选择" : "已创建并选择"}专用子文件夹：${result.directoryName}`
-          : "输出目录已选择";
-        setMessage(elements.landPublicityResultMessage, `${folderMessage}，请检查参数后开始抓取`, "ok");
-      } catch (error) {
-        showUserErrorDiagnostics(error, context.document);
-        setMessage(elements.landPublicityResultMessage, `选择目录失败：${userErrorMessage(error)}`, "error");
-      }
+      return await runNativePickerFeedback({
+        button: elements.chooseLandPublicityOutput,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseLandPublicityOutput.disabled = busy || running;
+          elements.chooseLandPublicityHistoryDirectory.disabled = busy || running;
+        },
+        busyText: "正在打开土地公示输出目录选择窗口…",
+        cancelText: "已取消输出目录选择，原目录保留。",
+        failurePrefix: "选择输出目录失败",
+        request: () => context.sendNativeMessage({ action: "select_land_publicity_output_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.outputDirectory = selected;
+          if (!config.historyDirectory) config.historyDirectory = selected;
+          elements.landPublicityOutputDirectory.value = selected;
+        },
+        persist: () => context.storage.save(config),
+        successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}专用成果子文件夹“${result.directoryName || "浙江土地成交公示"}”：${selected}。请检查参数后开始抓取。`,
+      });
     }
 
     function pathDirectory(value) {
@@ -435,24 +439,30 @@ export const landPublicityModule = {
     }
 
     async function chooseHistoryDirectory() {
-      try {
-        const result = await context.sendNativeMessage({ action: "select_land_publicity_history_directory" }, 130000);
-        const selected = result?.path || result?.paths?.[0] || "";
-        if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.landPublicityResultMessage, userErrorMessage(result?.reason || "未选择历史数据目录"), "warn");
-          return;
-        }
-        config.historyDirectory = selected;
-        config.historyPath = "";
-        historyCatalog = [];
-        historyCanRefresh = false;
-        renderConfig();
-        await context.storage.save(config);
-        await loadHistoryCatalog();
-      } catch (error) {
-        showUserErrorDiagnostics(error, context.document);
-        setMessage(elements.landPublicityResultMessage, `选择历史目录失败：${userErrorMessage(error)}`, "error");
-      }
+      const outcome = await runNativePickerFeedback({
+        button: elements.chooseLandPublicityHistoryDirectory,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        onBusyChange: (busy) => {
+          elements.chooseLandPublicityOutput.disabled = busy || running;
+          elements.chooseLandPublicityHistoryDirectory.disabled = busy || running;
+        },
+        busyText: "正在打开土地公示历史目录选择窗口…",
+        cancelText: "已取消历史目录选择，原目录保留。",
+        failurePrefix: "选择历史目录失败",
+        request: () => context.sendNativeMessage({ action: "select_land_publicity_history_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.historyDirectory = selected;
+          config.historyPath = "";
+          historyCatalog = [];
+          historyCanRefresh = false;
+          renderConfig();
+        },
+        persist: () => context.storage.save(config),
+        successText: (_result, selected) => `已选择历史数据目录：${selected}`,
+      });
+      if (outcome?.persisted) await loadHistoryCatalog();
     }
 
     async function loadHistoryCatalog() {
@@ -629,7 +639,7 @@ export const landPublicityModule = {
         if (config.historyDirectory || config.outputDirectory) void loadHistoryCatalog();
       },
       activate() { renderConfig(); if (!regionCatalog.length) void loadRegionCatalog(); },
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
       dispose() {},
     };
   },

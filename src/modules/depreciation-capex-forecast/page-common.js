@@ -19,6 +19,8 @@ export const ACTIONS = Object.freeze({
   process: "read_detail_process",
 });
 
+const PICKER_OPERATIONS = new Set([ACTIONS.selectWorkbook, ACTIONS.selectOutputDirectory]);
+
 export const STOCK_HEADERS = [
   "序号", "情形描述", "公司主体", "资产科目", "名称", "账面原值", "账面净值", "评估原值",
   "启用时间", "折旧年限", "经济耐用年限", "预计尚可使用年限", "更新后折旧年限", "更新后经济耐用年限",
@@ -34,7 +36,8 @@ export function nativeRequest(message, timeoutMs = 60_000) {
   const operation = message.operation || message.action;
   const payload = { ...message, action: NATIVE_ACTION, operation };
   return sendQueuedDepreciationNativeMessage(chrome, payload, timeoutMs).then((response) => {
-    if (!response || response.ok === false) {
+    const explicitCancellation = response?.cancelled === true || response?.canceled === true;
+    if (!response || (response.ok === false && !(PICKER_OPERATIONS.has(operation) && explicitCancellation))) {
       showNativeDiagnostics(response);
       const error = new Error(nativeErrorMessage(response?.reason || response?.message || "NATIVE_HOST_UNAVAILABLE"));
       error.code = response?.reason || "";
@@ -43,7 +46,11 @@ export function nativeRequest(message, timeoutMs = 60_000) {
     }
     return response;
   }).catch((error) => {
-    throw new Error(nativeErrorMessage(error));
+    const wrapped = new Error(nativeErrorMessage(error));
+    wrapped.name = error?.name || "Error";
+    wrapped.code = error?.code || "";
+    wrapped.diagnostics = error?.diagnostics;
+    throw wrapped;
   });
 }
 

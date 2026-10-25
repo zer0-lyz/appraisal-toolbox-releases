@@ -5,12 +5,12 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const common = require("./common.js");
-const { buildRunnerDiagnostics } = require("../diagnostics.js");
 
 function createWindowsAdapter(options = {}) {
   const runFile = options.execFile || execFile;
   const runFileSync = options.execFileSync || execFileSync;
   const launchProcess = options.spawn || spawn;
+  const monotonicNow = options.monotonicNow || (() => Number(process.hrtime.bigint()) / 1_000_000);
   const env = options.env || process.env;
   const homeDir = options.homeDir || os.homedir();
   const localAppData = env.LOCALAPPDATA || path.join(homeDir, "AppData", "Local");
@@ -39,62 +39,179 @@ function createWindowsAdapter(options = {}) {
     }
   }
 
-  function runPowerShell(script, timeout = 120000, extraEnv = {}) {
+  const PICKER_RESULT_MARKER = "APPRAISAL_PICKER_RESULT:";
+
+  function pickerDiagnostics(stage, errorCode, exitCode = null) {
+    const code = String(errorCode || "UNKNOWN").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 40) || "UNKNOWN";
+    return {
+      exitCode: Number.isInteger(exitCode) ? exitCode : null,
+      stderrTail: [`阶段: ${String(stage || "picker").slice(0, 48)}`, `错误码: ${code}`],
+    };
+  }
+
+  function pickerFailure(reason, stage, errorCode, exitCode = null) {
+    return {
+      ok: false,
+      cancelled: false,
+      paths: [],
+      reason,
+      diagnostics: pickerDiagnostics(stage, errorCode, exitCode),
+      security: common.security(),
+    };
+  }
+
+  function parseStructuredPickerResponse(output) {
+    const records = String(output || "").split(/\r?\n/).filter((line) => line.startsWith(PICKER_RESULT_MARKER));
+    if (records.length !== 1) {
+      return { error: pickerFailure("FILE_PICKER_PROTOCOL_INVALID", "response_validation", records.length ? "DUPLICATE_RESULT_MARKER" : "MISSING_RESULT_MARKER") };
+    }
+    let value;
+    try {
+      value = JSON.parse(records[0].slice(PICKER_RESULT_MARKER.length));
+    } catch {
+      return { error: pickerFailure("FILE_PICKER_PROTOCOL_INVALID", "response_validation", "MALFORMED_JSON") };
+    }
+    const allowedKeys = new Set(["ok", "cancelled", "paths", "reason", "stage", "errorCode"]);
+    if (!value || typeof value !== "object" || Array.isArray(value)
+        || Object.keys(value).some((key) => !allowedKeys.has(key))
+        || typeof value.ok !== "boolean"
+        || typeof value.cancelled !== "boolean"
+        || !Array.isArray(value.paths)
+        || value.paths.some((item) => typeof item !== "string" || !item || item !== item.trim() || /[\0\r\n]/.test(item))) {
+      return { error: pickerFailure("FILE_PICKER_PROTOCOL_INVALID", "response_validation", "INVALID_RESPONSE_SHAPE") };
+    }
+    if (value.cancelled) {
+      if (value.ok || value.paths.length) {
+        return { error: pickerFailure("FILE_PICKER_PROTOCOL_INVALID", "response_validation", "INVALID_CANCEL_RESULT") };
+      }
+      return { result: {
+        ok: false,
+        cancelled: true,
+        reason: "FILE_SELECTION_CANCELLED",
+        paths: [],
+        security: common.security(),
+      } };
+    }
+    if (value.ok) {
+      if (!value.paths.length || value.paths.some((item) => !path.win32.isAbsolute(item))) {
+        return { error: pickerFailure("FILE_PICKER_EMPTY_RESULT", "response_validation", "EMPTY_OR_NONABSOLUTE_PATH") };
+      }
+      return { result: { ok: true, cancelled: false, paths: [...new Set(value.paths)], security: common.security() } };
+    }
+    if (value.paths.length || value.reason !== "FILE_PICKER_FAILED") {
+      return { error: pickerFailure("FILE_PICKER_PROTOCOL_INVALID", "response_validation", "INVALID_FAILURE_RESULT") };
+    }
+    const stage = typeof value.stage === "string" && /^[a-z_]{1,48}$/.test(value.stage) ? value.stage : "picker_dialog";
+    const code = typeof value.errorCode === "string" && /^(?:[A-Z0-9_-]{1,32}|-?\d{1,10}|0x[0-9A-Fa-f]{1,8})$/.test(value.errorCode)
+      ? value.errorCode
+      : "POWERSHELL_DIALOG_ERROR";
+    return { result: { ...pickerFailure("FILE_PICKER_FAILED", stage, code), reason: "FILE_PICKER_FAILED" } };
+  }
+
+  function runPowerShell(script, timeout = 120000) {
     return new Promise((resolve) => {
       const encodedCommand = Buffer.from(script, "utf16le").toString("base64");
-      runFile("powershell.exe", [
+      const powershellPath = path.join(env.SystemRoot || env.WINDIR || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+      const args = [
         "-NoProfile",
         "-STA",
         "-ExecutionPolicy",
         "Bypass",
         "-EncodedCommand",
         encodedCommand,
-      ], {
-        timeout,
-        windowsHide: true,
-        encoding: "utf8",
-        env: { ...env, ...extraEnv },
-      }, (error, stdout, stderr) => {
-        if (!error) { resolve(common.pickerResult(stdout)); return; }
-        const failure = Number(error.code) === 1
-          ? { ok: false, cancelled: false, reason: "FILE_PICKER_FAILED", security: common.security() }
-          : common.pickerFailure(error);
-        resolve(failure.cancelled ? failure : {
-          ok: false, cancelled: false, reason: "FILE_PICKER_FAILED",
-          diagnostics: buildRunnerDiagnostics(Number.isInteger(error.code) ? error.code : null, stderr || String(error.code || "文件选择进程未能完成")),
-          security: common.security(),
+      ];
+      try {
+        const startedAt = monotonicNow();
+        runFile(powershellPath, args, {
+          timeout,
+          windowsHide: true,
+          encoding: "utf8",
+          env,
+        }, (error, stdout) => {
+        if (error) {
+          const elapsedMs = Math.max(0, Number(monotonicNow()) - Number(startedAt));
+          const timeoutFailure = error.code === "ETIMEDOUT" || elapsedMs >= timeout;
+          const spawnFailure = ["ENOENT", "EACCES", "EPERM"].includes(String(error.code || ""));
+          const reason = timeoutFailure
+            ? "FILE_PICKER_TIMEOUT"
+            : spawnFailure ? "FILE_PICKER_PROCESS_START_FAILED" : "FILE_PICKER_PROCESS_FAILED";
+          const stage = timeoutFailure ? "process_timeout" : spawnFailure ? "process_start" : "process_exit";
+          resolve(pickerFailure(reason, stage, error.code, Number.isInteger(error.code) ? error.code : null));
+          return;
+        }
+        const parsed = parseStructuredPickerResponse(stdout);
+        resolve(parsed.result || parsed.error);
         });
-      });
+      } catch (error) {
+        resolve(pickerFailure(
+          "FILE_PICKER_PROCESS_START_FAILED",
+          "process_start",
+          error?.code || "SYNCHRONOUS_SPAWN_ERROR",
+        ));
+      }
     });
   }
 
-  function powerShellPreamble() {
-    return [
+  function pickerPowerShellScript(kind, prompt) {
+    const safePrompt = String(prompt || "").replace(/[\r\n\0]/g, " ").replace(/'/g, "''").slice(0, 240);
+    const lines = [
       "$ErrorActionPreference = 'Stop'",
       "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)",
-      "Add-Type -AssemblyName System.Windows.Forms",
+      "$dialog = $null",
+      "$payload = $null",
       "function Show-AppraisalDialog($dialog) {",
       "  $owner = New-Object System.Windows.Forms.Form",
       "  $owner.Text = 'Appraisal Toolbox file picker'",
       "  $owner.ShowInTaskbar = $false; $owner.TopMost = $true; $owner.Opacity = 0",
       "  $owner.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen",
       "  $owner.Size = New-Object System.Drawing.Size(1, 1)",
-      "  try { $owner.Show(); $owner.Activate(); return $dialog.ShowDialog($owner) }",
+      "  try { $null = $owner.Show(); $owner.Activate(); return $dialog.ShowDialog($owner) }",
       "  finally { $owner.Dispose() }",
       "}",
-    ].join("\n");
+      "try {",
+      "  Add-Type -AssemblyName System.Windows.Forms",
+    ];
+    if (kind === "directory") {
+      lines.push(
+        "  $dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
+        `  $dialog.Description = '${safePrompt}'`,
+        "  $dialog.ShowNewFolderButton = $true",
+      );
+    } else {
+      lines.push(
+        "  $dialog = New-Object System.Windows.Forms.OpenFileDialog",
+        `  $dialog.Title = '${safePrompt}'`,
+      );
+      if (kind === "word") lines.push("  $dialog.Filter = 'Word 文档 (*.docx)|*.docx'", "  $dialog.Multiselect = $true");
+      else if (kind === "xlsx") lines.push("  $dialog.Filter = 'Excel 工作簿 (*.xlsx)|*.xlsx'", "  $dialog.Multiselect = $false");
+      else if (kind === "workbooks") lines.push("  $dialog.Title = '选择需要调整打印格式的 Excel 文件'", "  $dialog.Filter = 'Excel 工作簿 (*.xlsx;*.xlsm)|*.xlsx;*.xlsm'", "  $dialog.Multiselect = $true");
+    }
+    lines.push(
+      "  $dialogResult = Show-AppraisalDialog $dialog",
+      "  if ($dialogResult -ne [System.Windows.Forms.DialogResult]::OK) {",
+      "    $payload = @{ ok = $false; cancelled = $true; paths = @() }",
+      "  } else {",
+      kind === "directory"
+        ? "    $paths = @([string]$dialog.SelectedPath)"
+        : kind === "xlsx"
+          ? "    $paths = @([string]$dialog.FileName)"
+          : "    $paths = @($dialog.FileNames | ForEach-Object { [string]$_ })",
+      "    $payload = @{ ok = $true; cancelled = $false; paths = @($paths) }",
+      "  }",
+      "} catch {",
+      "  $code = 'POWERSHELL_DIALOG_ERROR'",
+      "  try { if ($_.Exception -is [System.ComponentModel.Win32Exception]) { $code = [string]$_.Exception.NativeErrorCode } else { $code = ('0x{0:X8}' -f $_.Exception.HResult) } } catch { }",
+      "  $payload = @{ ok = $false; cancelled = $false; paths = @(); reason = 'FILE_PICKER_FAILED'; stage = 'picker_dialog'; errorCode = $code }",
+      "} finally {",
+      "  if ($dialog) { try { $dialog.Dispose() } catch { } }",
+      "}",
+      "[Console]::Out.WriteLine('APPRAISAL_PICKER_RESULT:' + ($payload | ConvertTo-Json -Compress -Depth 4))",
+    );
+    return lines.join("\n");
   }
 
   async function chooseDirectory(prompt) {
-    const safePrompt = String(prompt || "").replace(/'/g, "''");
-    return await runPowerShell([
-      powerShellPreamble(),
-      "$dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
-      `$dialog.Description = '${safePrompt}'`,
-      "$dialog.ShowNewFolderButton = $true",
-      "if ((Show-AppraisalDialog $dialog) -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
-      "[Console]::Out.WriteLine($dialog.SelectedPath)",
-    ].join("\n"));
+    return await runPowerShell(pickerPowerShellScript("directory", prompt));
   }
 
   async function openPath(targetPath) {
@@ -131,39 +248,15 @@ function createWindowsAdapter(options = {}) {
   }
 
   async function chooseWorkbookFiles() {
-    return await runPowerShell([
-      powerShellPreamble(),
-      "$dialog = New-Object System.Windows.Forms.OpenFileDialog",
-      "$dialog.Title = '选择需要调整打印格式的 Excel 文件'",
-      "$dialog.Filter = 'Excel 工作簿 (*.xlsx;*.xlsm)|*.xlsx;*.xlsm'",
-      "$dialog.Multiselect = $true",
-      "if ((Show-AppraisalDialog $dialog) -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
-      "$dialog.FileNames | ForEach-Object { [Console]::Out.WriteLine($_) }",
-    ].join("\n"));
+    return await runPowerShell(pickerPowerShellScript("workbooks", "选择需要调整打印格式的 Excel 文件"));
   }
 
   async function chooseWordFiles() {
-    return await runPowerShell([
-      powerShellPreamble(),
-      "$dialog = New-Object System.Windows.Forms.OpenFileDialog",
-      "$dialog.Title = '选择需要统一表格格式的 Word 文档（.docx）'",
-      "$dialog.Filter = 'Word 文档 (*.docx)|*.docx'",
-      "$dialog.Multiselect = $true",
-      "if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
-      "$dialog.FileNames | ForEach-Object { [Console]::Out.WriteLine($_) }",
-    ].join("\n"));
+    return await runPowerShell(pickerPowerShellScript("word", "选择需要统一表格格式的 Word 文档（.docx）"));
   }
 
   async function chooseXlsxFile() {
-    return await runPowerShell([
-      powerShellPreamble(),
-      "$dialog = New-Object System.Windows.Forms.OpenFileDialog",
-      "$dialog.Title = '选择折旧摊销预测输入工作簿（.xlsx）'",
-      "$dialog.Filter = 'Excel 工作簿 (*.xlsx)|*.xlsx'",
-      "$dialog.Multiselect = $false",
-      "if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { exit 2 }",
-      "[Console]::Out.WriteLine($dialog.FileName)",
-    ].join("\n"));
+    return await runPowerShell(pickerPowerShellScript("xlsx", "选择折旧摊销预测输入工作簿（.xlsx）"));
   }
 
   async function listenerPids(port) {

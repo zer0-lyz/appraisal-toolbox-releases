@@ -2,6 +2,7 @@ import { userErrorMessage, showUserErrorDiagnostics, localizeHistoryLabel } from
 import { anjukePropertyTemplate } from "./template.js";
 import { nativeErrorMessage } from "../../core/native-errors.js";
 import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const DEFAULT_PROFILE_PATH = "~/.appraisal-toolbox/profiles/anjuke-property";
 const DETAIL_DELAY_MS = 2200;
@@ -303,6 +304,7 @@ export const anjukePropertyModule = {
     let results = [];
     let paths = { excelPath: "", csvPath: "", htmlDirectory: "", resultHtmlPath: "", mapPath: "" };
     let running = false;
+    const pickerGuard = {};
     let runControl = { paused: false, stopRequested: false, resumeResolvers: [], verificationWaitUsedMs: 0 };
 
     function state() {
@@ -525,17 +527,23 @@ export const anjukePropertyModule = {
     }
 
     async function chooseOutput() {
-      const result = await context.sendNativeMessage({ action: "select_anjuke_property_output_directory" }, 130000);
-      const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
-      if (!result?.ok || !selected) {
-        if (!result?.cancelled) setMessage(elements.anjukePropertyParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
-        return;
-      }
-      config.outputDirectory = selected;
-      renderConfig();
-      renderParameterState();
-      await context.storage.save(state());
-      setMessage(elements.anjukePropertyParameterMessage, `已选择专用子文件夹：${result.directoryName || "安居客物业案例"}。参数有改动时请重新应用。`, "ok");
+      return await runNativePickerFeedback({
+        button: elements.chooseAnjukePropertyOutput,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        busyText: "正在打开安居客输出目录选择窗口…",
+        cancelText: "已取消输出目录选择，原目录保留。",
+        failurePrefix: "选择输出目录失败",
+        request: () => context.sendNativeMessage({ action: "select_anjuke_property_output_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.outputDirectory = selected;
+          renderConfig();
+          renderParameterState();
+        },
+        persist: () => context.storage.save(state()),
+        successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}专用成果子文件夹“${result.directoryName || "安居客物业案例"}”：${selected}。参数有改动时请重新应用。`,
+      });
     }
 
     function waitForTabLoaded(tabId, timeoutMs = 60000) {
@@ -904,7 +912,7 @@ export const anjukePropertyModule = {
         }
       },
       activate() { renderConfig(); renderResults(); renderRunButtons(); },
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
       dispose() {},
     };
   },

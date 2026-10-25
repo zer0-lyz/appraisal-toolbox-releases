@@ -11,6 +11,7 @@ import {
 } from "../../core/alibaba-page-state.js";
 // 区划目录来自共享数据层，与阿里司法拍卖模块使用同一份行政区划数据。
 import { ALIBABA_REGION_CATALOG } from "../../data/china-regions.js";
+import { invalidatePickerFeedback, runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 // 阿里资产搜索页（zc-paimai）的类目与筛选全部走 URL 参数，无需像 sf 列表那样
 // 操作页面下拉控件：h_t_mode 缺失时列表会混入普通房产拍卖（2026-10-02 实测），
@@ -1222,6 +1223,7 @@ export const alibabaLeaseModule = {
     let excelPath = "";
     let mapPath = "";
     let running = false;
+    const pickerGuard = {};
     let opening = false;
     let exporting = false;
     let runControl = null;
@@ -1505,26 +1507,23 @@ export const alibabaLeaseModule = {
     }
 
     async function chooseOutputDirectory() {
-      try {
-        const result = await context.sendNativeMessage({ action: "select_alibaba_lease_output_directory" }, 130000);
-        const selected = result?.outputDirectory || result?.path || result?.paths?.[0] || "";
-        if (!result?.ok || !selected) {
-          if (!result?.cancelled) setMessage(elements.alibabaLeaseParameterMessage, userErrorMessage(result?.reason || "未选择输出目录"), "warn");
-          return;
-        }
-        config.outputDirectory = selected;
-        elements.alibabaLeaseOutputDirectory.value = selected;
-        renderConfig();
-        await context.storage.save(storageState());
-        const folderMessage = result.directoryName
-          ? `${result.createdDirectory === false ? "已选择" : "已创建并选择"}专用子文件夹：${result.directoryName}`
-          : "输出目录已选择";
-        const parameterMessage = parametersApplied() ? "" : "参数有改动，需重新应用。";
-        setMessage(elements.alibabaLeaseParameterMessage, `${folderMessage}，结果页、Excel 和地图会保存到这里。${parameterMessage}`, parametersApplied() ? "ok" : "warn");
-      } catch (error) {
-        showUserErrorDiagnostics(error, context.document);
-        setMessage(elements.alibabaLeaseParameterMessage, `选择目录失败：${userErrorMessage(error)}`, "error");
-      }
+      return await runNativePickerFeedback({
+        button: elements.chooseAlibabaLeaseOutput,
+        documentRef: context.document,
+        guard: pickerGuard,
+        setStatus: context.setStatus,
+        busyText: "正在打开资产租赁输出目录选择窗口…",
+        cancelText: "已取消输出目录选择，原目录保留。",
+        failurePrefix: "选择输出目录失败",
+        request: () => context.sendNativeMessage({ action: "select_alibaba_lease_output_directory" }, 130000),
+        onSelected: (_result, selected) => {
+          config.outputDirectory = selected;
+          elements.alibabaLeaseOutputDirectory.value = selected;
+          renderConfig();
+        },
+        persist: () => context.storage.save(storageState()),
+        successText: (result, selected) => `${result.createdDirectory === false ? "已复用" : "已创建并选择"}专用成果子文件夹“${result.directoryName || "阿里资产租赁"}”：${selected}。结果页、Excel 和地图会保存到这里。${parametersApplied() ? "" : "参数有改动，需重新应用。"}`,
+      });
     }
 
     async function openSource() {
@@ -1763,7 +1762,7 @@ export const alibabaLeaseModule = {
         renderConfig();
         renderResults();
       },
-      deactivate() {},
+      deactivate() { invalidatePickerFeedback(pickerGuard); },
       dispose() {},
     };
   },

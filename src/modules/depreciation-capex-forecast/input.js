@@ -6,6 +6,7 @@ import {
   setMessage,
   templateUrl,
 } from "./page-common.js";
+import { runNativePickerFeedback } from "../../core/native-picker-feedback.js";
 
 const kind = new URLSearchParams(window.location.search).get("kind") === "added" ? "added" : "stock";
 const requiredHeaders = requiredHeadersFor(kind);
@@ -30,6 +31,7 @@ const elements = {
 };
 
 let gridHeaders = [...requiredHeaders];
+const pickerGuard = {};
 
 function isBlank(value) {
   return value === undefined || value === null || String(value).trim() === "";
@@ -256,23 +258,28 @@ async function save() {
 }
 
 async function importWorkbook() {
-  elements.importWorkbook.disabled = true;
-  try {
-    const selected = await nativeRequest({ action: ACTIONS.selectWorkbook }, 130_000);
-    const selectedPath = selected.path || selected.sourcePath;
-    if (selected.cancelled || selected.canceled || !selectedPath) {
-      setMessage(elements.inputMessage, "已取消导入", "");
-      return;
-    }
-    const result = await nativeRequest({ action: ACTIONS.importWorkbook, sourcePath: selectedPath, path: selectedPath }, 60_000);
-    setMessage(elements.inputMessage, `${result.message || "已导入为当前工作簿。"}点“读取工作簿已有数据”可将内容载入表格。`, "ok");
-    elements.inputStatus.textContent = "工作簿已导入";
-  } catch (error) {
-    setMessage(elements.inputMessage, error.message, "error");
-    elements.inputStatus.textContent = "导入失败";
-  } finally {
-    elements.importWorkbook.disabled = false;
-  }
+  return await runNativePickerFeedback({
+    button: elements.importWorkbook,
+    documentRef: document,
+    guard: pickerGuard,
+    busyText: "正在打开折旧工作簿文件选择窗口…",
+    cancelText: "已取消工作簿导入，当前工作簿保留。",
+    failurePrefix: "选择工作簿失败",
+    request: () => nativeRequest({ action: ACTIONS.selectWorkbook }, 130_000),
+    resolveSelection: (selected) => selected.path || selected.sourcePath || selected.paths?.[0] || "",
+    onSelected: async (_selection, selectedPath) => {
+      try {
+        const result = await nativeRequest({ action: ACTIONS.importWorkbook, sourcePath: selectedPath, path: selectedPath }, 60_000);
+        setMessage(elements.inputMessage, `${result.message || "已导入为当前工作簿。"}点“读取工作簿已有数据”可将内容载入表格。`, "ok");
+        elements.inputStatus.textContent = "工作簿已导入";
+        return { handled: true, text: `已选择并导入工作簿：${selectedPath}。${result.message || "已复制为当前工作簿。"}`, kind: "ok" };
+      } catch (error) {
+        setMessage(elements.inputMessage, error.message, "error");
+        elements.inputStatus.textContent = "导入失败";
+        return { handled: true, text: `已选择工作簿：${selectedPath}；导入失败：${error.message}。当前工作簿保持原状态。`, kind: "error", error };
+      }
+    },
+  });
 }
 
 elements.pageTitle.textContent = `${title}输入`;
