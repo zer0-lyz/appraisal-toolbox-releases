@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-INSTALLER_BUILD="macos-transactional.3"
+INSTALLER_BUILD="macos-transactional.4"
 if [[ -n "${APPRAISAL_TEST_FRAMEWORK_PATH:-}" ]]; then
   [[ -n "${APPRAISAL_BROWSER_HOME:-}" && -n "${APPRAISAL_PYTHON_BOOTSTRAP:-}" && -n "${APPRAISAL_TOOLBOX_ROOT:-}" ]] || { echo "隔离测试环境不完整" >&2; exit 1; }
   export DYLD_FRAMEWORK_PATH="$APPRAISAL_TEST_FRAMEWORK_PATH"
@@ -182,6 +182,8 @@ guarded_mutation "$STAGING_ROOT/python/bin/python3" -m pip install \
   --disable-pip-version-check --no-index --find-links "$PACKAGE_ROOT/runtime/python-wheels" \
   openpyxl==3.1.5 et_xmlfile==2.0.0 python-docx==1.2.0 typing_extensions==4.16.0 \
   lxml==6.1.0 requests==2.32.5
+echo "暂存目录 Python 依赖自检（失败时不会替换现有安装）"
+"$STAGING_ROOT/python/bin/python3" -c 'import docx, et_xmlfile, lxml, openpyxl, requests, typing_extensions'
 if [[ -f "$INSTALL_ROOT/native-helper/native_host.log" ]]; then
   guarded_mutation cp -p "$INSTALL_ROOT/native-helper/native_host.log" "$STAGING_ROOT/native-helper/native_host.log"
 fi

@@ -106,6 +106,33 @@ function digestFile(filePath) {
   });
 }
 
+function clearVerifiedArchiveQuarantine(filePath, runFileSync = execFileSync) {
+  if (process.platform !== "darwin") return false;
+  const listAttributes = () => {
+    try {
+      const stat = fs.lstatSync(filePath);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("NOT_A_REGULAR_FILE");
+      return String(runFileSync("/usr/bin/xattr", ["-l", filePath], {
+        encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000, maxBuffer: 65536,
+      }));
+    } catch {
+      throw new Error("UPDATE_ARCHIVE_QUARANTINE_CHECK_FAILED");
+    }
+  };
+  const hasQuarantine = (attributes) => attributes.split(String.fromCharCode(10))
+    .some((line) => line.startsWith("com.apple.quarantine:"));
+  if (!hasQuarantine(listAttributes())) return false;
+  try {
+    runFileSync("/usr/bin/xattr", ["-d", "com.apple.quarantine", filePath], {
+      stdio: "ignore", timeout: 5000,
+    });
+  } catch {
+    throw new Error("UPDATE_ARCHIVE_QUARANTINE_CLEAR_FAILED");
+  }
+  if (hasQuarantine(listAttributes())) throw new Error("UPDATE_ARCHIVE_QUARANTINE_CLEAR_FAILED");
+  return true;
+}
+
 async function downloadAsset(url, targetPath, expectedSize, expectedSha256, onBytes = () => {}, timeoutMs = DOWNLOAD_TIMEOUT_MS) {
   const controller = new AbortController();
   const boundedTimeout = Math.max(1, Math.min(DOWNLOAD_TIMEOUT_MS, Number(timeoutMs) || DOWNLOAD_TIMEOUT_MS));
@@ -794,6 +821,7 @@ module.exports = {
   allowedAssetUrl,
   capabilitiesFor,
   checkPythonRuntime,
+  clearVerifiedArchiveQuarantine,
   compareVersions,
   createMacOSUpdateEngine,
   digestFile,

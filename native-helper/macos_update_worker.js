@@ -333,6 +333,8 @@ async function runMacOSUpdateTransaction(rawRequest, options = {}) {
     if (fs.statSync(zipPath).size !== targetSize || await updater.digestFile(zipPath) !== targetSha) {
       throw new Error("UPDATE_DOWNLOAD_SHA256_MISMATCH");
     }
+    // Only a manifest-matched official archive may lose Chrome download quarantine before ditto propagates it.
+    updater.clearVerifiedArchiveQuarantine(zipPath, runFileSync);
     reportProgress(60, "verifying", "正在校验下载包和内部文件清单…", "busy");
     reportProgress(68, "extracting", "正在安全暂存更新包…", "busy");
     await (options.extractZip || updater.extractZip)(zipPath, extractRoot);
