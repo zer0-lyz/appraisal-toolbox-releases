@@ -80,12 +80,25 @@ done < <(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name '*.so' -pr
   echo 'Upgrade changed the Python native-extension inventory' >&2
   exit 1
 }
-for TASK_PRODUCT_COMPONENT in extension native-helper skills runtime python; do
-  if /usr/bin/xattr -lr "$APPRAISAL_TOOLBOX_ROOT/$TASK_PRODUCT_COMPONENT" 2>/dev/null | /usr/bin/grep -q 'com.apple.quarantine:'; then
-    echo "Upgrade retained quarantine in managed component: $TASK_PRODUCT_COMPONENT" >&2
-    exit 1
-  fi
-done
+"$APPRAISAL_TOOLBOX_ROOT/runtime/node/bin/node" - "$APPRAISAL_TOOLBOX_ROOT" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+const { execFileSync } = require("node:child_process");
+const root = process.argv[2];
+function assertClean(target) {
+  const stat = fs.lstatSync(target);
+  if (stat.isSymbolicLink()) return;
+  if (!stat.isDirectory() && !stat.isFile()) throw new Error("UPDATE_COMPONENT_TYPE_INVALID");
+  const attrs = execFileSync("/usr/bin/xattr", ["-l", target], { encoding: "utf8" });
+  if (attrs.split(String.fromCharCode(10)).some((line) => line.startsWith("com.apple.quarantine:"))) {
+    throw new Error("UPDATE_COMPONENT_QUARANTINE_REMAINS:" + path.relative(root, target));
+  }
+  if (stat.isDirectory()) for (const name of fs.readdirSync(target)) assertClean(path.join(target, name));
+}
+for (const component of ["extension", "native-helper", "skills", "runtime", "python"]) {
+  assertClean(path.join(root, component));
+}
+NODE
 /usr/bin/xattr -p com.apple.quarantine "$APPRAISAL_TOOLBOX_ROOT/map-config.json" >/dev/null || {
   echo 'Upgrade changed user configuration metadata outside managed components' >&2
   exit 1
@@ -134,6 +147,8 @@ fs.writeFileSync(process.argv[2],JSON.stringify({
   updatedLxmlQuarantineAbsent:true,updatedLxmlImportOk:true,oldPythonNativeQuarantineRebuilt:true,
   updatedPythonNativeQuarantineAbsent:true,updatedPythonDependencyImportsOk:true,
   oldNodeQuarantineRebuilt:true,updatedNodeQuarantineAbsent:true,updatedNodeCodeSignatureValid:true,
+  oldRuntimeDirectoryQuarantineCleared:true,managedComponentQuarantineCleared:true,
+  userConfigQuarantinePreserved:true,externalSymlinkTargetUnaffected:true,
   edgeWriteFailureRollback:true,
   chromeAndEdgeManifestReadback:true,nativeJsonSelfTest:true,argumentForwardingCovered:true,
   systemFrameworkInstallCovered:false,ordinaryDesktopInstallerCovered:false,
