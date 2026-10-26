@@ -45,6 +45,12 @@ printf 'synthetic-history' > "$APPRAISAL_TOOLBOX_ROOT/history/preserve.txt"
 printf 'synthetic-cache' > "$APPRAISAL_TOOLBOX_ROOT/cache/preserve.txt"
 printf 'synthetic-workbook' > "$APPRAISAL_TOOLBOX_ROOT/projects/fixture/workbooks/preserve.txt"
 printf '{"amap":{"enabled":false}}\n' > "$APPRAISAL_TOOLBOX_ROOT/map-config.json"
+/usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$APPRAISAL_TOOLBOX_ROOT/runtime"
+/usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$APPRAISAL_TOOLBOX_ROOT/map-config.json"
+TASK_EXTERNAL_TARGET="$TASK_TEST_ROOT/preserved-external-target"
+printf 'synthetic-external' > "$TASK_EXTERNAL_TARGET"
+/usr/bin/xattr -w com.apple.quarantine "$TASK_QUARANTINE_FIXTURE" "$TASK_EXTERNAL_TARGET"
+ln -s "$TASK_EXTERNAL_TARGET" "$APPRAISAL_TOOLBOX_ROOT/runtime/installer-test-external-link"
 "$PACKAGE_ROOT/runtime/node/bin/node" - "$APPRAISAL_TOOLBOX_ROOT/native-helper/runtime-config.json" <<'NODE'
 const fs=require('node:fs');
 const file=process.argv[2];
@@ -74,11 +80,25 @@ done < <(/usr/bin/find "$APPRAISAL_TOOLBOX_ROOT/python" -type f -name '*.so' -pr
   echo 'Upgrade changed the Python native-extension inventory' >&2
   exit 1
 }
-TASK_NODE_AFTER="$APPRAISAL_TOOLBOX_ROOT/runtime/node/bin/node"
-if /usr/bin/xattr -p com.apple.quarantine "$TASK_NODE_AFTER" >/dev/null 2>&1; then
-  echo 'Upgrade retained quarantine on the bundled Node runtime' >&2
+for TASK_PRODUCT_COMPONENT in extension native-helper skills runtime python; do
+  if /usr/bin/xattr -lr "$APPRAISAL_TOOLBOX_ROOT/$TASK_PRODUCT_COMPONENT" 2>/dev/null | /usr/bin/grep -q 'com.apple.quarantine:'; then
+    echo "Upgrade retained quarantine in managed component: $TASK_PRODUCT_COMPONENT" >&2
+    exit 1
+  fi
+done
+/usr/bin/xattr -p com.apple.quarantine "$APPRAISAL_TOOLBOX_ROOT/map-config.json" >/dev/null || {
+  echo 'Upgrade changed user configuration metadata outside managed components' >&2
   exit 1
-fi
+}
+[[ -L "$APPRAISAL_TOOLBOX_ROOT/runtime/installer-test-external-link" ]] || {
+  echo 'Upgrade changed a symbolic link inside the managed runtime directory' >&2
+  exit 1
+}
+/usr/bin/xattr -p com.apple.quarantine "$TASK_EXTERNAL_TARGET" >/dev/null || {
+  echo 'Quarantine cleanup followed a symbolic link outside the install tree' >&2
+  exit 1
+}
+TASK_NODE_AFTER="$APPRAISAL_TOOLBOX_ROOT/runtime/node/bin/node"
 /usr/bin/codesign --verify "$TASK_NODE_AFTER" >/dev/null 2>&1 || { echo 'Updated Node signature is invalid' >&2; exit 1; }
 "$APPRAISAL_TOOLBOX_ROOT/python/bin/python3" -c 'import charset_normalizer, docx, lxml, openpyxl, requests; from lxml import etree; assert etree.LXML_VERSION'
 for task_file in history/preserve.txt cache/preserve.txt projects/fixture/workbooks/preserve.txt map-config.json; do
