@@ -98,10 +98,14 @@ jobs:
             CHANNEL="${{ github.event.inputs.channel || 'candidate' }}"
           fi
           RUNTIME_KIND=local
-          if [[ "$CHANNEL" == stable ]]; then RUNTIME_KIND=release; fi
+          BUILD_ID="ci-$TARGET-$GITHUB_RUN_ID"
+          if [[ "$CHANNEL" == stable ]]; then
+            RUNTIME_KIND=release
+            BUILD_ID="dual-stable-$VERSION-$BUILD_NUMBER"
+          fi
           TOOLS=()
           if [[ "$TARGET" == windows-x64 ]]; then TOOLS=(--tools "$RUNNER_TEMP/toolbox-cache/tools"); fi
-          node scripts/release/build.cjs --target "$TARGET" --version "$VERSION" --build-id "ci-$TARGET-$GITHUB_RUN_ID" --build-number "$BUILD_NUMBER" --channel "$CHANNEL" --runtime-build-kind "$RUNTIME_KIND" --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
+          node scripts/release/build.cjs --target "$TARGET" --version "$VERSION" --build-id "$BUILD_ID" --build-number "$BUILD_NUMBER" --channel "$CHANNEL" --runtime-build-kind "$RUNTIME_KIND" --output "$RUNNER_TEMP/toolbox-output" --cache "$RUNNER_TEMP/toolbox-cache" "${TOOLS[@]}"
       - name: Mac isolated install, upgrade, rollback, and actual host protocol
         if: matrix.target == 'macos-arm64'
         shell: bash

@@ -33,6 +33,16 @@ import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
+from land_price import (
+    is_price_resolved,
+    legacy_unverified_price_meta,
+    merge_price_candidates,
+    normalize_price_content,
+    normalize_land_price,
+    price_provenance_fields,
+    price_value,
+    resolve_detail_price,
+)
 from land_http import LandSourceError
 from scrape_zj_land import (
     build_map_assets,
@@ -71,6 +81,7 @@ LAND_USE_QUERY_CODES = {
 QUOTE_PRESETS = ("all", "today", "future_3_days", "future_7_days", "future_30_days", "custom")
 DISPLAY_NUMBER_COLUMNS = frozenset({
     "土地面积(亩)", "土地面积(平方米)",
+    "起始单价(元/平方米)", "起始总价(万元)",
     "成交单价(元/平方米)", "成交总价(万元)",
     "坐标中心经度", "坐标中心纬度", "X坐标起点", "Y坐标起点",
     "边界点组数", "边界点总数",
@@ -727,12 +738,13 @@ def filter_records(
 
         start_price = item.get("start_price")
         if request["startPriceMin"] is not None or request["startPriceMax"] is not None:
-            if start_price is None:
+            start_price_number = _number(start_price)
+            if start_price_number is None:
                 counts["unknownStartPrice"] += 1
                 continue
-            if request["startPriceMin"] is not None and start_price < request["startPriceMin"]:
+            if request["startPriceMin"] is not None and start_price_number < request["startPriceMin"]:
                 continue
-            if request["startPriceMax"] is not None and start_price > request["startPriceMax"]:
+            if request["startPriceMax"] is not None and start_price_number > request["startPriceMax"]:
                 continue
 
         area = item.get("area_sqm") if request["areaUnit"] == "sqm" else item.get("area_mu")
@@ -748,7 +760,7 @@ def filter_records(
         output.append(item)
 
     if counts["unknownStartPrice"]:
-        warnings.append(f"{counts['unknownStartPrice']} 条记录缺少起始价，已从起始价区间筛选中排除。")
+        warnings.append(f"{counts['unknownStartPrice']} 条记录缺少可核验的起始单价（单位缺失、未知、冲突或无法换算），已从起始价区间筛选中排除。筛选单位仍为元/平方米。")
     if counts["unknownArea"]:
         warnings.append(f"{counts['unknownArea']} 条记录缺少出让面积，已从面积区间筛选中排除。")
     if counts["unknownQuoteStart"]:
@@ -769,6 +781,13 @@ def _unit_price_from_total(total_wan: Optional[float], area_sqm: Optional[float]
     if total_wan is None or area_sqm in (None, 0):
         return None
     return round(total_wan * 10000 / area_sqm, 2)
+
+
+def _first_present(*values: Any) -> Any:
+    for value in values:
+        if value is not None and value != "":
+            return value
+    return None
 
 
 def _land_bidding_term(record: Dict[str, Any], detail_data: Dict[str, Any]) -> str:
@@ -816,31 +835,136 @@ def enrich_record(record: Dict[str, Any], detail_fetcher: Callable[[str], Dict[s
             detail_data = {}
     coordinate = normalize_resource_coordinate(detail_data.get("resourceCoordinate", ""))
     is_land_bidding = record.get("_sourceEndpoint") == "landbidding"
-    area_mu = _number(
-        record.get("landAreaForAre") if is_land_bidding else detail.get("土地面积(亩)")
-    )
-    area_sqm = _number(
-        (record.get("landArea") if is_land_bidding else None)
-        or detail_data.get("assignmentArea")
-        or detail_data.get("transferArea")
-        or detail_data.get("出让面积")
-    )
+    area_mu = None
+    for raw_area_mu in (
+        record.get("landAreaForAre") if is_land_bidding else None,
+        detail_data.get("assignmentAreaAre"),
+        detail.get("土地面积(亩)"),
+    ):
+        if raw_area_mu not in (None, ""):
+            area_mu = _number(raw_area_mu)
+            if area_mu is not None:
+                break
+    area_sqm = None
+    area_source = ""
+    area_sqm_raw = None
+    for raw_area_sqm, source_name in (
+        (record.get("landArea") if is_land_bidding else None, "landbidding.querylandbidding.landArea"),
+        (detail_data.get("assignmentArea"), "queryResourceDetail.assignmentArea"),
+        (detail_data.get("transferArea"), "queryResourceDetail.transferArea"),
+        (detail_data.get("出让面积"), "queryResourceDetail.出让面积"),
+        (detail.get("土地面积(平方米)"), "queryPublicityList.content.土地面积(平方米)"),
+    ):
+        if raw_area_sqm not in (None, ""):
+            parsed_area = _number(raw_area_sqm)
+            if parsed_area is not None:
+                area_sqm_raw = raw_area_sqm
+                area_sqm = parsed_area
+                area_source = source_name
+                break
+    area_for_price: Any = area_sqm
     if area_sqm is None and area_mu is not None:
-        area_sqm = round(area_mu * 666.67, 2)
+        # Official square-metre area wins. When only an explicit mu field exists,
+        # use the exact conversion 1 mu = 2000/3 square metres and retain its basis.
+        from decimal import Decimal, ROUND_HALF_UP
+        area_for_price = Decimal(str(area_mu)) * Decimal(2000) / Decimal(3)
+        area_sqm = float(area_for_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+        area_source = "官方亩面积×2000/3换算（平方米）"
+    if area_sqm is None and area_mu is None and detail.get("土地面积原始值") not in (None, ""):
+        area_note = detail.get("土地面积核验警告") or (
+            f"queryPublicityList.content面积单位未核验：{detail.get('土地面积原始值')} {detail.get('土地面积原始单位', '')}".strip()
+        )
+        area_source = area_note
+
+    start_candidates: List[Dict[str, Any]] = []
     if is_land_bidding:
-        start_total_price_value = _number(record.get("startPrice") or detail_data.get("startPrice"))
-        deal_total_price_value = _number(record.get("cjj") or detail_data.get("dealPrice") or detail_data.get("成交价"))
-        start_price = _unit_price_from_total(start_total_price_value, area_sqm)
-        deal_price = _unit_price_from_total(deal_total_price_value, area_sqm)
-        start_total_price = start_total_price_value if start_total_price_value is not None else ""
-        deal_total_price = deal_total_price_value if deal_total_price_value is not None else ""
+        if _first_present(record.get("startPrice"), record.get("startPriceUnit")) is not None:
+            start_candidates.append(normalize_land_price(
+                record.get("startPrice"),
+                record.get("startPriceUnit"),
+                area_for_price,
+                source="landbidding.querylandbidding",
+                amount_field="startPrice",
+                unit_field="startPriceUnit",
+            ))
     else:
-        start_price = _number(detail_data.get("startPrice") or detail_data.get("startingPrice") or detail_data.get("起始价"))
-        deal_price = _number(detail_data.get("dealPrice") or detail_data.get("成交价"))
-        if deal_price is None:
-            deal_price = _number(detail.get("成交结果"))
-        start_total_price = calc_total_price_wan(start_price, area_sqm=area_sqm) if start_price is not None else ""
-        deal_total_price = calc_total_price_wan(deal_price, area_sqm=area_sqm) if deal_price is not None else ""
+        record_start = _first_present(record.get("startPrice"), record.get("startingPrice"), record.get("起始价"))
+        if record_start is not None:
+            start_candidates.append(normalize_land_price(
+                record_start,
+                _first_present(record.get("startPriceUnit"), record.get("startingPriceUnit"), record.get("起始价单位")),
+                area_for_price,
+                source="queryPublicityList.record",
+                amount_field="startPrice",
+                unit_field="startPriceUnit",
+            ))
+    detail_start = resolve_detail_price(detail_data, "start", area_for_price)
+    if detail_start and (is_price_resolved(detail_start) or detail_start.get("verificationStatus") in ("unit_conflict", "source_conflict")):
+        start_candidates.append(detail_start)
+    for content_field, unit_field in (("起始价", "起始价单位"), ("起始总价", "起始总价单位")):
+        content_start = detail.get(content_field)
+        if content_start is not None and content_start != "":
+            start_candidates.append(normalize_price_content(
+                content_start,
+                detail.get(unit_field),
+                area_for_price,
+                source="queryPublicityList.content",
+                amount_field=content_field,
+            ))
+    start_price_meta = merge_price_candidates(start_candidates, area_for_price)
+
+    deal_candidates: List[Dict[str, Any]] = []
+    if is_land_bidding:
+        if _first_present(record.get("cjj"), record.get("cjfs")) is not None:
+            deal_candidates.append(normalize_land_price(
+                record.get("cjj"),
+                record.get("cjfs"),
+                area_for_price,
+                source="landbidding.querylandbidding",
+                amount_field="cjj",
+                unit_field="cjfs",
+            ))
+    else:
+        record_deal = _first_present(record.get("dealPrice"), record.get("成交价"), record.get("成交结果"))
+        if record_deal is not None:
+            deal_candidates.append(normalize_land_price(
+                record_deal,
+                _first_present(record.get("dealPriceUnit"), record.get("dealUnit"), record.get("cjfs"), record.get("priceUnit")),
+                area_for_price,
+                source="queryPublicityList.record",
+                amount_field="dealPrice",
+                unit_field="dealPriceUnit",
+            ))
+    detail_deal = resolve_detail_price(detail_data, "deal", area_for_price)
+    if detail_deal:
+        deal_candidates.append(detail_deal)
+    for content_field, unit_field in (
+        ("成交结果", "成交结果单位"),
+        ("成交价", "成交价单位"),
+        ("成交总价", "成交总价单位"),
+    ):
+        content_deal = detail.get(content_field)
+        if content_deal is not None and content_deal != "":
+            deal_candidates.append(normalize_price_content(
+                content_deal,
+                detail.get(unit_field),
+                area_for_price,
+                source="queryPublicityList.content",
+                amount_field=content_field,
+            ))
+    deal_price_meta = merge_price_candidates(deal_candidates, area_for_price)
+
+    for price_meta in (start_price_meta, deal_price_meta):
+        price_meta["areaSource"] = area_source
+        if area_source:
+            price_meta["calculation"] = f"{price_meta.get('calculation', '')}；面积来源={area_source}"
+        if detail.get("土地面积核验警告"):
+            price_meta["warning"] = "；".join(filter(None, [price_meta.get("warning", ""), detail["土地面积核验警告"]]))
+
+    start_price = price_value(start_price_meta, "unit")
+    start_total_price = price_value(start_price_meta, "total")
+    deal_price = price_value(deal_price_meta, "unit")
+    deal_total_price = price_value(deal_price_meta, "total")
     detail_url = (
         f"https://www.zjzrzyjy.com/landView/land-bidding/source-detail?resourceId={source_id}"
         if source_id else ""
@@ -859,10 +983,13 @@ def enrich_record(record: Dict[str, Any], detail_fetcher: Callable[[str], Dict[s
         "plot_ratio": _plot_ratio_text(record.get("rjl"), detail_data.get("plotRatio"), detail.get("容积率")),
         "area_mu": area_mu,
         "area_sqm": area_sqm,
+        "area_sqm_source": area_source,
         "start_price": start_price,
         "start_total_price": start_total_price,
+        "start_price_meta": start_price_meta,
         "deal_price": deal_price,
         "deal_total_price": deal_total_price,
+        "deal_price_meta": deal_price_meta,
         "term": _land_bidding_term(record, detail_data) if is_land_bidding else _text(detail.get("出让年限")),
         "transferee": _text(detail_data.get("theUnit") or detail_data.get("受让单位") or detail.get("受让单位")),
         "trade_form": _text(record.get("tradeForm") or detail_data.get("tradeForm") or ""),
@@ -888,7 +1015,10 @@ def _coord_fields(item: Dict[str, Any]) -> Dict[str, Any]:
 OUTPUT_COLUMNS = [
     "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途", "容积率",
     "土地面积(亩)", "土地面积(平方米)", "出让年限",
-    "成交单价(元/平方米)", "成交总价(万元)", "受让单位", "发布时间", "详情页网址",
+    "起始单价(元/平方米)", "起始总价(万元)", "成交单价(元/平方米)", "成交总价(万元)",
+    "起始价原始金额", "起始价原始单位", "起始价来源", "起始价核验状态", "起始价换算依据", "起始价警告",
+    "成交价原始金额", "成交价原始单位", "成交价来源", "成交价核验状态", "成交价换算依据", "成交价警告",
+    "受让单位", "发布时间", "详情页网址",
     "交易形式", "交易方式", "交易阶段", "坐标状态", "坐标类型",
     "坐标中心经度", "坐标中心纬度", "X坐标起点", "Y坐标起点", "边界点组数", "边界点总数",
     "坐标数据文件", "地图文件",
@@ -899,6 +1029,12 @@ def row_from_item(item: Dict[str, Any], coord_path: str = "", map_path: str = ""
     record = item["record"]
     detail = item["detail"]
     detail_data = item["detail_data"]
+    start_price_meta = item.get("start_price_meta") or legacy_unverified_price_meta(
+        item.get("start_price"), item.get("start_total_price"), label="起始价"
+    )
+    deal_price_meta = item.get("deal_price_meta") or legacy_unverified_price_meta(
+        item.get("deal_price"), item.get("deal_total_price"), label="成交价"
+    )
     row = {
         "公示编号": _text(record.get("publicityId")),
         "公示标题": _text(record.get("sourceCode")),
@@ -910,10 +1046,10 @@ def row_from_item(item: Dict[str, Any], coord_path: str = "", map_path: str = ""
         "土地面积(亩)": item["area_mu"] if item["area_mu"] is not None else "",
         "土地面积(平方米)": item["area_sqm"] if item["area_sqm"] is not None else "",
         "出让年限": item.get("term") or _text(detail.get("出让年限")),
-        "起始单价(元/平方米)": item["start_price"] if item["start_price"] is not None else "",
-        "起始总价(万元)": item["start_total_price"],
-        "成交单价(元/平方米)": item["deal_price"] if item["deal_price"] is not None else "",
-        "成交总价(万元)": item["deal_total_price"],
+        "起始单价(元/平方米)": item.get("start_price") if item.get("start_price") not in (None, "") else "",
+        "起始总价(万元)": item.get("start_total_price", ""),
+        "成交单价(元/平方米)": item.get("deal_price") if item.get("deal_price") not in (None, "") else "",
+        "成交总价(万元)": item.get("deal_total_price", ""),
         "受让单位": item.get("transferee") or _text(detail.get("受让单位")),
         "发布时间": _date_text(record.get("releaseTime")),
         "详情页网址": item["detail_url"],
@@ -924,6 +1060,8 @@ def row_from_item(item: Dict[str, Any], coord_path: str = "", map_path: str = ""
         "坐标数据文件": coord_path,
         "地图文件": map_path,
     }
+    row.update(price_provenance_fields(start_price_meta, "起始价"))
+    row.update(price_provenance_fields(deal_price_meta, "成交价"))
     row.update(_coord_fields(item))
     return row
 
@@ -997,6 +1135,8 @@ def write_excel(path: Path, rows: List[Dict[str, Any]], request: Dict[str, Any],
         for column_index, column in enumerate(OUTPUT_COLUMNS, 1):
             value = row.get(column, "")
             cell = sheet.cell(row_index, column_index, value)
+            if column.startswith(("起始价", "成交价")) and column.endswith(("原始金额", "原始单位", "来源", "核验状态", "换算依据", "警告")):
+                cell.data_type = "s"
             if column in DISPLAY_NUMBER_COLUMNS and isinstance(value, (int, float)) and not isinstance(value, bool):
                 cell.number_format = EXCEL_NUMBER_FORMAT
     sheet.freeze_panes = "A2"
@@ -1035,7 +1175,10 @@ def write_result_html(path: Path, rows: List[Dict[str, Any]], request: Dict[str,
     columns = [
         "公示编号", "公示标题", "行政区", "地块编号（宗地编码）", "地块位置", "土地用途", "容积率",
         "土地面积(亩)", "土地面积(平方米)", "出让年限",
-        "成交单价(元/平方米)", "成交总价(万元)", "受让单位", "发布时间", "详情页网址",
+        "起始单价(元/平方米)", "起始总价(万元)", "成交单价(元/平方米)", "成交总价(万元)",
+        "起始价原始金额", "起始价原始单位", "起始价来源", "起始价核验状态", "起始价换算依据", "起始价警告",
+        "成交价原始金额", "成交价原始单位", "成交价来源", "成交价核验状态", "成交价换算依据", "成交价警告",
+        "受让单位", "发布时间", "详情页网址",
         "交易方式", "交易阶段", "坐标状态",
     ]
     header = "".join(
@@ -1360,6 +1503,20 @@ def write_history_manifest(path: Path, request: Dict[str, Any], summary: Dict[st
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
 
 
+def _history_item_with_price_notice(item: Dict[str, Any]) -> Dict[str, Any]:
+    """Preserve old history values and label their missing unit metadata."""
+    preserved = dict(item)
+    if not isinstance(preserved.get("start_price_meta"), dict) or not preserved["start_price_meta"].get("verificationStatus"):
+        preserved["start_price_meta"] = legacy_unverified_price_meta(
+            preserved.get("start_price"), preserved.get("start_total_price"), label="起始价"
+        )
+    if not isinstance(preserved.get("deal_price_meta"), dict) or not preserved["deal_price_meta"].get("verificationStatus"):
+        preserved["deal_price_meta"] = legacy_unverified_price_meta(
+            preserved.get("deal_price"), preserved.get("deal_total_price"), label="成交价"
+        )
+    return preserved
+
+
 def _move_asset(source: Path, target: Path) -> None:
     if not source.exists() or source.stat().st_size <= 0:
         raise ValueError(f"LAND_OUTPUT_EMPTY:{source.name}")
@@ -1428,12 +1585,32 @@ def execute_request(
         stored_items = history_info["items"] if history_info else []
         for index, record in enumerate(records, 1):
             if history_info and not history_refresh and index <= len(stored_items):
-                enriched.append(stored_items[index - 1])
+                enriched.append(_history_item_with_price_notice(stored_items[index - 1]))
             else:
                 enriched.append(enrich_record(record, detail_fetcher))
             percent = 40 + round(index / max(1, fetched_count) * 28)
             progress("enriching", percent, f"正在读取详情 {index}/{fetched_count}" if history_refresh or not history_info else f"正在复用历史详情 {index}/{fetched_count}", fetched=fetched_count, enriched=index, filtered=0, written=0)
         filtered, filter_summary = filter_records(enriched, config)
+        price_warning_count = sum(
+            1
+            for item in filtered
+            for meta_key in ("start_price_meta", "deal_price_meta")
+            if isinstance(item.get(meta_key), dict) and item[meta_key].get("warning")
+        )
+        if price_warning_count:
+            filter_summary.setdefault("warnings", []).append(
+                f"{price_warning_count} 项起始价/成交价存在单位或来源核验提示，请查看结果中的价格原值、单位、来源和换算依据列。"
+            )
+        legacy_price_count = sum(
+            1
+            for item in filtered
+            for meta_key in ("start_price_meta", "deal_price_meta")
+            if isinstance(item.get(meta_key), dict) and item[meta_key].get("verificationStatus") == "legacy_unverified"
+        )
+        if legacy_price_count:
+            filter_summary.setdefault("warnings", []).append(
+                f"{legacy_price_count} 项旧历史价格单位未核验，请重新抓取详情复核。"
+            )
         fetched_coordinate_count = sum(
             1 for item in enriched
             if item.get("coord", {}).get("center", {}).get("lng") not in (None, "")
@@ -1451,6 +1628,7 @@ def execute_request(
             "written": len(filtered),
             "fetchedCoordinateCount": fetched_coordinate_count,
             "filteredCoordinateCount": filtered_coordinate_count,
+            "priceWarningCount": price_warning_count,
             **filter_summary,
         }
         progress("filtering", 72, f"候选详情复核完成，保留 {len(filtered)} 条", fetched=fetched_count, filtered=len(filtered), written=0)
@@ -1483,8 +1661,10 @@ def execute_request(
                     ),
                     "_start_unit_price": item["start_price"] if item["start_price"] is not None else "",
                     "_start_total_price_wan": item["start_total_price"],
+                    "_start_price_meta": item.get("start_price_meta"),
                     "_deal_unit_price": item["deal_price"] if item["deal_price"] is not None else "",
                     "_deal_total_price_wan": item["deal_total_price"],
+                    "_deal_price_meta": item.get("deal_price_meta"),
                     "_assignment_area_sqm": item["area_sqm"] if item["area_sqm"] is not None else "",
                     "_coord": item["coord"],
                 })

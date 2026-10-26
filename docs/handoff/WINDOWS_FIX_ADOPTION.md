@@ -99,3 +99,15 @@ ZCode 对 Windows v0.2.5 picker-feedback 候选的普通桌面验收中记录 D2
 Mac 使用同一共享模块和 `runNativePickerFeedback`，其独立 `native-helper/platform/macos.js::chooseXlsxFile` 经 `common.pickerFailure` 将 AppleScript `User canceled` 响应规范为 `cancelled:true`。新增跨平台回归覆盖 Mac adapter 的取消规范化，并由模块 DOM 回归断言局部、模块、全局三处终态及按钮恢复；这说明同一时序风险适用于 Mac 代码路径并由共享修复覆盖，不代表已观察到 Mac 实机缺陷。
 
 本轮 GUI 证据绑定 Windows 候选包 `windows-picker-feedback-20261024.1`；其中 D2 是修复前失败记录。补丁后通过的是共享 DOM/协议与 Mac adapter 合成回归，修复后的 Windows/macOS 实际系统对话框 GUI 仍须分别验收，不将候选安装或协议回归改写为修复后 GUI 通过。
+
+## 浙江土地成交价格单位与追溯修复（2026-10-25）
+
+共享 `skills/zj-land-publicity/land_price.py` 统一列表、详情、旧版 Excel 导出和地图使用的价格配对与换算规则。只有同一来源明确提供的金额/单位对才标准化；缺单位、未知单位、单位冲突、多个报价冲突和面积缺失均保留原值并标记核验状态。总价与单价按十进制计算，展示使用 `ROUND_HALF_UP` 保留两位；起始价筛选只纳入可核验单价，零价仍按数值处理。
+
+官网列表字段 `startPrice/startPriceUnit`、`cjj/cjfs`，详情 `dealPriceList[].price/unit`，报价项单位和 `dealDetail` 均保留来源字段。旧 HTML 的“成交价（万元）”等明确标签单位与金额成对传入共同解析；“土地面积（平方米）”使用平方米分母，“土地面积（亩）”仅在单位明示时按 `2000/3` 换算，其他或未标单位面积不用于价格换算。旧历史中的显示值保持原样并标记“旧历史未核验”。
+
+结果 Excel/HTML、历史 JSON 与地图弹窗保留原值、单位、字段来源、面积来源、换算依据、核验状态和警告。Excel 价格追溯列强制写为文本。旧版 `scrape_zj_land.save_to_excel` 与现代 runner 共用相同的价格解析函数。
+
+回归覆盖官网两例（219.35万元/1948平方米→1126.03元/平方米；900元/平方米/8059平方米→725.31万元）、未知/缺失/冲突单位、多报价匹配、零价、缺面积、旧 JSON/XLSX 历史、HTML 明示面积/价格单位、`公亩`/`万平方米`/`万元/亩` 等复合单位拒绝换算、旧导出/地图、Excel 文本安全及旧历史摘要的重新抓取提示。模块测试 22 项通过，三个 Python 源文件 `py_compile` 通过；主审现代 runner Excel/HTML/地图/历史独立回读通过，证据见 `交付_土地价格单位修复_20261025/主审证据/Excel-HTML-地图-历史独立回读.json`。
+
+本次是源码与回归修复，不含 Windows 候选包构建、安装或真实浏览器 GUI 验收。下游候选构建及其隔离回归由主 agent 单独执行；源码、接口夹具或生成产物检查均不替代实机业务验收。

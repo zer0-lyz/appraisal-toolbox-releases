@@ -2,6 +2,15 @@
 import requests
 
 import land_http
+from land_price import (
+    is_price_resolved,
+    merge_price_candidates,
+    normalize_price_content,
+    normalize_land_price,
+    price_provenance_fields,
+    price_value,
+    resolve_detail_price,
+)
 import re
 import openpyxl
 from openpyxl.styles import Font, Alignment
@@ -218,6 +227,8 @@ def _build_basic_map_assets(rows, output_path):
             'startTotalPriceWan': r.get('_start_total_price_wan', ''),
             'dealUnitPriceYuanSqm': r.get('_deal_unit_price', ''),
             'dealTotalPriceWan': r.get('_deal_total_price_wan', ''),
+            'startPriceMetadata': r.get('_start_price_meta') or {},
+            'dealPriceMetadata': r.get('_deal_price_meta') or {},
             'assignmentAreaSqm': r.get('_assignment_area_sqm', ''),
             'pointCount': coord.get('point_count', 0),
             'groupCount': coord.get('group_count', 0),
@@ -283,11 +294,19 @@ AppraisalAmap.watch(MAP_CONFIG);</script>
       return String(s ?? '').replace(/[&<>"']/g, m => ({{'&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;',"'":'&#39;'}}[m]));
     }}
 
+    function priceEvidence(meta) {{
+      if (!meta) return '—';
+      const raw = [meta.rawAmount, meta.rawUnit].filter((value) => value !== null && value !== undefined && value !== '').join(' ');
+      return [raw, meta.source, meta.calculation, meta.warning].filter(Boolean).join('；') || '—';
+    }}
+
     for (const p of window.ZJ_LAND_POINTS || []) {{
       const latlng = [Number(p.center[1]), Number(p.center[0])];
       if (!Number.isFinite(latlng[0]) || !Number.isFinite(latlng[1])) continue;
       bounds.push(latlng);
       const marker = L.marker(latlng);
+      const dealUnitText = p.dealUnitPriceYuanSqm !== null && p.dealUnitPriceYuanSqm !== undefined && p.dealUnitPriceYuanSqm !== '' ? `${{p.dealUnitPriceYuanSqm}} 元/平方米` : '—';
+      const dealTotalText = p.dealTotalPriceWan !== null && p.dealTotalPriceWan !== undefined && p.dealTotalPriceWan !== '' ? `${{p.dealTotalPriceWan}} 万元` : '—';
       marker.bindPopup(`
         <div class="popup-title">${{esc(p.name)}}</div>
         <div class="popup-meta">
@@ -299,8 +318,10 @@ AppraisalAmap.watch(MAP_CONFIG);</script>
           用地信息：${{esc(p.use)}}<br/>
           容积率：${{esc(p.plot_ratio)}}<br/>
           出让面积：${{esc(p.area_mu)}} 亩<br/>
-          成交单价：${{esc(p.dealUnitPriceYuanSqm)}} 元/平方米<br/>
-          成交总价：${{esc(p.dealTotalPriceWan)}} 万元<br/>
+          成交单价：${{esc(dealUnitText)}}<br/>
+          成交总价：${{esc(dealTotalText)}}<br/>
+          成交价来源与换算：${{esc(priceEvidence(p.dealPriceMetadata))}}<br/>
+          起始价来源与换算：${{esc(priceEvidence(p.startPriceMetadata))}}<br/>
           边界点：${{esc(p.pointCount)}} 个，分 ${{esc(p.groupCount)}} 组<br/>
           <a href="${{esc(p.url)}}" target="_blank" rel="noreferrer">打开详情页</a>
         </div>
@@ -404,6 +425,8 @@ def build_map_assets(rows, output_path):
             'startTotalPriceWan': row.get('_start_total_price_wan', ''),
             'dealUnitPriceYuanSqm': row.get('_deal_unit_price', ''),
             'dealTotalPriceWan': row.get('_deal_total_price_wan', ''),
+            'startPriceMetadata': row.get('_start_price_meta') or {},
+            'dealPriceMetadata': row.get('_deal_price_meta') or {},
             'coordType': text(coord.get('locationType')),
             'originLng': center.get('originLng', ''),
             'originLat': center.get('originLat', ''),
@@ -413,13 +436,20 @@ def build_map_assets(rows, output_path):
 
     def price_text(items):
         prices = [number(item.get('dealUnitPriceYuanSqm')) for item in items]
-        prices = [value for value in prices if value is not None and value > 0]
-        if not prices:
-            return "暂无成交单价"
-        low, high = min(prices), max(prices)
-        if abs(low - high) < 0.000001:
-            return f"{number_text(low)} 元/㎡"
-        return f"{number_text(low)}~{number_text(high)} 元/㎡"
+        prices = [value for value in prices if value is not None]
+        if prices:
+            low, high = min(prices), max(prices)
+            if abs(low - high) < 0.000001:
+                return f"{number_text(low)} 元/㎡"
+            return f"{number_text(low)}~{number_text(high)} 元/㎡"
+        totals = [number(item.get('dealTotalPriceWan')) for item in items]
+        totals = [value for value in totals if value is not None]
+        if totals:
+            low, high = min(totals), max(totals)
+            if abs(low - high) < 0.000001:
+                return f"总价 {number_text(low)} 万元"
+            return f"总价 {number_text(low)}~{number_text(high)} 万元"
+        return "价格单位未核验"
 
     grouped = {}
     unlocated = []
@@ -612,6 +642,8 @@ def build_map_assets(rows, output_path):
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
     function safeHref(value) { const url = String(value || '').trim(); return /^https?:\/\//i.test(url) ? escapeHtml(url) : ''; }
     function valueText(value) { return value === null || value === undefined || value === '' ? '—' : escapeHtml(value); }
+    function hasValue(value) { return value !== null && value !== undefined && value !== ''; }
+    function priceEvidence(meta) { if (!meta) return '—'; const raw = [meta.rawAmount, meta.rawUnit].filter((value) => value !== null && value !== undefined && value !== '').join(' '); return [raw, meta.source, meta.calculation, meta.warning].filter(Boolean).join('；') || '—'; }
     function numberText(value) { const parsed = Number(String(value ?? '').replace(/,/g, '').trim()); return Number.isFinite(parsed) ? parsed.toLocaleString('en-US', { maximumFractionDigits: 20 }) : escapeHtml(value); }
     function linkText(value, label) { const href = safeHref(value); return href ? `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>` : '—'; }
     function markerIcon(item, highlighted) { const color = highlighted ? '#f97316' : item.color; const markerClass = highlighted ? 'marker-wrap marker-highlight' : 'marker-wrap'; return L.divIcon({ className: '', html: `<div class="${markerClass}"><div class="marker-pin" style="background:${color}"></div><div class="marker-dot" style="border-color:${color}"></div></div>`, iconSize: [18, 18], iconAnchor: [9, 18], popupAnchor: [0, -16] }); }
@@ -706,10 +738,10 @@ def build_map_assets(rows, output_path):
       const entries = item.items || [], title = escapeHtml(item.labelTitle || item.title || '土地成交案例'), price = escapeHtml(item.labelPrice || '暂无成交单价');
       let body = '';
       if (entries.length > 1) {
-        body = `<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th>项目位置</th><th>交易日期</th><th>土地用途</th><th>容积率</th><th>成交单价</th><th>网址</th></tr></thead><tbody>${entries.slice(0, 12).map((row) => `<tr><td>${valueText(row.location)}</td><td>${valueText(row.date)}</td><td>${valueText(row.landUse)}</td><td>${valueText(row.plotRatio)}</td><td>${row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : '—'}</td><td>${linkText(row.url, '打开')}</td></tr>`).join('')}</tbody></table>${entries.length > 12 ? `<div style="margin-top:6px;color:#718096;font-size:11px;">仅展示前 12 条，其余 ${entries.length - 12} 条请查看 Excel。</div>` : ''}`;
+        body = `<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th>项目位置</th><th>交易日期</th><th>土地用途</th><th>容积率</th><th>成交单价</th><th>价格来源与换算</th><th>网址</th></tr></thead><tbody>${entries.slice(0, 12).map((row) => `<tr><td>${valueText(row.location)}</td><td>${valueText(row.date)}</td><td>${valueText(row.landUse)}</td><td>${valueText(row.plotRatio)}</td><td>${hasValue(row.dealUnitPriceYuanSqm) ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : (hasValue(row.dealTotalPriceWan) ? `总价 ${numberText(row.dealTotalPriceWan)} 万元` : '—')}</td><td>${valueText(priceEvidence(row.dealPriceMetadata))}</td><td>${linkText(row.url, '打开')}</td></tr>`).join('')}</tbody></table>${entries.length > 12 ? `<div style="margin-top:6px;color:#718096;font-size:11px;">仅展示前 12 条，其余 ${entries.length - 12} 条请查看 Excel。</div>` : ''}`;
       } else {
         const row = entries[0] || {};
-        const details = [['公示编号', row.sourceCode], ['行政区', row.district], ['项目位置', row.location], ['土地用途', row.landUse], ['容积率', row.plotRatio], ['交易方式', row.tradeMethod], ['土地面积', row.areaSqm ? `${numberText(row.areaSqm)} 平方米` : (row.areaMu ? `${numberText(row.areaMu)} 亩` : '')], ['成交单价', row.dealUnitPriceYuanSqm ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : ''], ['成交总价', row.dealTotalPriceWan ? `${numberText(row.dealTotalPriceWan)} 万元` : ''], ['发布时间', row.date], ['详情网址', linkText(row.url, '打开详情')], ['坐标类型', row.coordType], ['坐标', `${item.lat.toFixed(6)}, ${item.lon.toFixed(6)}`]];
+        const details = [['公示编号', row.sourceCode], ['行政区', row.district], ['项目位置', row.location], ['土地用途', row.landUse], ['容积率', row.plotRatio], ['交易方式', row.tradeMethod], ['土地面积', hasValue(row.areaSqm) ? `${numberText(row.areaSqm)} 平方米` : (hasValue(row.areaMu) ? `${numberText(row.areaMu)} 亩` : '')], ['起始单价', hasValue(row.startUnitPriceYuanSqm) ? `${numberText(row.startUnitPriceYuanSqm)} 元/㎡` : ''], ['起始总价', hasValue(row.startTotalPriceWan) ? `${numberText(row.startTotalPriceWan)} 万元` : ''], ['起始价来源与换算', priceEvidence(row.startPriceMetadata)], ['成交单价', hasValue(row.dealUnitPriceYuanSqm) ? `${numberText(row.dealUnitPriceYuanSqm)} 元/㎡` : ''], ['成交总价', hasValue(row.dealTotalPriceWan) ? `${numberText(row.dealTotalPriceWan)} 万元` : ''], ['成交价来源与换算', priceEvidence(row.dealPriceMetadata)], ['发布时间', row.date], ['详情网址', linkText(row.url, '打开详情')], ['坐标类型', row.coordType], ['坐标', `${item.lat.toFixed(6)}, ${item.lon.toFixed(6)}`]];
         body = `<table style="width:100%;border-collapse:collapse;font-size:12px;">${details.filter(([, value]) => value !== '' && value !== null && value !== undefined).map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${typeof value === 'string' && value.includes('<a ') ? value : valueText(value)}</td></tr>`).join('')}</table>`;
       }
       return `<div style="min-width:300px;max-width:560px;"><div style="font-size:15px;font-weight:700;margin-bottom:6px;">${title}</div><div style="margin-bottom:8px;color:#2d3748;font-size:12px;line-height:1.45;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#edf2f7;margin-right:6px;">${item.labelCount > 1 ? `同位置 ${item.labelCount} 条` : valueText(item.labelLandUse)}</span><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#ebf8ff;">单价：${price}</span></div>${body}</div>`;
@@ -759,6 +791,40 @@ def clean_text(text):
     return text.strip()
 
 
+def _explicit_price_unit_from_label(label):
+    text = re.sub(r"\s+", "", clean_text(label)).replace("（", "(").replace("）", ")")
+    match = re.search(
+        r"((?:人民币)?万元(?:/[^()（）,，;；]+)?(?:总价)?|"
+        r"(?:人民币)?元\s*/\s*[^()（）,，;；]+|"
+        r"(?:人民币)?元\s*每\s*[^()（）,，;；]+|(?:人民币)?元|(?:人民币)?万)",
+        text,
+    )
+    return match.group(1) if match else ""
+
+
+def _area_unit_from_text(value):
+    text = str(value or "").replace("（", "(").replace("）", ")").casefold()
+    scaled_units = tuple(
+        (f"{scale}{unit}", None)
+        for scale in ("亿", "万", "千", "百")
+        for unit in ("平方米", "平米", "㎡", "m²", "亩")
+    )
+    units = scaled_units + (
+        ("平方公里", None), ("公顷", None), ("公亩", None),
+        ("平方米", "sqm"), ("平米", "sqm"), ("m²", "sqm"), ("㎡", "sqm"),
+        ("亩", "mu"),
+    )
+    for token, canonical in sorted(units, key=lambda item: len(item[0]), reverse=True):
+        if token in text:
+            return token, canonical
+    return "", None
+
+
+def _area_number(value):
+    match = re.search(r"[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?", str(value or ""))
+    return match.group(0).replace(",", "") if match else ""
+
+
 def parse_content_fields(content):
     """用td标签解析土地详情"""
     result = {
@@ -766,8 +832,21 @@ def parse_content_fields(content):
         '地块位置': '',
         '土地用途': '',
         '土地面积(亩)': '',
+        '土地面积(平方米)': '',
+        '土地面积原始值': '',
+        '土地面积原始单位': '',
+        '土地面积核验警告': '',
         '出让年限': '',
         '成交结果': '',
+        '成交结果单位': '',
+        '成交价': '',
+        '成交价单位': '',
+        '成交总价': '',
+        '成交总价单位': '',
+        '起始价': '',
+        '起始价单位': '',
+        '起始总价': '',
+        '起始总价单位': '',
         '受让单位': '',
     }
 
@@ -785,10 +864,13 @@ def parse_content_fields(content):
         ('宗地编号', '宗地编号'),
         ('地块位置', '地块位置'),
         ('土地用途', '土地用途'),
-        ('土地面积', '土地面积(亩)'),
+        ('土地面积', '__LAND_AREA__'),
         ('出让年限', '出让年限'),
+        ('起始总价', '起始总价'),
+        ('起始价', '起始价'),
+        ('成交总价', '成交总价'),
         ('成交结果', '成交结果'),
-        ('成交价', '成交结果'),
+        ('成交价', '成交价'),
         ('受让单位', '受让单位'),
         ('受让人', '受让单位'),
     ]
@@ -797,17 +879,37 @@ def parse_content_fields(content):
         if not cell or cell in ['明细用途', '用途名称', '面积（亩）']:
             continue
         for kw, field_name in label_keywords:
-            if kw in cell and not result[field_name]:
-                if field_name == '土地面积(亩)':
-                    val = cells[i+1] if i+1 < len(cells) else ''
-                    m = re.search(r'(\d+\.?\d*)', val)
-                    result[field_name] = m.group(1) if m else val
+            if kw in cell and (field_name == '__LAND_AREA__' or not result.get(field_name)):
+                if field_name == '__LAND_AREA__':
+                    value = cells[i+1] if i+1 < len(cells) else ''
+                    label_unit, label_kind = _area_unit_from_text(cell)
+                    value_unit, value_kind = _area_unit_from_text(value)
+                    result['土地面积原始值'] = value
+                    result['土地面积原始单位'] = value_unit or label_unit
+                    area_conflict = bool(
+                        label_unit and value_unit and (
+                            (label_kind is not None and value_kind is not None and label_kind != value_kind)
+                            or (label_kind is None and value_kind is None and label_unit != value_unit)
+                            or (label_kind is None) != (value_kind is None)
+                        )
+                    )
+                    if area_conflict:
+                        result['土地面积核验警告'] = f"面积标签单位“{label_unit}”与数值单位“{value_unit}”冲突，未用于价格换算。"
+                    else:
+                        area_kind = value_kind if value_unit else label_kind
+                        area_number = _area_number(value)
+                        if area_number and area_kind == 'sqm':
+                            result['土地面积(平方米)'] = area_number
+                        elif area_number and area_kind == 'mu':
+                            result['土地面积(亩)'] = area_number
                 elif field_name == '出让年限':
                     val = cells[i+1] if i+1 < len(cells) else ''
                     m = re.search(r'(\d+)\s*年', val)
                     result[field_name] = m.group(1) + '年' if m else val
                 else:
                     result[field_name] = cells[i+1] if i+1 < len(cells) else ''
+                    if field_name in ('起始总价', '起始价', '成交总价', '成交结果', '成交价'):
+                        result[f"{field_name}单位"] = _explicit_price_unit_from_label(cell)
                 break
 
     return result
@@ -1235,6 +1337,12 @@ def save_to_excel(records, output_path, sheet_name="成交公示",
             '发布时间', '详情页网址',
         ]
 
+    price_metadata_columns = [
+        '起始价原始金额', '起始价原始单位', '起始价来源', '起始价核验状态', '起始价换算依据', '起始价警告',
+        '成交价原始金额', '成交价原始单位', '成交价来源', '成交价核验状态', '成交价换算依据', '成交价警告',
+    ]
+    columns.extend(price_metadata_columns)
+
     for col, header in enumerate(columns, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.font = Font(bold=True)
@@ -1247,23 +1355,13 @@ def save_to_excel(records, output_path, sheet_name="成交公示",
         publicity_id = r.get('publicityId', '')
         source_id = r.get('sourceId', '')
 
-        # 计算平方米
-        area_mu = detail.get('土地面积(亩)', '')
-        area_sqm = ''
-        area_sqm_num = None
-        if area_mu:
-            try:
-                area_sqm_num = round(float(re.search(r'\d+\.?\d*', area_mu).group()) * 666.67, 2)
-                area_sqm = area_sqm_num
-            except Exception:
-                area_sqm = ''
-                area_sqm_num = None
+        from decimal import Decimal, ROUND_HALF_UP
 
-        # 清洗单价
-        start_unit_price = ''
-        start_total_price = ''
-        deal_unit_price = extract_number(detail.get('成交结果', ''))
-        deal_total_price = calc_total_price_wan(deal_unit_price, area_mu=area_mu, area_sqm=area_sqm_num)
+        def first_present(*values):
+            for value in values:
+                if value is not None and value != '':
+                    return value
+            return None
 
         # 详情页 URL（source-detail 格式）
         detail_url = (
@@ -1271,17 +1369,137 @@ def save_to_excel(records, output_path, sheet_name="成交公示",
             if source_id else ''
         )
 
+        detail_data = {}
         coord = {}
         if include_coords and source_id:
             detail_data = fetch_resource_detail(source_id)
             coord = normalize_resource_coordinate(detail_data.get('resourceCoordinate', ''))
-            detail_area_sqm = extract_number(detail_data.get('assignmentArea'))
-            if detail_area_sqm is None:
-                detail_area_sqm = area_sqm_num
-            start_unit_price = extract_number(detail_data.get('startPrice', ''))
-            deal_unit_price = extract_number(detail_data.get('dealPrice', deal_unit_price))
-            start_total_price = calc_total_price_wan(start_unit_price, area_mu=area_mu, area_sqm=detail_area_sqm)
-            deal_total_price = calc_total_price_wan(deal_unit_price, area_mu=area_mu, area_sqm=detail_area_sqm)
+
+        def parsed_area(value):
+            """Parse an area while preserving its sign and zero value."""
+            if value is None or value == '':
+                return None
+            raw_number = _area_number(str(value))
+            if not raw_number:
+                return None
+            try:
+                return float(raw_number)
+            except (TypeError, ValueError):
+                return None
+
+        is_land_bidding = r.get('_sourceEndpoint') == 'landbidding'
+        area_mu_raw = None
+        area_mu_num = None
+        for raw_area_mu in (
+            r.get('landAreaForAre') if is_land_bidding else None,
+            detail_data.get('assignmentAreaAre'),
+            detail.get('土地面积(亩)'),
+        ):
+            parsed = parsed_area(raw_area_mu)
+            if parsed is not None:
+                area_mu_raw = raw_area_mu
+                area_mu_num = parsed
+                break
+        area_mu = area_mu_raw if area_mu_raw is not None else ''
+
+        area_sqm_num = None
+        area_sqm_source = ''
+        for raw_area_sqm, source_name in (
+            (r.get('landArea') if is_land_bidding else None, 'landbidding.querylandbidding.landArea'),
+            (detail_data.get('assignmentArea'), 'queryResourceDetail.assignmentArea'),
+            (detail_data.get('transferArea'), 'queryResourceDetail.transferArea'),
+            (detail_data.get('出让面积'), 'queryResourceDetail.出让面积'),
+            (detail.get('土地面积(平方米)'), 'queryPublicityList.content.土地面积(平方米)'),
+        ):
+            parsed = parsed_area(raw_area_sqm)
+            if parsed is not None:
+                area_sqm_num = parsed
+                area_sqm_source = source_name
+                break
+
+        area_for_price = area_sqm_num
+        if area_sqm_num is None and area_mu_num is not None:
+            area_for_price = Decimal(str(area_mu_num)) * Decimal(2000) / Decimal(3)
+            area_sqm_num = float(area_for_price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+            area_sqm_source = '官网亩面积×2000/3换算（平方米）'
+        if area_sqm_num is None and area_mu_num is None and detail.get('土地面积原始值') not in (None, ''):
+            area_sqm_source = detail.get('土地面积核验警告') or (
+                f"queryPublicityList.content面积单位未核验：{detail.get('土地面积原始值')} {detail.get('土地面积原始单位', '')}".strip()
+            )
+        area_sqm = area_sqm_num if area_sqm_num is not None else ''
+
+        start_candidates = []
+        raw_start = first_present(r.get('startPrice'), r.get('startingPrice'), r.get('起始价'))
+        raw_start_unit = first_present(r.get('startPriceUnit'), r.get('startingPriceUnit'), r.get('起始价单位'))
+        if raw_start is not None or raw_start_unit is not None:
+            start_candidates.append(normalize_land_price(
+                raw_start, raw_start_unit, area_for_price,
+                source='landbidding.querylandbidding' if r.get('_sourceEndpoint') == 'landbidding' else 'queryPublicityList.record',
+                amount_field='startPrice', unit_field='startPriceUnit',
+            ))
+        detail_start_meta = resolve_detail_price(detail_data, 'start', area_for_price)
+        if detail_start_meta and (is_price_resolved(detail_start_meta) or detail_start_meta.get('verificationStatus') in ('unit_conflict', 'source_conflict')):
+            start_candidates.append(detail_start_meta)
+        for content_field, unit_field in (('起始价', '起始价单位'), ('起始总价', '起始总价单位')):
+            raw_start_text = detail.get(content_field)
+            if raw_start_text is not None and raw_start_text != '':
+                start_candidates.append(normalize_price_content(
+                    raw_start_text,
+                    detail.get(unit_field),
+                    area_for_price,
+                    source='queryPublicityList.content',
+                    amount_field=content_field,
+                ))
+        start_price_meta = merge_price_candidates(start_candidates, area_for_price)
+        start_price_meta['areaSource'] = area_sqm_source
+        if area_sqm_source:
+            start_price_meta['calculation'] = f"{start_price_meta.get('calculation', '')}；面积来源={area_sqm_source}"
+        if detail.get('土地面积核验警告'):
+            start_price_meta['warning'] = '；'.join(filter(None, [start_price_meta.get('warning', ''), detail['土地面积核验警告']]))
+
+        deal_candidates = []
+        if first_present(r.get('cjj'), r.get('cjfs')) is not None:
+            deal_candidates.append(normalize_land_price(
+                r.get('cjj'), r.get('cjfs'), area_for_price,
+                source='landbidding.querylandbidding', amount_field='cjj', unit_field='cjfs',
+            ))
+        else:
+            raw_deal = first_present(r.get('dealPrice'), r.get('成交价'), r.get('成交结果'))
+            if raw_deal is not None:
+                deal_candidates.append(normalize_land_price(
+                    raw_deal, first_present(r.get('dealPriceUnit'), r.get('dealUnit'), r.get('priceUnit')),
+                    area_for_price, source='queryPublicityList.record', amount_field='dealPrice', unit_field='dealPriceUnit',
+                ))
+        detail_deal_meta = resolve_detail_price(detail_data, 'deal', area_for_price)
+        if detail_deal_meta:
+            deal_candidates.append(detail_deal_meta)
+        for content_field, unit_field in (
+            ('成交结果', '成交结果单位'),
+            ('成交价', '成交价单位'),
+            ('成交总价', '成交总价单位'),
+        ):
+            raw_deal_text = detail.get(content_field)
+            if raw_deal_text is not None and raw_deal_text != '':
+                deal_candidates.append(normalize_price_content(
+                    raw_deal_text,
+                    detail.get(unit_field),
+                    area_for_price,
+                    source='queryPublicityList.content',
+                    amount_field=content_field,
+                ))
+        deal_price_meta = merge_price_candidates(deal_candidates, area_for_price)
+        deal_price_meta['areaSource'] = area_sqm_source
+        if area_sqm_source:
+            deal_price_meta['calculation'] = f"{deal_price_meta.get('calculation', '')}；面积来源={area_sqm_source}"
+        if detail.get('土地面积核验警告'):
+            deal_price_meta['warning'] = '；'.join(filter(None, [deal_price_meta.get('warning', ''), detail['土地面积核验警告']]))
+
+        start_unit_price = price_value(start_price_meta, 'unit')
+        start_total_price = price_value(start_price_meta, 'total')
+        deal_unit_price = price_value(deal_price_meta, 'unit')
+        deal_total_price = price_value(deal_price_meta, 'total')
+
+        if include_coords:
             coord_rows.append({
                 'sourceCode': source_code,
                 'districtName': r.get('districtName', ''),
@@ -1290,16 +1508,15 @@ def save_to_excel(records, output_path, sheet_name="成交公示",
                 '_location': detail_data.get('resourceLocation', detail.get('地块位置', '')),
                 '_area_mu': area_mu,
                 '_use': detail_data.get('assignmentPeriod', detail.get('土地用途', '')),
-                '_start_unit_price': start_unit_price if start_unit_price is not None else '',
+                '_start_unit_price': start_unit_price,
                 '_start_total_price_wan': start_total_price,
-                '_deal_unit_price': deal_unit_price if deal_unit_price is not None else '',
+                '_start_price_meta': start_price_meta,
+                '_deal_unit_price': deal_unit_price,
                 '_deal_total_price_wan': deal_total_price,
-                '_assignment_area_sqm': detail_area_sqm if detail_area_sqm is not None else '',
+                '_deal_price_meta': deal_price_meta,
+                '_assignment_area_sqm': area_sqm_num if area_sqm_num is not None else '',
                 '_coord': coord,
             })
-        else:
-            detail_data = {}
-            coord = {}
 
         coord_json_file = ''
         map_file = ''
@@ -1357,8 +1574,13 @@ def save_to_excel(records, output_path, sheet_name="成交公示",
                 detail_url,
             ]
 
+        provenance = {**price_provenance_fields(start_price_meta, '起始价'), **price_provenance_fields(deal_price_meta, '成交价')}
+        row_data.extend(provenance.get(column, '') for column in price_metadata_columns)
+
         for col, val in enumerate(row_data, 1):
-            ws.cell(row=row_idx, column=col, value=val)
+            cell = ws.cell(row=row_idx, column=col, value=val)
+            if columns[col - 1] in price_metadata_columns:
+                cell.data_type = 's'
 
         if (row_idx - 1) % 20 == 0:
             print(f"  已处理 {row_idx - 1} 条记录...")
