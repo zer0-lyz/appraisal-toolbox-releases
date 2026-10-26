@@ -1043,6 +1043,7 @@ async function downloadAndInstallUpdate(message, emit, checkUpdate) {
     // install.cmd retains the normal user's token/ancestry. Its context gate is mandatory.
     const exit = await runProcess("cmd.exe", ["/d", "/s", "/c", "install.cmd"], { cwd: packageRoot, stdio: ["ignore", logFd, logFd], env: {
       ...ordinaryInstallerEnv(),
+      APPRAISAL_INSTALL_NONINTERACTIVE: "1",
       TB_UPDATE_NONCE: nonce,
       TB_UPDATE_INSTALL_ROOT: installRoot,
       TB_UPDATE_EXTENSION_PATH: extensionRoot,

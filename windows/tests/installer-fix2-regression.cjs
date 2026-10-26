@@ -22,7 +22,7 @@ function powershell(code) {
 function install(name, extra = {}) {
   const result = spawnSync('cmd.exe', ['/d','/c', 'install.cmd'], {
     cwd: pkg, encoding: 'utf8', windowsHide: true, timeout: 180000, maxBuffer: 12*1024*1024,
-    env: { ...process.env, APPRAISAL_TOOLBOX_INSTALLER_TEST_MODE:'1', APPRAISAL_TOOLBOX_INSTALL_ROOT:installRoot, APPRAISAL_TOOLBOX_INSTALLER_TEST_REGISTRY_ROOT:registryRoot, ...extra }
+    env: { ...process.env, APPRAISAL_INSTALL_NONINTERACTIVE:'1', APPRAISAL_TOOLBOX_INSTALLER_TEST_MODE:'1', APPRAISAL_TOOLBOX_INSTALL_ROOT:installRoot, APPRAISAL_TOOLBOX_INSTALLER_TEST_REGISTRY_ROOT:registryRoot, ...extra }
   });
   if (result.error) throw result.error;
   fs.writeFileSync(path.join(evidence,name+'.log'), result.stdout + '\n' + result.stderr);

@@ -9,6 +9,7 @@ if(landPublicityModule.includes('land-publicity health check failed:'))throw new
 for(const file of ['windows/tests/alibaba-module-regression.mjs','windows/tests/result-buttons.test.mjs','windows/tests/lease-outcome-regression.mjs','windows/tests/current-browser-results.test.mjs','windows/tests/map-settings.test.mjs','windows/tests/round2-ui-regression.mjs'])execFileSync(process.execPath,[path.join(root,file),path.join(evidence,path.basename(file))],{stdio:'inherit'});
 for(const file of ['native-helper/managed-output-directory.test.cjs','native-helper/depreciation-capex-picker.test.cjs'])execFileSync(process.execPath,[path.join(root,file),path.join(evidence,path.basename(file,'.test.cjs')+'.json')],{stdio:'inherit'});
 execFileSync(process.execPath,[path.join(root,'windows/tests/native-picker-feedback-regression.mjs'),path.join(evidence,'native-picker-feedback-regression.json')],{stdio:'inherit'});
+execFileSync(process.execPath,[path.join(root,'windows/tests/install-cmd-wrapper.test.cjs')],{stdio:'inherit'});
 execFileSync(process.execPath,['--test',path.join(root,'scripts/release/build.test.cjs'),path.join(root,'scripts/release/intake-contracts.test.cjs'),path.join(root,'native-helper/update_status_protocol.test.cjs')],{stdio:'inherit'});
 if(process.platform==='win32'){
  execFileSync(process.execPath,[path.join(root,'native-helper/platform/windows-picker.test.cjs'),path.join(evidence,'windows-picker-adapter-regression.json')],{stdio:'inherit'});

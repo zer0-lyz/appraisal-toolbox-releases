@@ -7,6 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const installer = readFileSync(join(here, "..", "installer", "install.ps1"), "utf8");
 const wrapper = readFileSync(join(here, "..", "installer", "install.cmd"), "utf8");
 const uninstaller = readFileSync(join(here, "..", "installer", "uninstall.ps1"), "utf8");
+const updateEngine = readFileSync(join(here, "..", "..", "native-helper", "update_engine.js"), "utf8");
 
 assert.match(installer, /Set-Item\s+-LiteralPath\s+\$RegistryPath\s+-Value\s+\$ManifestPath/);
 assert.match(installer, /function Get-PackageSha256/);
@@ -22,10 +23,14 @@ assert.match(installer, /\$RegistryTouched\[\$RegistryPath\]\s*=\s*\$true/);
 assert.match(installer, /Restore-RegistrySnapshot/);
 assert.match(installer, /browserProfileAutoOpened=false/);
 assert.doesNotMatch(installer, /\.SetValue\s*\(/);
-assert.doesNotMatch(installer, /Start-Process|chrome\.exe|explorer\.exe/i);
+assert.doesNotMatch(installer, /Start-Process\s+(?:-FilePath\s+)?["']?(?:chrome|msedge|explorer)\.exe/i);
 assert.match(wrapper, /set "EXIT_CODE=%ERRORLEVEL%"/i);
 assert.match(wrapper, /exit \/b %EXIT_CODE%/i);
-assert.doesNotMatch(wrapper, /^\s*pause\s*$/im);
+assert.match(wrapper, /\[SUCCESS\].*Installation completed/i);
+assert.match(wrapper, /\[FAILED\].*exit code %EXIT_CODE%/i);
+assert.match(wrapper, /APPRAISAL_INSTALL_NONINTERACTIVE/);
+assert.match(wrapper, /^\s*pause\s*$/im);
+assert.match(updateEngine, /APPRAISAL_INSTALL_NONINTERACTIVE:\s*"1"/);
 assert.doesNotMatch(uninstaller, /\.SetValue\s*\(/);
 
 console.log("Windows installer contract checks passed.");
