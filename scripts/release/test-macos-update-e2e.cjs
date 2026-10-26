@@ -47,6 +47,8 @@ const verificationEnvironment = {
 const preserved = ['history/preserve.txt', 'cache/preserve.txt', 'projects/fixture/workbooks/preserve.txt', 'map-config.json'];
 const originalBytes = new Map(preserved.map(relative => [relative, fs.readFileSync(path.join(installRoot, relative))]));
 const receipts = [];
+let downloadedArchiveQuarantineApplied = false;
+let verifiedArchiveQuarantineAbsentAtExtraction = false;
 (async () => {
   try {
     const result = await runMacOSUpdateTransaction({
@@ -63,7 +65,17 @@ const receipts = [];
       },
       downloadAsset: async (_url, destination) => {
         fs.copyFileSync(zipPath, destination);
+        execFileSync('/usr/bin/xattr', ['-w', 'com.apple.quarantine',
+          '0081;67000000;Chrome;00000000-0000-0000-0000-000000000000', destination]);
+        downloadedArchiveQuarantineApplied = true;
         return {size: assetSize, sha256: assetSha};
+      },
+      extractZip: async (archive, extractRoot) => {
+        const attributes = execFileSync('/usr/bin/xattr', ['-l', archive], {encoding: 'utf8'});
+        verifiedArchiveQuarantineAbsentAtExtraction = !/^com\.apple\.quarantine:/m.test(attributes);
+        assert.equal(verifiedArchiveQuarantineAbsentAtExtraction, true);
+        return require(path.join(packageRoot, 'native-helper/update_engine_macos.js'))
+          .extractZip(archive, extractRoot);
       },
       testInstallerEnvironment: verificationEnvironment,
       verificationEnvironment,
@@ -75,6 +87,8 @@ const receipts = [];
     assert.equal(receipts[0].state, 'starting');
     assert.equal(result.state, 'complete', JSON.stringify(result));
     assert.equal(result.verified, true, JSON.stringify(result));
+    assert.equal(downloadedArchiveQuarantineApplied, true);
+    assert.equal(verifiedArchiveQuarantineAbsentAtExtraction, true);
     assert.equal(result.latestVersion, version.productVersion);
     assert.equal(Number(result.latestBuildNumber), Number(version.buildNumber));
     const store = new MacUpdateTransactionStore({homeDir, installRoot, updatesRoot, pythonBin,
@@ -90,6 +104,8 @@ const receipts = [];
       buildNumber: Number(version.buildNumber), buildId: provenance.buildId,
       packageSha256: assetSha, installerJournalPresent: fs.existsSync(path.join(updatesRoot, nonce, 'installer-transaction.json')),
       persistedVerifiedCompletion: true, chromeAndEdgeNativeHostVerified: true,
+      chromeQuarantineInjectedOnDownload: downloadedArchiveQuarantineApplied,
+      verifiedArchiveQuarantineAbsentBeforeExtraction: verifiedArchiveQuarantineAbsentAtExtraction,
       syntheticUserDataBytePreserved: true, officialReleaseNetworkCovered: false,
       detachedHostLifetimeCoveredHere: false, browserGuiCovered: false,
     }) + '\n');

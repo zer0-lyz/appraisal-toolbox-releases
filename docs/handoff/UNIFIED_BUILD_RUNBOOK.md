@@ -10,7 +10,7 @@ node scripts/release/build.cjs --target macos-arm64 --version 0.2.2 --build-id m
 
 `--base-archive` 可省略，入口从根锁的指定发行资产下载并校验 SHA；已命中按 target+lock+baseSHA 缓存也逐文件核验，拒绝额外文件。仅复用官方 runtime（Node/Python pkg/全部离线 wheels）；业务每轮取 Git tracked 源码。`--python` 指定组包标准库解释器，默认 `/usr/bin/python3`，实际版本/摘要记录于 provenance；它不是交付 Python，不能代替四入口/Excel 验收。
 
-Mac 安装器为源码 host + 固定官方 Node，无产品 codesign/notarization。运行时由官方 Python 3.14.6 pkg 和 SRI已锁 wheel 安装，普通用户实际运行 `安装.command` 时严格检查该 Python 精确版本；缺版本时官方框架安装需要用户正常交互。本任务不自动安装全局框架、不移除 quarantine、不操作正式 Profile。
+Mac 安装器为源码 host + 固定官方 Node，无产品 codesign/notarization。运行时由官方 Python 3.14.6 pkg 和 SRI已锁 wheel 安装，普通用户实际运行 `安装.command` 时严格检查该 Python 精确版本；缺版本时官方框架安装需要用户正常交互。一键更新仅在官方发布清单与下载 ZIP 的 SHA-256 完全匹配后，移除该次私有缓存 ZIP 的 `com.apple.quarantine`，再解包并核验内部文件清单；保留其他扩展属性，不修改系统 Gatekeeper 或手动安装文件。详见 `MAC_UPDATE_CHROME_QUARANTINE_FIX_20261026.md`。本任务不自动安装全局框架、不操作正式 Profile。
 
 ```bash
 bash macos/test-isolated-install.sh /tmp/toolbox-mac-candidate/<manifest.packageRoot> /tmp/toolbox-mac-validation

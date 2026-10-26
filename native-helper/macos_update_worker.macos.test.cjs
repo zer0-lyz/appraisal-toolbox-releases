@@ -143,6 +143,31 @@ function workerFixture(t, custom = {}) {
     counts: () => ({installs, downloads, recoveries})};
 }
 
+test('worker removes Chrome quarantine from a manifest-hash verified archive before extraction', async t => {
+  const f = workerFixture(t);
+  let quarantineApplied = false;
+  let quarantineAbsentAtExtraction = false;
+  const result = await runMacOSUpdateTransaction(f.request(), {...f.options,
+    downloadAsset: async (_url, target) => {
+      fs.writeFileSync(target, f.bytes);
+      execFileSync('/usr/bin/xattr', ['-w', 'com.apple.quarantine',
+        '0081;67000000;Chrome;00000000-0000-0000-0000-000000000000', target]);
+      execFileSync('/usr/bin/xattr', ['-w', 'com.appraisal-toolbox.test-fixture', 'preserved', target]);
+      quarantineApplied = true;
+    },
+    extractZip: async (archive, extractRoot) => {
+      const attributes = execFileSync('/usr/bin/xattr', ['-l', archive], {encoding: 'utf8'});
+      quarantineAbsentAtExtraction = !attributes.split(String.fromCharCode(10)).some((line) => line.startsWith('com.apple.quarantine:'));
+      assert.equal(quarantineAbsentAtExtraction, true);
+      assert.equal(attributes.split(String.fromCharCode(10)).some((line) => line.startsWith('com.appraisal-toolbox.test-fixture: preserved')), true);
+      fs.cpSync(f.info.packageRoot, path.join(extractRoot, 'candidate'), {recursive: true});
+    },
+  });
+  assert.equal(result.state, 'complete', JSON.stringify(result));
+  assert.equal(quarantineApplied, true);
+  assert.equal(quarantineAbsentAtExtraction, true);
+});
+
 test('worker accepts only after durable journal, retries a transient download and exposes verified completion', async t => {
   const f = workerFixture(t); let attempts = 0;
   const result = await runMacOSUpdateTransaction(f.request(), {...f.options,

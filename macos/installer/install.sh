@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
-INSTALLER_BUILD="macos-transactional.3"
+INSTALLER_BUILD="macos-transactional.5"
 if [[ -n "${APPRAISAL_TEST_FRAMEWORK_PATH:-}" ]]; then
   [[ -n "${APPRAISAL_BROWSER_HOME:-}" && -n "${APPRAISAL_PYTHON_BOOTSTRAP:-}" && -n "${APPRAISAL_TOOLBOX_ROOT:-}" ]] || { echo "隔离测试环境不完整" >&2; exit 1; }
   export DYLD_FRAMEWORK_PATH="$APPRAISAL_TEST_FRAMEWORK_PATH"
@@ -238,6 +238,42 @@ SNAPSHOT_ROOT="$(dirname "$JOURNAL_PATH")/snapshot"
 if [[ -f "$SNAPSHOT_ROOT/map-config.json" ]]; then
   cmp -s "$SNAPSHOT_ROOT/map-config.json" "$STAGING_ROOT/map-config.json" || fail "本机地图配置未完整保留。"
 fi
+assert_installer_lock || fail "更新事务锁已丢失。"
+guarded_mutation "$NODE_BIN" - "$STAGING_ROOT" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+const { execFileSync } = require("node:child_process");
+const root = process.argv[2];
+const managed = ["extension", "native-helper", "skills", "runtime", "python"];
+const hasQuarantine = (target) => execFileSync("/usr/bin/xattr", ["-l", target], { encoding: "utf8" })
+  .split(String.fromCharCode(10)).some((line) => line.startsWith("com.apple.quarantine:"));
+function clearTree(target, recursive, rejectSymlink = false) {
+  const stat = fs.lstatSync(target);
+  if (stat.isSymbolicLink()) {
+    if (rejectSymlink) throw new Error("UPDATE_COMPONENT_SYMLINK_INVALID");
+    return;
+  }
+  if (!stat.isFile() && !stat.isDirectory()) throw new Error("UPDATE_COMPONENT_TYPE_INVALID");
+  if (hasQuarantine(target)) {
+    execFileSync("/usr/bin/xattr", ["-d", "com.apple.quarantine", target]);
+    if (hasQuarantine(target)) throw new Error("UPDATE_COMPONENT_QUARANTINE_REMAINS");
+  }
+  if (!recursive || !stat.isDirectory()) return;
+  for (const name of fs.readdirSync(target)) clearTree(path.join(target, name), true);
+}
+clearTree(root, false, true);
+for (const name of managed) {
+  const target = path.join(root, name);
+  try { fs.lstatSync(target); } catch (error) {
+    if (error.code === "ENOENT") continue;
+    throw error;
+  }
+  clearTree(target, true, true);
+}
+NODE
+assert_installer_lock || fail "更新事务锁已丢失。"
+echo "暂存目录 Python 依赖自检（失败时不会替换现有安装）"
+"$STAGING_ROOT/python/bin/python3" -c 'import docx, et_xmlfile, lxml, openpyxl, requests, typing_extensions'
 guarded_mutation "$NODE_BIN" "$TRANSACTION_HELPER" stage "$JOURNAL_PATH" staging_ready
 
 echo "[4/7] 原子部署"
