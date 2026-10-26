@@ -12,7 +12,7 @@ test('build requires explicit identity and rejects unsafe/unknown parameters',()
   const stable=argumentsFor([...common,'--channel','stable','--runtime-build-kind','release']);assert.equal(stable.channel,'stable');assert.equal(stable['runtime-build-kind'],'release');
   assert.throws(()=>argumentsFor([...common,'--channel','stable','--runtime-build-kind','local']),/Invalid release channel/);
   assert.throws(()=>argumentsFor([...common,'--channel','production']),/Invalid release channel/);
-  assert.equal(installerBuild('windows-x64'),'windows-context-attested.8');assert.equal(installerBuild('macos-arm64'),'macos-transactional.4');
+  assert.equal(installerBuild('windows-x64'),'windows-context-attested.8');assert.equal(installerBuild('macos-arm64'),'macos-transactional.5');
 });
 test('Windows package builder validates and extracts the hash-locked base ZIP without optional Archive module autoload',()=>{
   const builder=fs.readFileSync(path.join(__dirname,'../../windows/build-windows-fix2.cjs'),'utf8');
