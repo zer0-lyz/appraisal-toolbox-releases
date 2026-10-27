@@ -1,4 +1,4 @@
-import { userErrorMessage } from "../core/user-errors.js";
+﻿import { userErrorMessage } from "../core/user-errors.js";
 import { EventBus } from "../core/event-bus.js";
 import { FeatureFlagService } from "../core/feature-flags.js";
 import { ModuleRegistry } from "../core/module-registry.js";
@@ -11,7 +11,7 @@ import { tableFormatModule } from "../modules/table-format/module.js";
 import { workbookToolModules } from "../modules/workbook-tools/module.js";
 import { mapSettingsModule } from "../modules/map-settings/module.js";
 import { updatesModule } from "../modules/updates/module.js";
-import { depreciationCapexModule } from "../modules/depreciation-capex-forecast/module.js";
+import { depreciationCapexModule } from "../modules/depreciation-capex-forecast/module.js";\r\nimport { equipmentPpiModule } from "../modules/equipment-ppi/module.js";\r\nimport { equipmentClassLifeModule } from "../modules/equipment-class-life/module.js";
 import { classifyNativeMessagingError } from "../core/native-errors.js";
 import { showNativeDiagnostics } from "../core/native-messaging.mjs";
 
@@ -38,7 +38,7 @@ moduleRegistry.register(tableFormatModule);
 for (const module of workbookToolModules) moduleRegistry.register(module);
 moduleRegistry.register(mapSettingsModule);
 moduleRegistry.register(updatesModule);
-moduleRegistry.register(depreciationCapexModule);
+moduleRegistry.register(depreciationCapexModule);\r\nmoduleRegistry.register(equipmentPpiModule);\r\nmoduleRegistry.register(equipmentClassLifeModule);
 
 function setStatus(text, kind = "idle") {
   if (!elements.status) return;

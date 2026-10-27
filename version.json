@@ -1,10 +1,10 @@
-{
+﻿{
   "schemaVersion": 1,
-  "productVersion": "0.2.8",
-  "chromeVersion": "0.2.8",
-  "versionName": "0.2.8",
+  "productVersion": "0.2.9",
+  "chromeVersion": "0.2.9",
+  "versionName": "0.2.9",
   "channel": "stable",
-  "buildNumber": 2026102606,
+  "buildNumber": 2026102704,
   "repository": "zer0-lyz/appraisal-toolbox-releases",
   "bridgeProtocol": "connector-agent-binding-v3",
   "minimumSupportedVersion": "0.1.0",

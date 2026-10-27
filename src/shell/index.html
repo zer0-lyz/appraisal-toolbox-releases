@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8">
@@ -6,7 +6,7 @@
     <title>评估工具箱</title>
     <link rel="stylesheet" href="../styles/shell.css">
     <link rel="stylesheet" href="../styles/native-diagnostics.css">
-    <link rel="stylesheet" href="../modules/workbook-tools/styles.css">
+    <link rel="stylesheet" href="../modules/workbook-tools/styles.css">\r\n    <link rel="stylesheet" href="../modules/equipment-ppi/styles.css">\r\n    <link rel="stylesheet" href="../modules/equipment-class-life/styles.css">
   </head>
   <body>
     <main class="app">
@@ -122,6 +122,29 @@
                 <strong>折旧摊销与资本性支出预测</strong>
                 <small>设置参数、录入资产并运行长周期折旧摊销预测</small>
               </button>
+              <button id="openEquipmentPpi" type="button" class="module-card">
+                <span class="module-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path class="icon-fill" d="M4 18.5h16v2H4zM6 16l3.6-4 3 2 5.2-7 1.7 1.2-6.3 8.4-3.2-2.1L7.5 17z"></path>
+                    <path class="icon-stroke" d="M16 7h3v3"></path>
+                  </svg>
+                </span>
+                <span class="development-badge">开发中</span>
+                <strong>设备价格指数更新（PPI）</strong>
+                <small>抓取国家统计局指数，管理基线并核对设备底稿</small>
+              </button>
+              <button id="openEquipmentClassLife" type="button" class="module-card">
+                <span class="module-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path class="icon-fill" d="M4 4h16v16H4z"></path>
+                    <path class="icon-knockout" d="M7 8h10M7 12h4m2 0h4M7 16h10"></path>
+                    <path class="icon-stroke" d="M7 8h.01M7 12h.01M7 16h.01"></path>
+                  </svg>
+                </span>
+                <span class="development-badge">开发中</span>
+                <strong>设备分类与年限判定</strong>
+                <small>逐行人工复核设备分类、经济年限并生成校验报告</small>
+              </button>
             </div>
           </section>
           <section class="module-section" aria-labelledby="moduleSectionUtilityTitle">
@@ -167,7 +190,7 @@
       <section id="page-detail-formula-restore" class="route-page hidden" data-route="detail-formula-restore"></section>
       <section id="page-map-settings" class="route-page hidden" data-route="map-settings"></section>
       <section id="page-updates" class="route-page hidden" data-route="updates"></section>
-      <section id="page-depreciation-capex-forecast" class="route-page hidden" data-route="depreciation-capex-forecast"></section>
+      <section id="page-depreciation-capex-forecast" class="route-page hidden" data-route="depreciation-capex-forecast"></section>\r\n      <section id="page-equipment-ppi-update" class="route-page hidden" data-route="equipment-ppi-update"></section>\r\n      <section id="page-equipment-class-life" class="route-page hidden" data-route="equipment-class-life"></section>
     </main>
     <script type="module" src="./shell.js"></script>
   </body>

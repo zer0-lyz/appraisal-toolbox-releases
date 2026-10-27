@@ -1,0 +1,47 @@
+{
+  "name": "equipment-price-index-update",
+  "display_name": "设备价格指数更新",
+  "version": "1.0",
+  "agent_created": true,
+  "license": "MIT",
+  "entry": "SKILL.md",
+  "summary": "抓取国家统计局分行业 PPI（工业生产者出厂价格指数，上年同月=100）月度数据，校验并回填资产评估底稿「全年(更新此表数据）」工作表的 10 个设备价格指数列。采用「基线+增量」策略——历史数据固化为本地基线，日常只抓最近几期做校验，再以 COM 通道安全写回原底稿。",
+  "skill_file": "SKILL.md",
+  "requires": {
+    "python": ">=3.10",
+    "python_path_recommended": "D:\\Anaconda3\\python.exe",
+    "packages": [
+      "openpyxl",
+      "requests",
+      "pywin32"
+    ],
+    "packages_note": "openpyxl 与 requests 为必需；pywin32 仅在写入原底稿（COM 通道）时需要。公网需可达 data.stats.gov.cn。",
+    "optional_skills": [
+      "wps-native-xlsx-edit",
+      "excel-formula-safe-fill"
+    ]
+  },
+  "resources": {
+    "README.md": "技能说明文档：数据来源、运行原理、操作流程、校验规范（13 节）",
+    "设备价格指数更新（PPI）技能说明书.docx": "正式说明书 Word 版（17 页，25 表，含封面与目录）",
+    "设备价格指数更新（PPI）技能说明书.pdf": "正式说明书 PDF 版（A4，17 页，页脚带页码）",
+    "agents/openai.yaml": "技能元信息：显示名、默认提示词、隐式调用开关",
+    "references/api.md": "国家统计局数据接口参考：端点变迁史、三步调用链路、请求体格式、时间分片机制",
+    "references/ppi_baseline.json": "随包分发的初始基线（10 序列 / 1,939 个数据点，覆盖 2007-01 ~ 2026-08），使新环境开箱即用",
+    "scripts/nbs_ppi.py": "① 数据抓取：全量抓取或 --recent N 增量抓取，自动遍历目录树、解析指标、分片拼接",
+    "scripts/ppi_baseline.py": "② 基线管理：--build 建立 / --merge 合并 / --status 查看，含包内种子基线自举逻辑",
+    "scripts/verify_ppi.py": "③ 数据核实：将官方数据与底稿逐列逐月比对，按差异幅度分级判读（精度差异 vs 口径错误）",
+    "scripts/fill_ppi.py": "④ 预览补充：openpyxl 输出到 _out/ 副本，仅供预览，不可用于写原底稿",
+    "scripts/apply_ppi_to_draft.py": "⑤ 写入原底稿：COM 通道（WPS/Excel 原生），保留公式缓存值、名称定义、图片、批注，自动备份",
+    "XXX公司-固定资产设备底稿-V1.0.xlsx": "示例底稿，含目标工作表「全年(更新此表数据）」"
+  },
+  "tags": [
+    "资产评估",
+    "设备价格指数",
+    "PPI",
+    "国家统计局",
+    "重置价",
+    "资产基础法",
+    "工作底稿自动化"
+  ]
+}
