@@ -184,6 +184,7 @@ function createWindowsAdapter(options = {}) {
       );
       if (kind === "word") lines.push("  $dialog.Filter = 'Word 文档 (*.docx)|*.docx'", "  $dialog.Multiselect = $true");
       else if (kind === "xlsx") lines.push("  $dialog.Filter = 'Excel 工作簿 (*.xlsx)|*.xlsx'", "  $dialog.Multiselect = $false");
+      else if (kind === "equipment_workbook") lines.push("  $dialog.Filter = 'Excel 工作簿 (*.xlsx;*.xlsm)|*.xlsx;*.xlsm'", "  $dialog.Multiselect = $false");
       else if (kind === "workbooks") lines.push("  $dialog.Title = '选择需要调整打印格式的 Excel 文件'", "  $dialog.Filter = 'Excel 工作簿 (*.xlsx;*.xlsm)|*.xlsx;*.xlsm'", "  $dialog.Multiselect = $true");
     }
     lines.push(
@@ -193,7 +194,7 @@ function createWindowsAdapter(options = {}) {
       "  } else {",
       kind === "directory"
         ? "    $paths = @([string]$dialog.SelectedPath)"
-        : kind === "xlsx"
+        : (kind === "xlsx" || kind === "equipment_workbook")
           ? "    $paths = @([string]$dialog.FileName)"
           : "    $paths = @($dialog.FileNames | ForEach-Object { [string]$_ })",
       "    $payload = @{ ok = $true; cancelled = $false; paths = @($paths) }",
@@ -257,6 +258,10 @@ function createWindowsAdapter(options = {}) {
 
   async function chooseXlsxFile() {
     return await runPowerShell(pickerPowerShellScript("xlsx", "选择折旧摊销预测输入工作簿（.xlsx）"));
+  }
+
+  async function chooseEquipmentWorkbookFile(prompt) {
+    return await runPowerShell(pickerPowerShellScript("equipment_workbook", prompt));
   }
 
   async function listenerPids(port) {
@@ -637,6 +642,7 @@ function createWindowsAdapter(options = {}) {
     chooseWorkbookFiles,
     chooseWordFiles,
     chooseXlsxFile,
+    chooseEquipmentWorkbookFile,
     async inspectActiveConversation() {
       return {
         ok: false,

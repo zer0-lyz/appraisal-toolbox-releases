@@ -1,0 +1,22 @@
+[data-module-id="equipment-ppi-update"] .equipment-skill-heading,
+[data-module-id="equipment-ppi-update"] .equipment-skill-config,
+[data-module-id="equipment-ppi-update"] .equipment-skill-workflow { display: grid; gap: 9px; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-notice { border-color: var(--accent); background: var(--accent-soft); }
+[data-module-id="equipment-ppi-update"] .equipment-skill-notice p,
+[data-module-id="equipment-ppi-update"] .section-description { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-path-row { display: grid; gap: 5px; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-path-row > span { color: var(--muted); font-size: 12px; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-path-row > div { display: flex; gap: 7px; min-width: 0; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-path-row input { flex: 1; min-width: 0; font-size: 12px; }
+[data-module-id="equipment-ppi-update"] .equipment-ppi-run-options { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+[data-module-id="equipment-ppi-update"] .equipment-ppi-run-options input { width: 72px; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-actions { align-items: stretch; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-progress { display: grid; gap: 6px; color: var(--muted); font-size: 12px; }
+[data-module-id="equipment-ppi-update"] .equipment-skill-progress-track { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line-soft); }
+[data-module-id="equipment-ppi-update"] #equipmentPpiProgressBar { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width 180ms ease; }
+[data-module-id="equipment-ppi-update"] #equipmentPpiProgressBar.is-running { width: 35%; animation: equipment-ppi-progress 1.4s ease-in-out infinite alternate; }
+@keyframes equipment-ppi-progress { from { transform: translateX(0); } to { transform: translateX(185%); } }
+[data-module-id="equipment-ppi-update"] #equipmentPpiPathFeedback[data-kind="error"] { color: var(--bad); }
+[data-module-id="equipment-ppi-update"] #equipmentPpiPathFeedback[data-kind="warn"] { color: var(--warn); }
+[data-module-id="equipment-ppi-update"] #equipmentPpiPathFeedback[data-kind="ok"] { color: var(--good); }
+[data-module-id="equipment-ppi-update"] .equipment-skill-output { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 9px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface-muted); color: var(--text); font: 11px/1.5 ui-monospace, Consolas, monospace; }

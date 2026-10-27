@@ -1,0 +1,39 @@
+{
+  "name": "equipment-class-and-life",
+  "display_name": "设备分类与年限判定",
+  "version": "1.0",
+  "agent_created": true,
+  "license": "MIT",
+  "entry": "SKILL.md",
+  "summary": "为资产评估设备清单补充「设备分类／指数-设备大类／经济耐用年限／年限区间／年限来源」五列，并输出一致性校验报告。",
+  "skill_file": "SKILL.md",
+  "requires": {
+    "python": ">=3.10",
+    "python_path_recommended": "D:\\Anaconda3\\python.exe",
+    "packages": [
+      "openpyxl",
+      "xlrd",
+      "python-docx"
+    ],
+    "optional_skills": [
+      "multi-search-plus",
+      "wps-native-xlsx-edit"
+    ]
+  },
+  "resources": {
+    "references/values.md": "跨批次基准：允许大类、分类-年限口径表、异名同物对照、来源标签、坑位清单",
+    "references/table-2012.md": "《常用评估参数2012v1（初稿）》设备参考年限表全文提取（620 行，记忆固化件）",
+    "references/table-2024.md": "《资产评估报告编写模块常用语参考（2024版）》三张年限表已核对净表",
+    "references/2024-tables-raw.txt": "2024 年限表原文区段备份（含源文件行号，备查）",
+    "references/installation-rates.md": "设备安装费率速查（360 行，占设备原值 %，派生自 table-2012.md）",
+    "scripts/verify_fill.py": "回填后自动化自检脚本（空值／大类白名单／区间格式／年限∈区间／同种设备口径一致）"
+  },
+  "tags": [
+    "资产评估",
+    "设备分类",
+    "经济耐用年限",
+    "资产基础法",
+    "一致性校验",
+    "评估明细表"
+  ]
+}

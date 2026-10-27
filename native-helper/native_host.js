@@ -2,6 +2,7 @@
 
 const { execFile, spawn } = require("node:child_process");
 const { buildRunnerDiagnostics, redactDiagnosticText, appendStderrTail } = require("./diagnostics.js");
+const { createEquipmentSkillHandlers } = require("./equipment-skills.js");
 const { chooseManagedOutputDirectory: chooseManagedOutputDirectoryFlow } = require("./managed-output-directory.js");
 const landPublicityHttp = require("./land-publicity-http.js");
 const fs = require("node:fs");
@@ -459,6 +460,12 @@ const TOOLBOX_NATIVE_ACTIONS = new Set([
   "open_anjuke_property_source",
   "open_anjuke_property_path",
   "run_anjuke_property",
+  "select_equipment_ppi_workbook",
+  "select_equipment_ppi_workspace",
+  "run_equipment_ppi",
+  "select_equipment_class_life_workbook",
+  "select_equipment_class_life_output_directory",
+  "equipment_class_life",
 ]);
 function toolboxActionAllowed(message = {}) {
   const action = String(message.action || "");
@@ -479,6 +486,32 @@ const depreciationCapexForecast = depreciationCapexForecastFactory.createDepreci
   pythonBin: PYTHON_BIN,
   runtimeDirectory: processLauncher.runtimeDirectory(),
   skillRoot: runtimeConfig.depreciationSkillDir || process.env.TIANYUAN_DEPRECIATION_SKILL_DIR,
+});
+const EQUIPMENT_PPI_ROOT = path.join(PRINT_SKILLS_DIR, "equipment-price-index-update");
+const EQUIPMENT_PPI_SCRIPTS = Object.freeze({
+  fetch: path.join(EQUIPMENT_PPI_ROOT, "scripts", "nbs_ppi.py"),
+  baseline: path.join(EQUIPMENT_PPI_ROOT, "scripts", "ppi_baseline.py"),
+  verify: path.join(EQUIPMENT_PPI_ROOT, "scripts", "verify_ppi.py"),
+  preview: path.join(EQUIPMENT_PPI_ROOT, "scripts", "fill_ppi.py"),
+  apply: path.join(EQUIPMENT_PPI_ROOT, "scripts", "apply_ppi_to_draft.py"),
+});
+const EQUIPMENT_PPI_SEED = path.join(EQUIPMENT_PPI_ROOT, "references", "ppi_baseline.json");
+const EQUIPMENT_CLASS_LIFE_ROOT = path.join(PRINT_SKILLS_DIR, "equipment-class-and-life");
+const EQUIPMENT_CLASS_LIFE_REFERENCES = [
+  "values.md", "table-2012.md", "table-2024.md", "2024-tables-raw.txt", "installation-rates.md",
+].map((name) => path.join(EQUIPMENT_CLASS_LIFE_ROOT, "references", name));
+const EQUIPMENT_CLASS_LIFE_RUNNER = path.join(
+  PRINT_SKILLS_DIR,
+  "equipment-class-and-life",
+  "scripts",
+  "appraisal_toolbox_runner.py",
+);
+const equipmentSkillHandlers = createEquipmentSkillHandlers({
+  skillsDirectory: PRINT_SKILLS_DIR,
+  pythonBin: PYTHON_BIN,
+  processLauncher,
+  buildRunnerDiagnostics,
+  appendStderrTail,
 });
 
 function getToken() {
@@ -1978,6 +2011,28 @@ async function chooseExportDirectory(message = {}) {
 async function chooseWorkbookFiles() {
   const result = await platformAdapter.chooseWorkbookFiles();
   return requirePickerPaths(result, "print_workbook_files_selected");
+}
+
+async function chooseEquipmentSkillWorkbook(prompt, action) {
+  const chooseFile = platformAdapter.chooseEquipmentWorkbookFile || platformAdapter.chooseXlsxFile;
+  const result = await chooseFile(prompt);
+  const selectedPath = String(result?.path || result?.paths?.[0] || "").trim();
+  if (result?.ok && !/\.(?:xlsx|xlsm)$/i.test(selectedPath)) {
+    return {
+      ok: false,
+      reason: "EQUIPMENT_SKILL_WORKBOOK_EXTENSION_UNSUPPORTED",
+      message: "设备技能只接受 .xlsx 或 .xlsm 工作簿，请重新选择。",
+      action,
+      security: { credentialsReturned: false },
+    };
+  }
+  return {
+    ...result,
+    action,
+    path: result?.ok ? selectedPath : "",
+    paths: result?.ok && selectedPath ? [selectedPath] : [],
+    security: { credentialsReturned: false },
+  };
 }
 
 async function chooseTableFormatWordFiles() {
@@ -4578,6 +4633,31 @@ async function handle(message) {
   if (message?.action === "select_print_workbook_files") {
     return await chooseWorkbookFiles();
   }
+  if (message?.action === "select_equipment_ppi_workbook") {
+    return await chooseEquipmentSkillWorkbook("选择用于设备价格指数校验的 Excel 底稿（.xlsx 或 .xlsm）", "equipment_ppi_workbook_selected");
+  }
+  if (message?.action === "select_equipment_ppi_workspace") {
+    return await chooseManagedOutputDirectory(
+      "选择设备价格指数工作目录的上级文件夹",
+      "设备价格指数更新",
+      "equipment_ppi_workspace_selected",
+      "EQUIPMENT_PPI_WORKSPACE_CREATE_FAILED",
+    );
+  }
+  if (message?.action === "select_equipment_class_life_workbook") {
+    return await chooseEquipmentSkillWorkbook("选择设备分类与年限工作簿（.xlsx 或 .xlsm）", "equipment_class_life_workbook_selected");
+  }
+  if (message?.action === "select_equipment_class_life_output_directory") {
+    return await chooseManagedOutputDirectory(
+      "选择设备分类与年限成果目录的上级文件夹",
+      "设备分类与年限结果",
+      "equipment_class_life_output_directory_selected",
+      "CLASS_LIFE_OUTPUT_DIRECTORY_CREATE_FAILED",
+    );
+  }
+  if (message?.action === "equipment_class_life") {
+    return await equipmentSkillHandlers.runClassLife(message);
+  }
   if (message?.action === "select_table_format_word_files") {
     return await chooseTableFormatWordFiles();
   }
@@ -4899,6 +4979,9 @@ async function runSelfTest() {
       && fs.existsSync(TABLE_FORMAT_SCRIPT)
       && fs.existsSync(LAND_PUBLICITY_SCRIPT)
       && fs.existsSync(ANJUKE_PROPERTY_SCRIPT)
+      && Object.values(EQUIPMENT_PPI_SCRIPTS).every((scriptPath) => fs.existsSync(scriptPath))
+      && fs.existsSync(EQUIPMENT_PPI_SEED)
+      && fs.existsSync(EQUIPMENT_CLASS_LIFE_RUNNER)
       && platform.supported
       && depreciation.ok
       && imports.ok,
@@ -4915,6 +4998,11 @@ async function runSelfTest() {
       detailPrint: fs.existsSync(PRINT_FORMAT_SCRIPTS.detail),
       declarationPrint: fs.existsSync(PRINT_FORMAT_SCRIPTS.declaration),
       formulaRestore: fs.existsSync(LINK_RESTORE_SCRIPT),
+      equipmentPpi: Object.values(EQUIPMENT_PPI_SCRIPTS).every((scriptPath) => fs.existsSync(scriptPath))
+        && fs.existsSync(EQUIPMENT_PPI_SEED),
+      equipmentClassLife: fs.existsSync(EQUIPMENT_CLASS_LIFE_RUNNER)
+        && fs.existsSync(equipmentSkillHandlers.classLifeValidator)
+        && EQUIPMENT_CLASS_LIFE_REFERENCES.every((filePath) => fs.existsSync(filePath)),
     },
     pythonSkillImportSmoke: imports,
     depreciationCapexForecast: depreciation,
@@ -4930,6 +5018,13 @@ async function runPythonSkillImportSmokeTest() {
     ["detailPrint", PRINT_FORMAT_SCRIPTS.detail],
     ["declarationPrint", PRINT_FORMAT_SCRIPTS.declaration],
     ["formulaRestore", LINK_RESTORE_SCRIPT],
+    ["equipmentPpi", EQUIPMENT_PPI_SCRIPTS.fetch],
+    ["equipmentPpiBaseline", EQUIPMENT_PPI_SCRIPTS.baseline],
+    ["equipmentPpiVerify", EQUIPMENT_PPI_SCRIPTS.verify],
+    ["equipmentPpiPreview", EQUIPMENT_PPI_SCRIPTS.preview],
+    ["equipmentPpiApply", EQUIPMENT_PPI_SCRIPTS.apply],
+    ["equipmentClassLife", EQUIPMENT_CLASS_LIFE_RUNNER],
+    ["equipmentClassLifeValidator", equipmentSkillHandlers.classLifeValidator],
     ["depreciation", path.join(depreciationCapexForecast.selfTest().skillRoot, "scripts", "workflow.py")],
   ];
   const importCode = String.raw`import importlib.util
@@ -4975,8 +5070,30 @@ print(name)`;
       });
     }
   }
+  try {
+    // pythoncom/win32com.client matter on Windows: PPI draft write-back and
+    // class-life native editing both load pywin32 lazily at run time.
+    const dependencyImportCode = process.platform === "win32"
+      ? "import openpyxl, requests, docx; import pythoncom; import win32com.client; print('equipmentSkillDependencies')"
+      : "import openpyxl, requests, docx; print('equipmentSkillDependencies')";
+    const dependencies = await execFilePromise(PYTHON_BIN, ["-X", "utf8", "-c", dependencyImportCode], {
+      timeout: 60000,
+      maxBuffer: 2 * 1024 * 1024,
+      windowsHide: true,
+    });
+    results.push({ name: "equipmentSkillDependencies", ok: String(dependencies.stdout || "").trim() === "equipmentSkillDependencies", exitCode: 0 });
+  } catch (error) {
+    results.push({
+      name: "equipmentSkillDependencies",
+      ok: false,
+      exitCode: Number.isInteger(error?.code) ? error.code : null,
+      diagnostics: buildRunnerDiagnostics(Number.isInteger(error?.code) ? error.code : null, error?.stderr || error?.message || String(error)),
+    });
+  }
   return {
-    ok: results.length === checks.length && results.every((entry) => entry.ok),
+    // The dependencies entry is appended outside the checks loop, so the
+    // expected total is checks.length + 1.
+    ok: results.length === checks.length + 1 && results.every((entry) => entry.ok),
     imports: results.filter((entry) => entry.ok).map((entry) => entry.name),
     entries: results,
   };
@@ -5031,6 +5148,9 @@ if (process.argv.includes("--self-test")) {
     }
     if (message?.action === "run_land_publicity") {
       return runLandPublicity(message, writeMessage);
+    }
+    if (message?.action === "run_equipment_ppi") {
+      return equipmentSkillHandlers.runPpi(message, writeMessage);
     }
     if (message?.action === "run_alibaba_auction") {
       return runAlibabaAuction(message, writeMessage);

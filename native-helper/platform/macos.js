@@ -68,6 +68,14 @@ function createMacOSAdapter(options = {}) {
     ].join("\n"));
   }
 
+  async function chooseEquipmentWorkbookFile(prompt) {
+    const safePrompt = String(prompt || "选择设备技能工作簿（.xlsx 或 .xlsm）").replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    return await runAppleScript([
+      `set selectedFile to choose file with prompt "${safePrompt}"`,
+      "POSIX path of selectedFile",
+    ].join("\n"));
+  }
+
   async function inspectActiveConversation() {
     const script = [
       "tell application \"System Events\"",
@@ -410,6 +418,7 @@ function createMacOSAdapter(options = {}) {
     chooseWorkbookFiles,
     chooseWordFiles,
     chooseXlsxFile,
+    chooseEquipmentWorkbookFile,
     inspectActiveConversation,
     createCredentialReference,
     diagnostics,

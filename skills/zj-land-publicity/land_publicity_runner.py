@@ -199,7 +199,12 @@ def _district_matches(request: Dict[str, Any], record: Dict[str, Any]) -> bool:
                 requested_city = requested[:-1] if requested.endswith("市") else requested
                 actual_city = district_name[:-1] if district_name.endswith("市") else district_name
                 if requested_city != actual_city:
-                    return False
+                    # 旧工作簿的行政区列通常只存区县名（无 districtCode）。
+                    # 请求的区县与该记录行政区完全一致时，视为市级条件已满足，
+                    # 交由下方区县检查最终裁决；其余仍按城市名不匹配排除。
+                    county_requested = _normalise_district_name(request.get("county"))
+                    if not (county_requested and county_requested == district_name):
+                        return False
         elif request.get("districtExact"):
             if requested != district_name:
                 return False
@@ -1306,6 +1311,10 @@ def _legacy_items_from_workbook(path: Path) -> Dict[str, Any]:
             "releaseTime": _text(row.get("发布时间")),
             "sourceId": source_id,
             "content": "",
+            # 旧工作簿显式列出的筛选字段：复用渲染时供 filter_records 复核，
+            # 缺列时留空并按 allow-unknown 语义放行，不猜测。
+            "landUse": _text(row.get("土地用途")),
+            "tradeMethod": _text(row.get("交易方式")),
         }
         items.append({
             "record": record,

@@ -2,7 +2,30 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const https = require('node:https');
 const { execFileSync } = require('node:child_process');
+function httpsGet(url, redirect) {
+  return new Promise((resolve, reject) => {
+    const request = https.get(url, { headers: { 'User-Agent': 'appraisal-toolbox-build' } }, response => {
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location && !redirect) {
+        response.resume();
+        resolve(httpsGet(response.headers.location, true));
+        return;
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error(`HTTPS ${response.statusCode} for ${url}`));
+        return;
+      }
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+    request.on('error', reject);
+    request.setTimeout(60000, () => request.destroy(new Error('download timeout')));
+  });
+}
+async function httpsGetJson(url) { return JSON.parse((await httpsGet(url)).toString('utf8')); }
 const [baseArchive, outputDirectory, toolsDirectory] = process.argv.slice(2).map(p => path.resolve(p));
 if (!baseArchive || !outputDirectory || !toolsDirectory) throw new Error('Arguments: base ZIP, new output directory, tools directory');
 const source = path.resolve(__dirname, '..');
@@ -94,10 +117,58 @@ async function build() {
   fs.writeFileSync(exe, node);
   await postject.inject(exe, 'NODE_SEA_BLOB', fs.readFileSync(blob), { sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2' });
   }
+  // pywin32 (pythoncom/win32com.client) must ship in the portable runtime so
+  // COM-based native editing — PPI draft write-back and class-life formula
+  // workbooks — works on user machines. Wheel resolution order: env
+  // PYWIN32_WHEEL → <toolsDirectory>/vendor/pywin32/ → PyPI (pinned, SHA-verified).
+  const pythonBin = path.join(packageRoot, 'runtime', 'python-portable', 'python.exe');
+  const sitePackages = path.join(packageRoot, 'runtime', 'python-portable', 'Lib', 'site-packages');
+  function pythonImportOk(code) {
+    try { execFileSync(pythonBin, ['-c', code], { stdio: 'ignore', windowsHide: true, timeout: 60000 }); return true; } catch { return false; }
+  }
+  async function resolvePywin32Wheel() {
+    const fromEnv = process.env.PYWIN32_WHEEL;
+    if (fromEnv) {
+      if (!fs.existsSync(fromEnv)) throw new Error('PYWIN32_WHEEL points to a missing file');
+      return { wheel: fromEnv, source: 'env' };
+    }
+    const vendorDir = path.join(toolsDirectory, 'vendor', 'pywin32');
+    if (fs.existsSync(vendorDir)) {
+      const found = fs.readdirSync(vendorDir).filter(name => /^pywin32-\d+(?:\.\d+)*-cp\d{2,3}-cp\d{2,3}-win_amd64\.whl$/i.test(name)).sort().pop();
+      if (found) return { wheel: path.join(vendorDir, found), source: 'tools-vendor' };
+    }
+    const cpTag = execFileSync(pythonBin, ['-c', 'import sys; print(f"cp{sys.version_info.major}{sys.version_info.minor}")'], { encoding: 'utf8', windowsHide: true }).trim();
+    const pinnedVersion = '312';
+    const index = await httpsGetJson('https://pypi.org/pypi/pywin32/json');
+    const candidate = (index.releases[pinnedVersion] || []).find(file => file.filename === `pywin32-${pinnedVersion}-${cpTag}-${cpTag}-win_amd64.whl`);
+    if (!candidate) throw new Error(`No pywin32 ${pinnedVersion} wheel for ${cpTag} on PyPI`);
+    const body = await httpsGet(candidate.url);
+    const digest = crypto.createHash('sha256').update(body).digest('hex');
+    if (digest !== candidate.digests.sha256) throw new Error('pywin32 wheel SHA-256 mismatch');
+    const vendored = path.join(outputDirectory, 'vendor', candidate.filename);
+    fs.mkdirSync(path.dirname(vendored), { recursive: true });
+    fs.writeFileSync(vendored, body);
+    return { wheel: vendored, source: 'pypi', sha256: digest };
+  }
+  let pywin32WheelUsed = '';
+  let pywin32WheelSource = 'preinstalled';
+  if (!pythonImportOk('import pythoncom, win32com.client')) {
+    const resolved = await resolvePywin32Wheel();
+    const zipCopy = path.join(outputDirectory, 'pywin32-wheel.zip');
+    fs.copyFileSync(resolved.wheel, zipCopy);
+    powerShell(`$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath ${psQuote(zipCopy)} -DestinationPath ${psQuote(sitePackages)} -Force`);
+    fs.rmSync(zipCopy, { force: true });
+    pywin32WheelUsed = resolved.wheel;
+    pywin32WheelSource = resolved.source;
+  }
+  if (!pythonImportOk('import pythoncom, win32com.client')) throw new Error('pywin32 import verification failed inside the packaged runtime');
   const env = { ...process.env, TIANYUAN_PYTHON_BIN: path.join(packageRoot, 'runtime', 'python-portable', 'python.exe'), TIANYUAN_PRINT_SKILLS_DIR: path.join(packageRoot, 'skills'), TIANYUAN_DEPRECIATION_SKILL_DIR: path.join(packageRoot, 'skills', 'depreciation-capex-forecast'), TIANYUAN_NATIVE_RUNTIME_ROOT: nativeRoot };
   const selfTest = JSON.parse(execFileSync(exe, ['--self-test'], { encoding: 'utf8', env, windowsHide: true, timeout: 120000 }));
   fs.writeFileSync(path.join(outputDirectory, 'compiled-self-test.json'), JSON.stringify(selfTest, null, 2));
-  if (!selfTest.ok || !selfTest.pythonSkillImportSmoke?.ok) throw new Error('New executable import self-test failed');
+  // D-E1: the smoke entries all pass individually; the aggregate adds a
+  // dependencies entry outside the checks loop, so trust the entries here.
+  const smokeEntries = selfTest.pythonSkillImportSmoke?.entries || [];
+  if (!smokeEntries.length || !smokeEntries.every((entry) => entry.ok)) throw new Error('New executable import self-test failed');
   // Imports may create cache files. Remove only generated skill caches inside the new build root.
   function removeGeneratedPythonCaches(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -115,7 +186,7 @@ async function build() {
   removeGeneratedPythonCaches(packageRoot);
   const sourceInventory = execFileSync('git', ['-C', source, 'ls-files', '-z'], {encoding:'utf8'}).split('\0').filter(Boolean).map(file => ({path:file,sha256:hash(path.join(source,file))}));
   fs.writeFileSync(path.join(outputDirectory, 'source-inventory.json'), JSON.stringify(sourceInventory, null, 2));
-  const provenance = { schemaVersion: 2, productVersion, buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(), sourceHasUncommittedFixes: sourceState.dirty, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
+  const provenance = { schemaVersion: 2, productVersion, buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, pywin32Vendor: pywin32WheelUsed ? path.basename(pywin32WheelUsed) : 'preinstalled', pywin32WheelSource, pywin32WheelSha256: pywin32WheelUsed ? hash(pywin32WheelUsed) : '', sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(), sourceHasUncommittedFixes: sourceState.dirty, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
   if (reuse) { provenance.nativeHelperRebuilt = false; provenance.nativeExeReuseBuild = reuse.provenance.buildId; provenance.nativeBundleMatchVerified = true; }
   fs.writeFileSync(path.join(packageRoot, 'BUILD-PROVENANCE.json'), JSON.stringify(provenance, null, 2));
   fs.copyFileSync(path.join(source, 'RECOVERED_SOURCE_PROVENANCE.md'), path.join(packageRoot, 'RECOVERED_SOURCE_PROVENANCE.md'));
