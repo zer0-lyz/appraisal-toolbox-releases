@@ -146,9 +146,10 @@ async function build() {
     }
     const cpTag = execFileSync(pythonBin, ['-c', 'import sys; print(f"cp{sys.version_info.major}{sys.version_info.minor}")'], { encoding: 'utf8', windowsHide: true }).trim();
     const pinnedVersion = '312';
-    const index = JSON.parse(await new Promise((resolve, reject) => {
+    // httpsGetJson 已经解析为对象；这里不能再 JSON.parse 一次。
+    const index = await new Promise((resolve, reject) => {
       httpsGetJson('https://pypi.org/pypi/pywin32/json', resolve, reject);
-    }));
+    });
     const release = index.releases[pinnedVersion] || [];
     const candidate = release.find(file => file.filename === `pywin32-${pinnedVersion}-${cpTag}-${cpTag}-win_amd64.whl`);
     if (!candidate) throw new Error(`No pywin32 ${pinnedVersion} wheel for ${cpTag} on PyPI`);
