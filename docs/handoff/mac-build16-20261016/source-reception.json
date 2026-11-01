@@ -1,0 +1,40 @@
+{
+  "windowsSnapshot": "65840987d9aea80586817ca63684f4df2953d5c2",
+  "originalBuildHead": "46a67bc48766703e13a182f57a1ca5375a2a1aef",
+  "dirtyBuild": true,
+  "rebuiltForPublication": false,
+  "inventoryFiles": 168,
+  "snapshotMappingVerified": true,
+  "localDownloadedAttachments": [
+    {
+      "name": "ACCEPTANCE_STATUS.json",
+      "sha256": "96bc172ac9884482f966fc5617cec780449a069d66eb146031e18e29e464bf95",
+      "bytes": 802
+    },
+    {
+      "name": "MAC_MAIN_AGENT_PROMPT.md",
+      "sha256": "6554642626731fcac8693e8fc000726961d150c45422863664c213b6cac89c0e",
+      "bytes": 3086
+    },
+    {
+      "name": "MAC_REVIEW_FIXES_HANDOFF.md",
+      "sha256": "643521ad884f08c52ba8044490975f3ef2567d8ecd465632fd0105eb44dc7332",
+      "bytes": 4485
+    },
+    {
+      "name": "SOURCE_PACKAGE_MAPPING.json",
+      "sha256": "40542b61d7fa5d0899b22d9ccbdac12350205b72b0e877109c79849243240c9b",
+      "bytes": 26240
+    },
+    {
+      "name": "WINDOWS_ACCEPTANCE_PROMPT.md",
+      "sha256": "257ee8f35e75b0a3cd8503961bd390a4d831e46ab5318c7170b82a14d434e460",
+      "bytes": 10392
+    },
+    {
+      "name": "WINDOWS_REVIEW_FIXES.md",
+      "sha256": "50418879d7227fcf316c1ecf0c29791e0075989063981eb32172c0c53f2b505e",
+      "bytes": 10526
+    }
+  ]
+}

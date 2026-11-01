@@ -1,0 +1,28 @@
+{
+  "checks": [
+    {
+      "tool": "/usr/bin/codesign",
+      "args": [
+        "--verify",
+        "--deep",
+        "--strict",
+        "<package>/runtime/node/bin/node"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "tool": "/usr/sbin/pkgutil",
+      "args": [
+        "--check-signature",
+        "<package>/runtime/python-3.14.6-macos11.pkg"
+      ],
+      "exitCode": 0,
+      "stdout": "Package \"python-3.14.6-macos11.pkg\":\n   Status: signed by a developer certificate issued by Apple for distribution\n   Notarization: trusted by the Apple notary service\n   Signed with a trusted timestamp on: 2026-06-10 12:23:56 +0000\n   Certificate Chain:\n    1. Developer ID Installer: Python Software Foundation (BMM5U3QVKW)\n       Expires: 2030-05-21 16:16:18 +0000\n       SHA256 Fingerprint:\n           5D BA F2 7E 6E 8A 6D DA 57 A1 29 49 1F D6 9A 18 3C A8 B0 D4 A8 F8 \n           95 94 6D 56 9D B5 34 D4 5D 3B\n       ------------------------------------------------------------------------\n    2. Developer ID Certification Authority\n       Expires: 2031-09-17 00:00:00 +0000\n       SHA256 Fingerprint:\n           F1 6C D3 C5 4C 7F 83 CE A4 BF 1A 3E 6A 08 19 C8 AA A8 E4 A1 52 8F \n           D1 44 71 5F 35 06 43 D2 DF 3A\n       ------------------------------------------------------------------------\n    3. Apple Root CA\n       Expires: 2035-02-09 21:40:36 +0000\n       SHA256 Fingerprint:\n           B0 B1 73 0E CB C7 FF 45 05 14 2C 49 F1 29 5E 6E DA 6B CA ED 7E 2C \n           68 C5 BE 91 B5 A1 10 01 F0 24\n\n",
+      "stderr": ""
+    }
+  ],
+  "productSigning": "unsigned",
+  "notarization": "not-submitted"
+}

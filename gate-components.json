@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "plainElementFixtures": true,
+  "browserUiCovered": false,
+  "outcomes": {
+    "alibaba-auction": {
+      "missingDirectoryBlocked": true,
+      "unappliedParametersBlocked": true,
+      "readyEnabled": true,
+      "runningBlocked": true
+    },
+    "alibaba-lease": {
+      "missingDirectoryBlocked": true,
+      "unappliedParametersBlocked": true,
+      "readyEnabled": true,
+      "runningBlocked": true
+    },
+    "table": {
+      "emptyInputBlocked": true,
+      "missingOutputBlocked": true,
+      "readyEnabled": true
+    },
+    "anjuke": {
+      "missingPrerequisitesBlocked": true,
+      "readyEnabled": true,
+      "runningBlocked": true
+    }
+  }
+}

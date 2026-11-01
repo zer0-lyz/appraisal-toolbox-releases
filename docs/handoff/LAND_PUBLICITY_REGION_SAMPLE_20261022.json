@@ -1,0 +1,1884 @@
+{
+  "checkedAtRegionQueriesUTC": "2026-10-22T08:09:39.846Z",
+  "dateWindow": "2026-01-01 through 2026-10-22 (inclusive by official date filter)",
+  "sourcePage": "https://www.zjzrzyjy.com/landView/land-bidding",
+  "listEndpoint": "https://www.zjzrzyjy.com/trade/view/landbidding/querylandbidding",
+  "regionCatalog": {
+    "prefectureLevelCities": 11,
+    "countyLevelRegions": 92,
+    "regionsWithAnyUseRecords": 92
+  },
+  "individualRegionFilterCheck": {
+    "regionCodeQueries": 92,
+    "pass": 92,
+    "failed": 0,
+    "pageSize": 1,
+    "criterion": "every response returned a record whose regionCode exactly matched the selected county code"
+  },
+  "officialUseFilters": {
+    "住宅用地": {
+      "officialLandUse": 1,
+      "officialCount": 297,
+      "fetched": 297,
+      "regionsWithRecords": 62,
+      "classifiedAsRequested": 297,
+      "mismatched": 0,
+      "unclassified": 0,
+      "recordsWithFormattedPlotRatio": 297,
+      "regionsWithPlotRatio": 62,
+      "plotRatioExamples": [
+        {
+          "regionCode": "331121",
+          "district": "青田县",
+          "plotRatio": "X≤1.1；S≤3.0"
+        },
+        {
+          "regionCode": "330601",
+          "district": "绍兴市(本级)",
+          "plotRatio": "X≤1.3；S≤1.5"
+        },
+        {
+          "regionCode": "330825",
+          "district": "龙游县",
+          "plotRatio": "X<1.0；S≤1.6"
+        }
+      ]
+    },
+    "商服用地": {
+      "officialLandUse": 2,
+      "officialCount": 482,
+      "fetched": 482,
+      "regionsWithRecords": 76,
+      "classifiedAsRequested": 482,
+      "mismatched": 0,
+      "unclassified": 0,
+      "recordsWithFormattedPlotRatio": 482,
+      "regionsWithPlotRatio": 76,
+      "plotRatioExamples": [
+        {
+          "regionCode": "330521",
+          "district": "德清县",
+          "plotRatio": "X≤1.5；S≤2.0"
+        },
+        {
+          "regionCode": "330521",
+          "district": "德清县",
+          "plotRatio": "X≤0.1；S≤1.0"
+        },
+        {
+          "regionCode": "331122",
+          "district": "缙云县",
+          "plotRatio": "X≤1.2；S≤1.4"
+        }
+      ]
+    },
+    "工矿仓储": {
+      "officialLandUse": 3,
+      "officialCount": 2331,
+      "fetched": 2331,
+      "regionsWithRecords": 90,
+      "classifiedAsRequested": 2331,
+      "mismatched": 0,
+      "unclassified": 0,
+      "recordsWithFormattedPlotRatio": 2331,
+      "regionsWithPlotRatio": 90,
+      "plotRatioExamples": [
+        {
+          "regionCode": "331123",
+          "district": "遂昌县",
+          "plotRatio": "X≤0.6"
+        },
+        {
+          "regionCode": "330225",
+          "district": "象山县",
+          "plotRatio": "X≤0.8；S≤2.0"
+        },
+        {
+          "regionCode": "330225",
+          "district": "象山县",
+          "plotRatio": "X≤0.6；S≤2.0"
+        }
+      ]
+    },
+    "其他用地": {
+      "officialLandUse": 4,
+      "officialCount": 214,
+      "fetched": 214,
+      "regionsWithRecords": 68,
+      "classifiedAsRequested": 214,
+      "mismatched": 0,
+      "unclassified": 0,
+      "recordsWithFormattedPlotRatio": 214,
+      "regionsWithPlotRatio": 68,
+      "plotRatioExamples": [
+        {
+          "regionCode": "330521",
+          "district": "德清县",
+          "plotRatio": "X≤1.5；S≤3.0"
+        },
+        {
+          "regionCode": "330401",
+          "district": "嘉兴市(本级)",
+          "plotRatio": "X≤0.5；S≤0.8"
+        },
+        {
+          "regionCode": "330401",
+          "district": "嘉兴市(本级)",
+          "plotRatio": "X≤2.48；S≤2.5"
+        }
+      ]
+    }
+  },
+  "districts": [
+    {
+      "city": "丽水市",
+      "district": "丽水市(本级)",
+      "regionCode": "331101",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "住宅用地": 8,
+        "商服用地": 3,
+        "工矿仓储": 11,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 8,
+        "商服用地": 3,
+        "工矿仓储": 11,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "云和县",
+      "regionCode": "331125",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 9,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 2,
+        "工矿仓储": 4,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 2,
+        "工矿仓储": 4,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "庆元县",
+      "regionCode": "331126",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 5,
+      "landUseCounts": {
+        "工矿仓储": 5,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 5,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "景宁县",
+      "regionCode": "331127",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 3,
+      "landUseCounts": {
+        "商服用地": 1,
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 1,
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "松阳县",
+      "regionCode": "331124",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 20,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 1,
+        "工矿仓储": 15,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 1,
+        "工矿仓储": 15,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "缙云县",
+      "regionCode": "331122",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 20,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 2,
+        "工矿仓储": 13,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 2,
+        "工矿仓储": 13,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "莲都区",
+      "regionCode": "331102",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 14,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "工矿仓储": 11,
+        "其他用地": 2,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "工矿仓储": 11,
+        "其他用地": 2,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "遂昌县",
+      "regionCode": "331123",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 15,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 11,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 11,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "青田县",
+      "regionCode": "331121",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 13,
+      "landUseCounts": {
+        "住宅用地": 5,
+        "商服用地": 3,
+        "工矿仓储": 3,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 5,
+        "商服用地": 3,
+        "工矿仓储": 3,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "丽水市",
+      "district": "龙泉市",
+      "regionCode": "331181",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 33,
+      "landUseCounts": {
+        "住宅用地": 5,
+        "商服用地": 10,
+        "工矿仓储": 18,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 5,
+        "商服用地": 10,
+        "工矿仓储": 18,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "三门县",
+      "regionCode": "331022",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 19,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 14,
+        "其他用地": 2,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 14,
+        "其他用地": 2,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "临海市",
+      "regionCode": "331082",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 47,
+      "landUseCounts": {
+        "住宅用地": 4,
+        "商服用地": 2,
+        "工矿仓储": 36,
+        "其他用地": 5
+      },
+      "plotRatioCounts": {
+        "住宅用地": 4,
+        "商服用地": 2,
+        "工矿仓储": 36,
+        "其他用地": 5
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "仙居县",
+      "regionCode": "331024",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "台州市(本级)",
+      "regionCode": "331001",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 98,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 17,
+        "工矿仓储": 77,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 17,
+        "工矿仓储": 77,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "天台县",
+      "regionCode": "331023",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 30,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 1,
+        "工矿仓储": 21,
+        "其他用地": 5
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 1,
+        "工矿仓储": 21,
+        "其他用地": 5
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "温岭市",
+      "regionCode": "331081",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 82,
+      "landUseCounts": {
+        "住宅用地": 4,
+        "商服用地": 8,
+        "工矿仓储": 64,
+        "其他用地": 6
+      },
+      "plotRatioCounts": {
+        "住宅用地": 4,
+        "商服用地": 8,
+        "工矿仓储": 64,
+        "其他用地": 6
+      }
+    },
+    {
+      "city": "台州市",
+      "district": "玉环市",
+      "regionCode": "331021",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 56,
+      "landUseCounts": {
+        "住宅用地": 8,
+        "商服用地": 6,
+        "工矿仓储": 40,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 8,
+        "商服用地": 6,
+        "工矿仓储": 40,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "嘉兴市(本级)",
+      "regionCode": "330401",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 90,
+      "landUseCounts": {
+        "住宅用地": 7,
+        "商服用地": 22,
+        "工矿仓储": 48,
+        "其他用地": 13
+      },
+      "plotRatioCounts": {
+        "住宅用地": 7,
+        "商服用地": 22,
+        "工矿仓储": 48,
+        "其他用地": 13
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "嘉善县",
+      "regionCode": "330421",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 34,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 3,
+        "工矿仓储": 29,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 3,
+        "工矿仓储": 29,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "平湖市",
+      "regionCode": "330482",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 61,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 6,
+        "工矿仓储": 51,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 6,
+        "工矿仓储": 51,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "桐乡市",
+      "regionCode": "330483",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 103,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 15,
+        "工矿仓储": 84,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 15,
+        "工矿仓储": 84,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "海宁市",
+      "regionCode": "330481",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 102,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 18,
+        "工矿仓储": 71,
+        "其他用地": 12
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 18,
+        "工矿仓储": 71,
+        "其他用地": 12
+      }
+    },
+    {
+      "city": "嘉兴市",
+      "district": "海盐县",
+      "regionCode": "330424",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 47,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 7,
+        "工矿仓储": 34,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 7,
+        "工矿仓储": 34,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "余姚市",
+      "regionCode": "330281",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 33,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 4,
+        "工矿仓储": 24,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 4,
+        "工矿仓储": 24,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "北仑区",
+      "regionCode": "330206",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 19,
+      "landUseCounts": {
+        "工矿仓储": 17,
+        "其他用地": 2,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 17,
+        "其他用地": 2,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "奉化区",
+      "regionCode": "330283",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 24,
+      "landUseCounts": {
+        "工矿仓储": 23,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 23,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "宁波市(本级)",
+      "regionCode": "330201",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 36,
+      "landUseCounts": {
+        "住宅用地": 17,
+        "商服用地": 18,
+        "其他用地": 1,
+        "工矿仓储": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 17,
+        "商服用地": 18,
+        "其他用地": 1,
+        "工矿仓储": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "宁海县",
+      "regionCode": "330226",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 40,
+      "landUseCounts": {
+        "住宅用地": 4,
+        "工矿仓储": 34,
+        "其他用地": 2,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 4,
+        "工矿仓储": 34,
+        "其他用地": 2,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "慈溪市",
+      "regionCode": "330282",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 62,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 7,
+        "工矿仓储": 41,
+        "其他用地": 11
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 7,
+        "工矿仓储": 41,
+        "其他用地": 11
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "江北区",
+      "regionCode": "330205",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 9,
+      "landUseCounts": {
+        "工矿仓储": 8,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 8,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "海曙区",
+      "regionCode": "330203",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 8,
+      "landUseCounts": {
+        "工矿仓储": 8,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 8,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "象山县",
+      "regionCode": "330225",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 69,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 7,
+        "工矿仓储": 56,
+        "其他用地": 6
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 7,
+        "工矿仓储": 56,
+        "其他用地": 6
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "鄞州区",
+      "regionCode": "330212",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 16,
+      "landUseCounts": {
+        "工矿仓储": 15,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 15,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "宁波市",
+      "district": "镇海区",
+      "regionCode": "330211",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 20,
+      "landUseCounts": {
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "上城区",
+      "regionCode": "330102",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 2,
+      "landUseCounts": {
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "临安区",
+      "regionCode": "330185",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 26,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 4,
+        "工矿仓储": 20,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 4,
+        "工矿仓储": 20,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "临平区",
+      "regionCode": "330113",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "住宅用地": 6,
+        "商服用地": 6,
+        "工矿仓储": 11,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 6,
+        "商服用地": 6,
+        "工矿仓储": 11,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "余杭区",
+      "regionCode": "330110",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 31,
+      "landUseCounts": {
+        "住宅用地": 9,
+        "商服用地": 3,
+        "工矿仓储": 18,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 9,
+        "商服用地": 3,
+        "工矿仓储": 18,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "富阳区",
+      "regionCode": "330183",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 36,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 33,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 33,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "建德市",
+      "regionCode": "330182",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 26,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 7,
+        "工矿仓储": 14,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 7,
+        "工矿仓储": 14,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "拱墅区",
+      "regionCode": "330105",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 3,
+      "landUseCounts": {
+        "商服用地": 1,
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 1,
+        "工矿仓储": 2,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "杭州市(本级)",
+      "regionCode": "330101",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 17,
+      "landUseCounts": {
+        "住宅用地": 13,
+        "商服用地": 4,
+        "工矿仓储": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 13,
+        "商服用地": 4,
+        "工矿仓储": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "桐庐县",
+      "regionCode": "330122",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 10,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 2,
+        "工矿仓储": 6,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 2,
+        "工矿仓储": 6,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "淳安县",
+      "regionCode": "330127",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 8,
+      "landUseCounts": {
+        "商服用地": 1,
+        "工矿仓储": 6,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 1,
+        "工矿仓储": 6,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "滨江区",
+      "regionCode": "330108",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 3,
+      "landUseCounts": {
+        "工矿仓储": 3,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 3,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "萧山区",
+      "regionCode": "330109",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 62,
+      "landUseCounts": {
+        "住宅用地": 10,
+        "商服用地": 9,
+        "工矿仓储": 40,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 10,
+        "商服用地": 9,
+        "工矿仓储": 40,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "西湖区",
+      "regionCode": "330106",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 7,
+      "landUseCounts": {
+        "工矿仓储": 7,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 7,
+        "住宅用地": 0,
+        "商服用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "杭州市",
+      "district": "钱塘区",
+      "regionCode": "330114",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 21,
+      "landUseCounts": {
+        "住宅用地": 6,
+        "工矿仓储": 14,
+        "其他用地": 1,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 6,
+        "工矿仓储": 14,
+        "其他用地": 1,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "乐清市",
+      "regionCode": "330382",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 78,
+      "landUseCounts": {
+        "住宅用地": 4,
+        "商服用地": 4,
+        "工矿仓储": 70,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 4,
+        "商服用地": 4,
+        "工矿仓储": 70,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "平阳县",
+      "regionCode": "330326",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 48,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 8,
+        "工矿仓储": 34,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 8,
+        "工矿仓储": 34,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "文成县",
+      "regionCode": "330328",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 12,
+      "landUseCounts": {
+        "商服用地": 1,
+        "工矿仓储": 11,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 1,
+        "工矿仓储": 11,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "永嘉县",
+      "regionCode": "330324",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 19,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "泰顺县",
+      "regionCode": "330329",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 10,
+      "landUseCounts": {
+        "商服用地": 2,
+        "工矿仓储": 7,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 2,
+        "工矿仓储": 7,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "洞头区",
+      "regionCode": "330305",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 4,
+      "landUseCounts": {
+        "工矿仓储": 2,
+        "其他用地": 2,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 2,
+        "其他用地": 2,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "温州市(本级)",
+      "regionCode": "330301",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 44,
+      "landUseCounts": {
+        "住宅用地": 2,
+        "商服用地": 8,
+        "工矿仓储": 34,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 2,
+        "商服用地": 8,
+        "工矿仓储": 34,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "瑞安市",
+      "regionCode": "330381",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 122,
+      "landUseCounts": {
+        "住宅用地": 14,
+        "商服用地": 7,
+        "工矿仓储": 94,
+        "其他用地": 7
+      },
+      "plotRatioCounts": {
+        "住宅用地": 14,
+        "商服用地": 7,
+        "工矿仓储": 94,
+        "其他用地": 7
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "苍南县",
+      "regionCode": "330327",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 21,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 18,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 18,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "温州市",
+      "district": "龙港市",
+      "regionCode": "330383",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 47,
+      "landUseCounts": {
+        "住宅用地": 4,
+        "商服用地": 11,
+        "工矿仓储": 30,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 4,
+        "商服用地": 11,
+        "工矿仓储": 30,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "南浔区",
+      "regionCode": "330503",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 28,
+      "landUseCounts": {
+        "工矿仓储": 25,
+        "其他用地": 3,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 25,
+        "其他用地": 3,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "吴兴区",
+      "regionCode": "330502",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 30,
+      "landUseCounts": {
+        "工矿仓储": 27,
+        "其他用地": 3,
+        "住宅用地": 0,
+        "商服用地": 0
+      },
+      "plotRatioCounts": {
+        "工矿仓储": 27,
+        "其他用地": 3,
+        "住宅用地": 0,
+        "商服用地": 0
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "安吉县",
+      "regionCode": "330523",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 96,
+      "landUseCounts": {
+        "住宅用地": 5,
+        "商服用地": 20,
+        "工矿仓储": 66,
+        "其他用地": 5
+      },
+      "plotRatioCounts": {
+        "住宅用地": 5,
+        "商服用地": 20,
+        "工矿仓储": 66,
+        "其他用地": 5
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "德清县",
+      "regionCode": "330521",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 106,
+      "landUseCounts": {
+        "住宅用地": 10,
+        "商服用地": 18,
+        "工矿仓储": 66,
+        "其他用地": 12
+      },
+      "plotRatioCounts": {
+        "住宅用地": 10,
+        "商服用地": 18,
+        "工矿仓储": 66,
+        "其他用地": 12
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "湖州市(本级)",
+      "regionCode": "330501",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 59,
+      "landUseCounts": {
+        "住宅用地": 22,
+        "商服用地": 28,
+        "工矿仓储": 8,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 22,
+        "商服用地": 28,
+        "工矿仓储": 8,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "湖州市",
+      "district": "长兴县",
+      "regionCode": "330522",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 69,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 15,
+        "工矿仓储": 50,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 15,
+        "工矿仓储": 50,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "上虞区",
+      "regionCode": "330682",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 39,
+      "landUseCounts": {
+        "住宅用地": 5,
+        "商服用地": 3,
+        "工矿仓储": 27,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 5,
+        "商服用地": 3,
+        "工矿仓储": 27,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "嵊州市",
+      "regionCode": "330683",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 36,
+      "landUseCounts": {
+        "住宅用地": 9,
+        "商服用地": 4,
+        "工矿仓储": 19,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 9,
+        "商服用地": 4,
+        "工矿仓储": 19,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "新昌县",
+      "regionCode": "330624",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 24,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 2,
+        "工矿仓储": 15,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 2,
+        "工矿仓储": 15,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "柯桥区",
+      "regionCode": "330603",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 44,
+      "landUseCounts": {
+        "住宅用地": 6,
+        "商服用地": 12,
+        "工矿仓储": 25,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 6,
+        "商服用地": 12,
+        "工矿仓储": 25,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "绍兴市(本级)",
+      "regionCode": "330601",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 76,
+      "landUseCounts": {
+        "住宅用地": 7,
+        "商服用地": 16,
+        "工矿仓储": 42,
+        "其他用地": 11
+      },
+      "plotRatioCounts": {
+        "住宅用地": 7,
+        "商服用地": 16,
+        "工矿仓储": 42,
+        "其他用地": 11
+      }
+    },
+    {
+      "city": "绍兴市",
+      "district": "诸暨市",
+      "regionCode": "330681",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 53,
+      "landUseCounts": {
+        "住宅用地": 7,
+        "商服用地": 3,
+        "工矿仓储": 39,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 7,
+        "商服用地": 3,
+        "工矿仓储": 39,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "舟山市",
+      "district": "定海区",
+      "regionCode": "330902",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 45,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 39,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 39,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "舟山市",
+      "district": "岱山县",
+      "regionCode": "330921",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 9,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 5,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 5,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "舟山市",
+      "district": "嵊泗县",
+      "regionCode": "330922",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 2,
+      "landUseCounts": {
+        "商服用地": 1,
+        "工矿仓储": 1,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 1,
+        "工矿仓储": 1,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "舟山市",
+      "district": "普陀区",
+      "regionCode": "330903",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 29,
+      "landUseCounts": {
+        "商服用地": 5,
+        "工矿仓储": 20,
+        "其他用地": 4,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 5,
+        "工矿仓储": 20,
+        "其他用地": 4,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "舟山市",
+      "district": "舟山市(本级)",
+      "regionCode": "330901",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 3,
+      "landUseCounts": {
+        "商服用地": 2,
+        "工矿仓储": 1,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 2,
+        "工矿仓储": 1,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "常山县",
+      "regionCode": "330822",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 24,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 18,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 2,
+        "工矿仓储": 18,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "开化县",
+      "regionCode": "330824",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 15,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 6,
+        "工矿仓储": 7,
+        "其他用地": 1
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 6,
+        "工矿仓储": 7,
+        "其他用地": 1
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "柯城区",
+      "regionCode": "330802",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 13,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 7,
+        "工矿仓储": 3,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 7,
+        "工矿仓储": 3,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "江山市",
+      "regionCode": "330881",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 34,
+      "landUseCounts": {
+        "商服用地": 6,
+        "工矿仓储": 26,
+        "其他用地": 2,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 6,
+        "工矿仓储": 26,
+        "其他用地": 2,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "衢州市(本级)",
+      "regionCode": "330801",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 44,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 40,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 40,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "衢江区",
+      "regionCode": "330803",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 16,
+      "landUseCounts": {
+        "商服用地": 3,
+        "工矿仓储": 9,
+        "其他用地": 4,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 3,
+        "工矿仓储": 9,
+        "其他用地": 4,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "衢州市",
+      "district": "龙游县",
+      "regionCode": "330825",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 30,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 6,
+        "工矿仓储": 16,
+        "其他用地": 5
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 6,
+        "工矿仓储": 16,
+        "其他用地": 5
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "东阳市",
+      "regionCode": "330783",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 62,
+      "landUseCounts": {
+        "住宅用地": 12,
+        "商服用地": 6,
+        "工矿仓储": 42,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 12,
+        "商服用地": 6,
+        "工矿仓储": 42,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "义乌市",
+      "regionCode": "330782",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 118,
+      "landUseCounts": {
+        "住宅用地": 12,
+        "商服用地": 22,
+        "工矿仓储": 82,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 12,
+        "商服用地": 22,
+        "工矿仓储": 82,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "兰溪市",
+      "regionCode": "330781",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 57,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 9,
+        "工矿仓储": 45,
+        "其他用地": 2
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 9,
+        "工矿仓储": 45,
+        "其他用地": 2
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "婺城区",
+      "regionCode": "330702",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 24,
+      "landUseCounts": {
+        "商服用地": 2,
+        "工矿仓储": 21,
+        "其他用地": 1,
+        "住宅用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 2,
+        "工矿仓储": 21,
+        "其他用地": 1,
+        "住宅用地": 0
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "武义县",
+      "regionCode": "330723",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 5,
+        "工矿仓储": 17,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 5,
+        "工矿仓储": 17,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "永康市",
+      "regionCode": "330784",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 57,
+      "landUseCounts": {
+        "住宅用地": 8,
+        "商服用地": 3,
+        "工矿仓储": 46,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 8,
+        "商服用地": 3,
+        "工矿仓储": 46,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "浦江县",
+      "regionCode": "330726",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 23,
+      "landUseCounts": {
+        "住宅用地": 5,
+        "商服用地": 1,
+        "工矿仓储": 14,
+        "其他用地": 3
+      },
+      "plotRatioCounts": {
+        "住宅用地": 5,
+        "商服用地": 1,
+        "工矿仓储": 14,
+        "其他用地": 3
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "磐安县",
+      "regionCode": "330727",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 13,
+      "landUseCounts": {
+        "商服用地": 2,
+        "工矿仓储": 11,
+        "住宅用地": 0,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "商服用地": 2,
+        "工矿仓储": 11,
+        "住宅用地": 0,
+        "其他用地": 0
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "金东区",
+      "regionCode": "330703",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 26,
+      "landUseCounts": {
+        "住宅用地": 3,
+        "商服用地": 6,
+        "工矿仓储": 13,
+        "其他用地": 4
+      },
+      "plotRatioCounts": {
+        "住宅用地": 3,
+        "商服用地": 6,
+        "工矿仓储": 13,
+        "其他用地": 4
+      }
+    },
+    {
+      "city": "金华市",
+      "district": "金华市(本级)",
+      "regionCode": "330701",
+      "filterStatus": "PASS",
+      "officialQueryTotal": 29,
+      "landUseCounts": {
+        "住宅用地": 1,
+        "商服用地": 3,
+        "工矿仓储": 25,
+        "其他用地": 0
+      },
+      "plotRatioCounts": {
+        "住宅用地": 1,
+        "商服用地": 3,
+        "工矿仓储": 25,
+        "其他用地": 0
+      }
+    }
+  ],
+  "scopeNote": "Live public API/list-field checks only. No logged-in account, browser profile, map key, live plugin GUI, or detail endpoint request for every row.",
+  "checkedAtUseQueriesCapturedUTC": "2026-10-22T08:13:14.758524Z"
+}

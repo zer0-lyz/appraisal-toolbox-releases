@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+node_modules/
+.env
+.env.*
+runtime-config.json
+installation-report.txt
+dist/
+build-output/
+evidence-private/
+*.exe
+*.zip

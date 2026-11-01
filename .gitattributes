@@ -1,0 +1,7 @@
+# Preserve recovered and accepted payload bytes; do not normalize in a handoff.
+* -text
+docs/** text eol=lf
+.github/** text eol=lf
+scripts/release/** text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf

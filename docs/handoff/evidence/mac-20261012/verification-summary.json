@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-12",
+  "sourceCommit": "80eec2bbec08001f4052a2b0adf7f1791f0b0b09",
+  "windowsHandoffCommit": "8cde0ea68102a560ee7158190c48d1599fd13a00",
+  "platform": "Darwin arm64",
+  "sourceFiles": 189,
+  "payloadFiles": 128,
+  "sourceAndPayloadShaVerified": true,
+  "finalZipReadbackAndExecutableModes": true,
+  "lockSha256": "d52bd4e01dfc10d0e31ca82f98f332ad1681a91c8bc197627abe4593bb84b689",
+  "sourceChecks": "passed: JavaScript syntax, Alibaba page-state 14, lease 8 groups, history/results/map/overwrite fixtures, build/cache/decoder/diagnostic tests 4",
+  "signature": {
+    "productPackage": "unsigned/no notarization",
+    "packagedNodeVerify": "failed: invalid signature (code or signature have been modified)",
+    "packagedPythonPkgVerify": "failed: invalid signature",
+    "sameFailureInHistoricalInputs": true,
+    "issue": 6
+  },
+  "legacyPythonTests": {
+    "land": {
+      "pass": 4,
+      "errors": 4,
+      "cause": "obsolete HTTP Response fixtures"
+    },
+    "depreciation": {
+      "pass": 7,
+      "fail": 1,
+      "cause": "stale agents/openai.yaml bundle SHA"
+    },
+    "issue": 7
+  },
+  "notCovered": [
+    "real browser Native connection",
+    "real GUI/network core workflows",
+    "ordinary desktop/system framework installation",
+    "Gatekeeper/notarization",
+    "Windows installer and real MSIX",
+    "natural Alibaba expired page",
+    "real Excel/WPS occupation"
+  ],
+  "originalMacWorktreePreservedAndBackupVerified": true
+}

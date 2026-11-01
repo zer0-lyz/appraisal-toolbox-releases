@@ -1,0 +1,15 @@
+test_county_region_takes_precedence_over_city_fallback (test_land_publicity_runner.LandPublicityDateTests.test_county_region_takes_precedence_over_city_fallback) ... ok
+test_list_candidate_filter_uses_list_content_before_detail_fetch (test_land_publicity_runner.LandPublicityDateTests.test_list_candidate_filter_uses_list_content_before_detail_fetch) ... ok
+test_list_fetch_filters_candidates_and_stops_at_start_date (test_land_publicity_runner.LandPublicityDateTests.test_list_fetch_filters_candidates_and_stops_at_start_date) ... ok
+test_region_tree_resolves_all_descendant_codes (test_land_publicity_runner.LandPublicityDateTests.test_region_tree_resolves_all_descendant_codes) ... ok
+test_release_date_uses_inclusive_range (test_land_publicity_runner.LandPublicityDateTests.test_release_date_uses_inclusive_range) ... ok
+test_server_filters_are_sent_to_publicity_list (test_land_publicity_runner.LandPublicityDateTests.test_server_filters_are_sent_to_publicity_list) ... ok
+test_server_filters_use_region_tree_and_publish_window (test_land_publicity_runner.LandPublicityDateTests.test_server_filters_use_region_tree_and_publish_window) ... ok
+test_start_date_cannot_follow_end_date (test_land_publicity_runner.LandPublicityDateTests.test_start_date_cannot_follow_end_date) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+第1页: 2条, 累计2条
+第2页: 1条, 累计2条

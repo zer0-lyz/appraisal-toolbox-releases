@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "realLeafletUsed": true,
+  "simulatedAmapApi": true,
+  "realAmapNetworkCovered": false,
+  "browserUiCovered": false,
+  "realConfigRead": false,
+  "cases": [
+    "real-leaflet-marker-cluster-line-label-popup-buttons-sdk-camera-scale-0.5",
+    "real-leaflet-marker-cluster-line-label-popup-buttons-sdk-camera-scale-1",
+    "real-leaflet-marker-cluster-line-label-popup-buttons-sdk-camera-scale-2",
+    "real-leaflet-marker-cluster-line-label-popup-buttons-sdk-camera-scale-3",
+    "missing-key-no-sdk",
+    "missing-key-no-sdk",
+    "real-cluster-focus-and-sdk-error-hide-stale-map",
+    "wheel-units-shift-small-deltas-expiry-sdk-anchor-ui-ctrl-null-nan-unbind-cancel-pending"
+  ],
+  "scriptsParsed": 8
+}

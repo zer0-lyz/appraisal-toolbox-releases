@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-16",
+  "mac": {
+    "status": "candidate-validated",
+    "sourceBranch": "codex/mac-build16-baseline-20261016",
+    "sourceCommit": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9",
+    "productVersion": "0.2.1",
+    "buildId": "mac-build16-20261016.3",
+    "buildNumber": 2026101601,
+    "target": "macos-arm64",
+    "releaseTag": "v0.2.1-macos.20261016.3",
+    "releaseUrl": "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/tag/v0.2.1-macos.20261016.3",
+    "archive": "appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.3.zip",
+    "archiveSha256": "6816b2c8ddaf8b597fcb41bb7a99062c0c1817f229b25d224abd5e5dc855d0df",
+    "remoteDigestVerified": true,
+    "productSigning": "unsigned",
+    "productNotarization": "not-submitted",
+    "nodeVendorSignature": "verified-exit-0",
+    "pythonVendorPackageSignatureAndNotary": "trusted-exit-0"
+  },
+  "windowsBuild16": {
+    "releaseTag": "v0.2.1-windows.20261016.16",
+    "sourceSnapshot": "65840987d9aea80586817ca63684f4df2953d5c2",
+    "dirtyBuild": true,
+    "rebuiltFromSnapshot": false,
+    "fullAcceptancePassed": false,
+    "realDesktopGui": "not-covered",
+    "legacy20261011ReportApplies": false,
+    "userReportedModuleValidation": "verbal-only-not-bound-to-build16-package"
+  },
+  "layers": {
+    "sourceChecks": "passed",
+    "offlineBusinessAndProtocol": "passed",
+    "isolatedMacInstaller": "passed",
+    "packageIntegrity": "passed",
+    "productSigning": "not-provided",
+    "macDesktopBrowser": "not-covered",
+    "realAmapInteraction": "not-covered",
+    "realBusinessNetworkAndOfficeGui": "not-covered",
+    "windowsDesktopAndUpdaterGui": "not-covered"
+  },
+  "evidenceDirectory": "docs/handoff/mac-build16-20261016/evidence",
+  "ci": {
+    "runId": 38880197994,
+    "headSha": "8cbc9dfeca78d8b56b8f6f9a2bc0671d0e290cb5",
+    "conclusion": "success",
+    "macCandidateBuildAndIsolatedInstall": "passed",
+    "windowsCandidateBuildSeaImportsAndNativeMessaging": "passed",
+    "windowsDesktopGui": "not-covered",
+    "publishedMacReleaseSourceSha": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9"
+  }
+}

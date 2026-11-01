@@ -1,0 +1,3546 @@
+{
+  "schemaVersion": 2,
+  "product": "评估工具箱",
+  "extensionId": "aamfmhcbjgofhmannejoiilkkpchfkgm",
+  "nativeHost": "com.appraisal.toolbox.helper",
+  "scope": "candidate-build-inputs; historical artifacts retain their original provenance",
+  "targets": {
+    "macos-arm64": {
+      "baseAsset": {
+        "tag": "v0.2.1",
+        "name": "appraisal-toolbox-v0.2.1-macos-arm64-full.zip",
+        "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/download/v0.2.1/appraisal-toolbox-v0.2.1-macos-arm64-full.zip",
+        "sha256": "4570d0fa51a0284fbee1f5157731fc7bd311fae9402da4cbe896f2acdeaa792c"
+      },
+      "node": {
+        "version": "v24.14.0",
+        "path": "runtime/node/bin/node",
+        "license": "Node MIT; bundled LICENSE",
+        "sha256": "20a18709f0154d668f1bd6f6ea8c2a7ae001447b4b2c339732f22e57a8767a55"
+      },
+      "python": {
+        "version": "3.14.6",
+        "kind": "official framework installer plus offline wheels",
+        "path": "runtime/python-3.14.6-macos11.pkg",
+        "license": "Python PSF; source https://www.python.org/downloads/release/python-3146/",
+        "sha256": "d3c9fff52214847e4fab03e9eaf53dd2a8e51e3534aa0b61f201b749f86bef28"
+      },
+      "wheels": [
+        {
+          "path": "runtime/python-wheels/et_xmlfile-2.0.0-py3-none-any.whl",
+          "sha256": "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa",
+          "bytes": 18059,
+          "name": "et_xmlfile",
+          "version": "2.0.0",
+          "license": "MIT"
+        },
+        {
+          "path": "runtime/python-wheels/lxml-6.1.0-cp314-cp314-macosx_10_15_universal2.whl",
+          "sha256": "ab863fd37458fed6456525f297d21239d987800c46e67da5ef04fc6b3dd93ac8",
+          "bytes": 8576713,
+          "name": "lxml",
+          "version": "6.1.0",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "path": "runtime/python-wheels/requests-2.32.5-py3-none-any.whl",
+          "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+          "bytes": 64738,
+          "name": "requests",
+          "version": "2.32.5",
+          "license": "Apache-2.0"
+        },
+        {
+          "path": "runtime/python-wheels/idna-3.20-py3-none-any.whl",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "bytes": 69583,
+          "name": "idna",
+          "version": "3.20",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "path": "runtime/python-wheels/python_docx-1.2.0-py3-none-any.whl",
+          "sha256": "3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7",
+          "bytes": 252987,
+          "name": "python-docx",
+          "version": "1.2.0",
+          "license": "MIT"
+        },
+        {
+          "path": "runtime/python-wheels/urllib3-2.8.0-py3-none-any.whl",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "bytes": 135717,
+          "name": "urllib3",
+          "version": "2.8.0",
+          "license": "MIT"
+        },
+        {
+          "path": "runtime/python-wheels/typing_extensions-4.16.0-py3-none-any.whl",
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+          "bytes": 45571,
+          "name": "typing_extensions",
+          "version": "4.16.0",
+          "license": "PSF-2.0"
+        },
+        {
+          "path": "runtime/python-wheels/certifi-2026.7.22-py3-none-any.whl",
+          "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+          "bytes": 136983,
+          "name": "certifi",
+          "version": "2026.7.22",
+          "license": "MPL-2.0"
+        },
+        {
+          "path": "runtime/python-wheels/openpyxl-3.1.5-py2.py3-none-any.whl",
+          "sha256": "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2",
+          "bytes": 250910,
+          "name": "openpyxl",
+          "version": "3.1.5",
+          "license": "MIT"
+        },
+        {
+          "path": "runtime/python-wheels/charset_normalizer-3.5.2-cp314-cp314-macosx_10_15_universal2.whl",
+          "sha256": "fcff63213e8e6e47770541a4607175404f47cbb3ebea7b6058cc82d524a0e424",
+          "bytes": 367815,
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "license": "MIT"
+        }
+      ],
+      "runtimeFiles": [
+        {
+          "path": "runtime/python-wheels/et_xmlfile-2.0.0-py3-none-any.whl",
+          "sha256": "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa",
+          "bytes": 18059
+        },
+        {
+          "path": "runtime/python-wheels/lxml-6.1.0-cp314-cp314-macosx_10_15_universal2.whl",
+          "sha256": "ab863fd37458fed6456525f297d21239d987800c46e67da5ef04fc6b3dd93ac8",
+          "bytes": 8576713
+        },
+        {
+          "path": "runtime/python-wheels/requests-2.32.5-py3-none-any.whl",
+          "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+          "bytes": 64738
+        },
+        {
+          "path": "runtime/python-wheels/idna-3.20-py3-none-any.whl",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "bytes": 69583
+        },
+        {
+          "path": "runtime/python-wheels/python_docx-1.2.0-py3-none-any.whl",
+          "sha256": "3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7",
+          "bytes": 252987
+        },
+        {
+          "path": "runtime/python-wheels/urllib3-2.8.0-py3-none-any.whl",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "bytes": 135717
+        },
+        {
+          "path": "runtime/python-wheels/typing_extensions-4.16.0-py3-none-any.whl",
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+          "bytes": 45571
+        },
+        {
+          "path": "runtime/python-wheels/certifi-2026.7.22-py3-none-any.whl",
+          "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+          "bytes": 136983
+        },
+        {
+          "path": "runtime/python-wheels/openpyxl-3.1.5-py2.py3-none-any.whl",
+          "sha256": "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2",
+          "bytes": 250910
+        },
+        {
+          "path": "runtime/python-wheels/charset_normalizer-3.5.2-cp314-cp314-macosx_10_15_universal2.whl",
+          "sha256": "fcff63213e8e6e47770541a4607175404f47cbb3ebea7b6058cc82d524a0e424",
+          "bytes": 367815
+        },
+        {
+          "path": "runtime/python-3.14.6-macos11.pkg",
+          "sha256": "d3c9fff52214847e4fab03e9eaf53dd2a8e51e3534aa0b61f201b749f86bef28",
+          "bytes": 78097715
+        },
+        {
+          "path": "runtime/node/LICENSE",
+          "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18",
+          "bytes": 156926
+        },
+        {
+          "path": "runtime/node/bin/node",
+          "sha256": "20a18709f0154d668f1bd6f6ea8c2a7ae001447b4b2c339732f22e57a8767a55",
+          "bytes": 119133456
+        }
+      ],
+      "tools": [
+        {
+          "name": "ditto",
+          "path": "/usr/bin/ditto",
+          "version": "macOS platform tool; runtime observed version is recorded in manifest"
+        },
+        {
+          "name": "zipfile",
+          "version": "Python standard library; build helper version recorded in manifest"
+        }
+      ]
+    },
+    "windows-x64": {
+      "baseAsset": {
+        "tag": "v0.2.1",
+        "name": "appraisal-toolbox-v0.2.1-windows-x64-full.zip",
+        "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/download/v0.2.1/appraisal-toolbox-v0.2.1-windows-x64-full.zip",
+        "sha256": "a71aabe5008d06e4ba519a0abfb7c84fcdf6e53085a8eb54100313e626366a28"
+      },
+      "node": {
+        "version": "v24.18.1",
+        "path": "build-host/node.exe",
+        "license": "Node MIT; bundled LICENSE",
+        "sha256": "ac51903c4c111815d52280b1fdcc8da067cbb37e2fe1a765097b85c3292c8582",
+        "url": "https://nodejs.org/dist/v24.18.1/win-x64/node.exe"
+      },
+      "python": {
+        "version": "3.14.6",
+        "kind": "portable embedded distribution",
+        "path": "runtime/python-portable/python.exe",
+        "license": "Python PSF; source https://www.python.org/downloads/release/python-3146/",
+        "sha256": "03168c01b7b7491423350e82c26fee71f35b43694d1319d3c668bda6903a0c38"
+      },
+      "wheels": [],
+      "runtimeFiles": [
+        {
+          "path": "runtime/python-portable/_uuid.pyd",
+          "sha256": "a09308efd309732e3745e70b4456235579c450cac32bed616dfb3913b56f6637",
+          "bytes": 28384
+        },
+        {
+          "path": "runtime/python-portable/_zstd.pyd",
+          "sha256": "262aea62a994920daf152a10bdc0ca83a8b1c0874e71db23734862431de182c6",
+          "bytes": 503520
+        },
+        {
+          "path": "runtime/python-portable/vcruntime140.dll",
+          "sha256": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4",
+          "bytes": 120400
+        },
+        {
+          "path": "runtime/python-portable/_elementtree.pyd",
+          "sha256": "16f4d30a50fc25950762a8bbef9dd6c5750729345539c224d489be33e6d6f340",
+          "bytes": 138464
+        },
+        {
+          "path": "runtime/python-portable/_hashlib.pyd",
+          "sha256": "36ce760b9fac53fe51755f30a68d86f5fde89bf1b66c65c19e04aa3afa404ac2",
+          "bytes": 69344
+        },
+        {
+          "path": "runtime/python-portable/python3.dll",
+          "sha256": "22c6e46d8bd563cdb072650901461ef68be2ea6cb1e80af859559d9395a27e39",
+          "bytes": 73952
+        },
+        {
+          "path": "runtime/python-portable/_wmi.pyd",
+          "sha256": "0ab1fbcf18c95d70343012feb1aad61e1ba95aaed5b4a08e57fc5990e8a9a452",
+          "bytes": 40160
+        },
+        {
+          "path": "runtime/python-portable/winsound.pyd",
+          "sha256": "38eccf01b663abfad0bc40444043410fecc5af895be3a1efbc9bd1cfe787f5a6",
+          "bytes": 32992
+        },
+        {
+          "path": "runtime/python-portable/_ssl.pyd",
+          "sha256": "5c07572df2913618cfb851b608cb5f74d740fcce5c3f2e63dc0a2ba39ab35dad",
+          "bytes": 190688
+        },
+        {
+          "path": "runtime/python-portable/python314.dll",
+          "sha256": "fde89cdb5c2d08ae65de7ef4abca1876c93ba3796002f5ac0bf7e4d4f5a94da0",
+          "bytes": 6778592
+        },
+        {
+          "path": "runtime/python-portable/python.cat",
+          "sha256": "10da2cf78c77c5bf69469bcb652df2eb0af63d7f9ba08ba3cd4512aed6a42525",
+          "bytes": 595524
+        },
+        {
+          "path": "runtime/python-portable/sqlite3.dll",
+          "sha256": "2940bee51c4a00c7e8f2a8a1be857d4c4ad23b2657fbf7fdf18e3a3fd20066c6",
+          "bytes": 1584864
+        },
+        {
+          "path": "runtime/python-portable/_overlapped.pyd",
+          "sha256": "ac877f3da413c1523c07b6a0dd1f7e0d7ceb3e8590a5e9e20a78eb1bcb700793",
+          "bytes": 58080
+        },
+        {
+          "path": "runtime/python-portable/python314.zip",
+          "sha256": "e13e610c2e56173cc933986f38c56c7439e4e1519ddf98829e92c5d348f1c376",
+          "bytes": 4125572
+        },
+        {
+          "path": "runtime/python-portable/libcrypto-3.dll",
+          "sha256": "53c529145339fb042a3dcd3a09c2d7753204f8b4fc79d99e0d31e69a33985958",
+          "bytes": 6242552
+        },
+        {
+          "path": "runtime/python-portable/pythonw.exe",
+          "sha256": "e3889c5020644b9ecfd9e678f95372b1e127e29e6c02b1129ed88c38381d0972",
+          "bytes": 104672
+        },
+        {
+          "path": "runtime/python-portable/_zoneinfo.pyd",
+          "sha256": "c471587b0741aa0b795dcda76667a69e40aeb881b54ea3601a26e050cb27dc8a",
+          "bytes": 51936
+        },
+        {
+          "path": "runtime/python-portable/_asyncio.pyd",
+          "sha256": "dc6db118862ab3298e55e0f7c44c2c0dae4af9e810d2578271280202d6aa098a",
+          "bytes": 78048
+        },
+        {
+          "path": "runtime/python-portable/python.exe",
+          "sha256": "03168c01b7b7491423350e82c26fee71f35b43694d1319d3c668bda6903a0c38",
+          "bytes": 106208
+        },
+        {
+          "path": "runtime/python-portable/_lzma.pyd",
+          "sha256": "5f7003f9f0256e36351ca2810b3485db28579b08e4d1d65f6f211fcd1136f395",
+          "bytes": 160992
+        },
+        {
+          "path": "runtime/python-portable/libffi-8.dll",
+          "sha256": "eff52743773eb550fcc6ce3efc37c85724502233b6b002a35496d828bd7b280a",
+          "bytes": 39696
+        },
+        {
+          "path": "runtime/python-portable/_multiprocessing.pyd",
+          "sha256": "9e87ce081fbcf0b6596fcba98e121379ad72a33d68e6b2af7a8bcc5b900229ba",
+          "bytes": 38624
+        },
+        {
+          "path": "runtime/python-portable/pyexpat.pyd",
+          "sha256": "133942bde91fe43289076a0b50a01b265df4ead078617cca6f6604a4166e1260",
+          "bytes": 222944
+        },
+        {
+          "path": "runtime/python-portable/vcruntime140_1.dll",
+          "sha256": "6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8",
+          "bytes": 49776
+        },
+        {
+          "path": "runtime/python-portable/libssl-3.dll",
+          "sha256": "b17a87979862d19241edc4318f967e24c3ec356ed6c2368f561179fab2311001",
+          "bytes": 1329912
+        },
+        {
+          "path": "runtime/python-portable/_sqlite3.pyd",
+          "sha256": "b0c4edff6d60f300373ec929ab915f95ee601bf167e04d28e4e9e28a8e536fe0",
+          "bytes": 132832
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests-2.32.5.dist-info/RECORD",
+          "sha256": "47ba167a94e78212959646abd75e65816c926c2b175854d958d5efae73f510ba",
+          "bytes": 1784
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests-2.32.5.dist-info/licenses/LICENSE",
+          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+          "bytes": 10142
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests-2.32.5.dist-info/WHEEL",
+          "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b",
+          "bytes": 91
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests-2.32.5.dist-info/top_level.txt",
+          "sha256": "7cc4959877dbe6b6c63a8eb1bfe3bfb545fa8fe5b28b1b2c13e4a7c1c0d1c4d4",
+          "bytes": 9
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests-2.32.5.dist-info/METADATA",
+          "sha256": "65b5a08da81f4915513e760965ff14b7518f65b7bb3efe0dab364bbcc4d40cb0",
+          "bytes": 4945
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl-3.1.5.dist-info/LICENCE.rst",
+          "sha256": "0c84bb42f5d367e5ebf9fc2dde35b16141df5ee0fdc189250858bc6c5560f69e",
+          "bytes": 1131
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl-3.1.5.dist-info/RECORD",
+          "sha256": "42867ad4c91910450d771ca9b8550f4a42602ce72355914d726a1974fba31f45",
+          "bytes": 16526
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl-3.1.5.dist-info/WHEEL",
+          "sha256": "0d96a30f8a702d6b9eef40807dced86b14f5c0b51c88d06f37f4d372f5e996d1",
+          "bytes": 110
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl-3.1.5.dist-info/top_level.txt",
+          "sha256": "98a24ee50140b14103b49fdcf7b17e21b995b476040f29aa0fb7795f450b915b",
+          "bytes": 9
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl-3.1.5.dist-info/METADATA",
+          "sha256": "23f80ca9830dd89435da1710f26deda8f81e5409287e74540210c72627a4ad96",
+          "bytes": 2510
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/LICENCE.rst",
+          "sha256": "0c84bb42f5d367e5ebf9fc2dde35b16141df5ee0fdc189250858bc6c5560f69e",
+          "bytes": 1131
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/RECORD",
+          "sha256": "137ac111666ed02cab262e88dc303e67a2f09f7b45b7a993dcf857a94b9285c6",
+          "bytes": 841
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/WHEEL",
+          "sha256": "1e20998f3bb2e83c3485d5f94772c214f0e6152e015a5f07fbc5b7f577e6817e",
+          "bytes": 91
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/LICENCE.python",
+          "sha256": "4ccdaaebc0f44b83720ec0399bb7ab329adce067dd62f73c5535a2dc05628ab2",
+          "bytes": 14688
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/top_level.txt",
+          "sha256": "df8fbbe1de4d3404604ec3f108cb5ae68dbc5e904d992374882661b66c76164f",
+          "bytes": 11
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/AUTHORS.txt",
+          "sha256": "7f038029ea5463605dd2278d300099a381bce9e90dda83ccab2042346b6c8107",
+          "bytes": 82
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile-2.0.0.dist-info/METADATA",
+          "sha256": "0e97d7ea909ed0fbe03d88bc8b6f58677cee1b07bd3353ce361cd2405915204e",
+          "bytes": 2711
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile/xmlfile.py",
+          "sha256": "e9077106ad8fd027f7e51fa8c978cb979c0e22d7c9278632e8094817d457ec18",
+          "bytes": 4886
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile/__init__.py",
+          "sha256": "010e3fd9c354132507947a3e63719debef12ffa7b229de798d83b87a1db7507c",
+          "bytes": 228
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/et_xmlfile/incremental_tree.py",
+          "sha256": "957e154ad7f350d2b48edad5b2fb213c436eec4ff3422ae0964c91b73183c048",
+          "bytes": 34534
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/intranges.py",
+          "sha256": "838f6c70b4a4a89b4084b98e3836bb8551eb8928e66fad2d893b04a287097412",
+          "bytes": 1851
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/package_data.py",
+          "sha256": "ae759534a3c582a00ac856cfca464a39ee8251d393208d8af06b605bc20e02a9",
+          "bytes": 21
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/compat.py",
+          "sha256": "4ff7995ce52dd1be5381ae7a70fc9b42ef420982b41532b599d88f6fdea76bc0",
+          "bytes": 1376
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/idnadata.py",
+          "sha256": "23a9a8c1d15de9c634d0bf213d779810f485083fe1b0f7e09044ad04a69cc7eb",
+          "bytes": 45763
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/__init__.py",
+          "sha256": "8514c3ed53136a3596ebdf512fa487bbdd7da5a99adcaed82e0363d2c306d3af",
+          "bytes": 944
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/core.py",
+          "sha256": "3dd4c3ffee4ff223207fac65f3812a1e6895ae8ad1e7a6ed60115768f3551520",
+          "bytes": 32580
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/cli.py",
+          "sha256": "2e01972a25e67afdfba5d824013c01e808893916539c0db33f72f37c42b8896a",
+          "bytes": 4245
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/py.typed",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/codec.py",
+          "sha256": "7dff4247d75e6e265cbea1261f10d122ba9299a371429cfa018e091ec0b7602d",
+          "bytes": 8002
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/__main__.py",
+          "sha256": "e0930aeba5a3e2e2d94ca6c5fac4f72c0c4eb2be9bba283becf98e909091471c",
+          "bytes": 83
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna/uts46data.py",
+          "sha256": "770e849bfa156c71828a89440a57fe9aea70735f103ae4616ee4f682e13d6c00",
+          "bytes": 237174
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/md.cp314-win_amd64.pyd",
+          "sha256": "ca72897ac6a6aca48bac72b409bb3cbe6326b755b37d733cad731d5624e17f79",
+          "bytes": 210944
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/md.py",
+          "sha256": "30bbe818bfeeb95d4345e585691ca7f9617f9a64c95d179af5d86c97573b1650",
+          "bytes": 36339
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/version.py",
+          "sha256": "24703e8bc5de6156eb7ed996ec573e69960232a78dd7a8bd88d78847351c6b9a",
+          "bytes": 123
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/legacy.py",
+          "sha256": "8d5a1916b9fc14b890f4b68db9a715e72189a854aa067430a65f035252649bdb",
+          "bytes": 2730
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/models.py",
+          "sha256": "01189116f8501996fd87b57f12639d763df21bcd801b9fc768db3a5c9519354c",
+          "bytes": 13917
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/cd.cp314-win_amd64.pyd",
+          "sha256": "2fc82a309cdd4499e5dba1a87671f9ac3a3a35e44008afafd7867888d400f3a3",
+          "bytes": 119296
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/__init__.py",
+          "sha256": "c9c9fcadec07e5fbc1c07b9aaae8b54c238f49524b40629f7ddfd44719ce770a",
+          "bytes": 1630
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/cli/__init__.py",
+          "sha256": "77d314c7ed55fea0f7c7d8a0232e094f8a02e42534ca3ba593b4326567911618",
+          "bytes": 144
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/cli/__main__.py",
+          "sha256": "1a29e6b4a0d8d75b16f4fe7dda781cfe0f8c159e76008481655348f693551887",
+          "bytes": 12312
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/api.py",
+          "sha256": "9032c5c8a60b2c19b5101d1543e4aa8b0ded26618d28a3d45c3372454cf20a6a",
+          "bytes": 36708
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/utils.py",
+          "sha256": "4dc210b6670b40d9332925b893dd792b4437365f147abe00251a08606b35a853",
+          "bytes": 14574
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/py.typed",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/constant.py",
+          "sha256": "c4b86d76b46dbad499201b32c7392b0e4945f08e161e64fbc69d477daf88ac58",
+          "bytes": 63309
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/__main__.py",
+          "sha256": "dac8ff052e87d2c536e42d5b32acfd0d5c1aea438af657214846d253efe2bbb3",
+          "bytes": 115
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer/cd.py",
+          "sha256": "f5b50bb7ecb028ed2f769ac02757b6320abdd4aa30e155125e480f15c28db8db",
+          "bytes": 16447
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/cookies.py",
+          "sha256": "6cd8be8aa123e0d3d9d34fa86feac7bf392f39bccdde5129830de0ea9692dd7c",
+          "bytes": 18590
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/auth.py",
+          "sha256": "905ef9b6a9cb72d67d31ffe19bd4d9223e1c4169cde6ec51cfca16b31e70991d",
+          "bytes": 10186
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/sessions.py",
+          "sha256": "0a5d5da449ce7f0af3ccf6e4bbe7a67a935e37846dff4ff9f08cb6c7e2464e6f",
+          "bytes": 30503
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/hooks.py",
+          "sha256": "0a2bb2b221c0dfd57951f702057148c7cdc8ac3a6ec1f37d45c4d482fdbc7ed4",
+          "bytes": 733
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/compat.py",
+          "sha256": "27bb088d1e97a031a9e494d5ccec642b97d2a145546bf3e373b8916610161a62",
+          "bytes": 2142
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/models.py",
+          "sha256": "32365d67893bb67c3ed67cf93ca4a18e63e6ab29342fa0dc8b09c59e06ff564e",
+          "bytes": 35510
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/certs.py",
+          "sha256": "67d49be35d009efea35054f2b2cd23145854eb1b2df1cb442ea7f2f04bf6de0c",
+          "bytes": 429
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/__init__.py",
+          "sha256": "e3168011198f0c804fb1ad8fb23a54f6bd3aca8a0afb69992874d90215915adb",
+          "bytes": 5072
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/status_codes.py",
+          "sha256": "889500780db96da4ddc3ee8f7c3d1e178aa1a48343251248fb268cab1b382c42",
+          "bytes": 4322
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/packages.py",
+          "sha256": "fe0d2067af355320252874631fa91a9db6a8c71d9e01beaacdc5e2383c932287",
+          "bytes": 904
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/__version__.py",
+          "sha256": "40a0dc78af0afee8eac030dcde862b474a1d381620295390439bc56a9fc6fdc8",
+          "bytes": 435
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/api.py",
+          "sha256": "fd96fd39aeedcd5222cd32b016b3e30c463d7a3b66fce9d2444467003c46b10b",
+          "bytes": 6449
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/_internal_utils.py",
+          "sha256": "9cc4329abe21b37d93a95a3901b0ab99c24486f3d487bc57965bb2ab0b252e24",
+          "bytes": 1495
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/utils.py",
+          "sha256": "5aa53ceab677c2f842fad42359c8ed1ff1c4299c1607789609957a496e4311d4",
+          "bytes": 33213
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/exceptions.py",
+          "sha256": "8c93d2d545804ecf3a4a155468ba2b4e225bd52686ba83445a020225ea7e5646",
+          "bytes": 4260
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/structures.py",
+          "sha256": "f886e6855cf4e92fb968f499b94b6167afba0fd5ce8d1b935c739a6d8d38d573",
+          "bytes": 2912
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/help.py",
+          "sha256": "80f5f977f1fb5ddf3c6830017a386a1a097d075545453b79066898bcbdcfcc84",
+          "bytes": 3875
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/requests/adapters.py",
+          "sha256": "f275f5d7781b6f5db7694b71d844e400dffa22c617f8cd9f4682c696e4c47119",
+          "bytes": 26285
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3-2.8.0.dist-info/RECORD",
+          "sha256": "04e66961a9e3616bd8d221103dc1c9cdca4a23dc86c71bbfa9e8dc4022b3009e",
+          "bytes": 3451
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3-2.8.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686",
+          "bytes": 1093
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3-2.8.0.dist-info/WHEEL",
+          "sha256": "ccec20e2307acd7da453dd7437e70c6b08e2bc3ead3bc3445af135da37b56d59",
+          "bytes": 87
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3-2.8.0.dist-info/METADATA",
+          "sha256": "10898c620e8007c030e07fa5622b68358a43010025dfbd78a1cb797699de2bb4",
+          "bytes": 7389
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/tests/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/tests/test_certify.py",
+          "sha256": "7c179d1edf37f7e912b133663735fb46c6338d5d0e5f8915d11c3bc287d227b8",
+          "bytes": 467
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/__init__.py",
+          "sha256": "7a52e5f4205f9b3d12a31898ceaa7e3f6837d19cc230700bcae1a9d91d1486c1",
+          "bytes": 94
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/core.py",
+          "sha256": "5c55f2727746e697f7edac9e17c377d8752e0da7ecca191531b3b80403d61dad",
+          "bytes": 3394
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/py.typed",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/cacert.pem",
+          "sha256": "9cc2a774b5198dcff14d9be1e66091f538975d867ce029a96bce15a55dfd730f",
+          "bytes": 240216
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi/__main__.py",
+          "sha256": "c410688fdd394d45812d118034e71fee88ba7beddd30fe1c1281bd3b232cd758",
+          "bytes": 243
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi-2026.7.22.dist-info/RECORD",
+          "sha256": "ffbaaaa116c13b3c0337a451c316aab71c19aec40b67f4fc971e4685565bddc5",
+          "bytes": 945
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi-2026.7.22.dist-info/licenses/LICENSE",
+          "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+          "bytes": 989
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi-2026.7.22.dist-info/WHEEL",
+          "sha256": "2b6eb4118ce7cd7b09601406aa623c553c4476265836f0d9c16f5c061f7efcc0",
+          "bytes": 91
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi-2026.7.22.dist-info/top_level.txt",
+          "sha256": "28cbb8bd409fb232eb90f6d235d81d7a44bea552730402453bffe723c345ebe5",
+          "bytes": 8
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/certifi-2026.7.22.dist-info/METADATA",
+          "sha256": "ef5af1638fbb23676ac3c5777dfcfc2cd9c348fe4172ed5ba3d277655b248090",
+          "bytes": 2474
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/filepost.py",
+          "sha256": "53c78d67e9a928a1e1ae56c7104893c7180ad7a21e8e111aeeecf8db2a80fdd2",
+          "bytes": 2388
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/fields.py",
+          "sha256": "6862c5015669554f856c996596f7b8021834fa91fd659050d88cfb95fa648e43",
+          "bytes": 10801
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/ssltransport.py",
+          "sha256": "133e0ef2947fbd3f1d6a7fc5bea0584ba7600df05710c7d57ebcdc754a167e2e",
+          "bytes": 8847
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/util.py",
+          "sha256": "8f795b64ad633f28b00f7e13f08809cdd5846554fee04fb4bd82098bd52378d0",
+          "bytes": 1146
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/proxy.py",
+          "sha256": "b1e3fcf90e41e9b07474cb703e3f98719650df4bc7b8ba91bbeb48d096767f3b",
+          "bytes": 1148
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/wait.py",
+          "sha256": "fe987c22b511deca8faa2d0ea29420254947e30ce419e3390a2c80ed7186b662",
+          "bytes": 4423
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/request.py",
+          "sha256": "d9af3b7ae5309e3ca50777f27994b3fd5b3aeb32c6aaa44a252ddba5366c89b0",
+          "bytes": 10228
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/timeout.py",
+          "sha256": "e1e4f5155799654ee1ee6603d49ab639735ee1fc5e91d36f868594919bac4690",
+          "bytes": 10346
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/__init__.py",
+          "sha256": "faa792d1071e8af6b3bc110a0cd142008fba00271d0ce1384ccbe8ed22cd9404",
+          "bytes": 1001
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/response.py",
+          "sha256": "bd013adfdba81218f5be98c4771bb994d22124249466477ba6a965508d0164e0",
+          "bytes": 3374
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/ssl_.py",
+          "sha256": "72c779c13f6e2afa22149d75f98a5fab0cdc886193515d9dae62e12354fd61c4",
+          "bytes": 17856
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/retry.py",
+          "sha256": "0fdc26b67d1ecc42b0cab3972f20bb07284d783f4dc318394fe8b99098c42925",
+          "bytes": 20151
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/url.py",
+          "sha256": "6a2814d91987dd9728278d413a154ee5277b15cb262d9945425377f2a693311f",
+          "bytes": 19579
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/connection.py",
+          "sha256": "2633bbdb69731e5ccb5cf4e4afd65605d86c7979cc5633126f50c92d5ad74a74",
+          "bytes": 4444
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/util/ssl_match_hostname.py",
+          "sha256": "16de38289cd3cc632629f7ff6573fdd658b65785a19af132d7a3ca05cbf8bd99",
+          "bytes": 5479
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/_version.py",
+          "sha256": "7b84320186a7a1805134fd8aeaa0d508e80116851aecbd23f7561042c5073bd4",
+          "bytes": 520
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/_base_connection.py",
+          "sha256": "1f37121077b1803ad152beb48cd9e20762908ddc3ded279d0f996e45f1ed0978",
+          "bytes": 5580
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/__init__.py",
+          "sha256": "24ca35b60d67215d40789daf10d0bf4f17e5d1ee61e86ce5f43195935ad645ba",
+          "bytes": 6979
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/poolmanager.py",
+          "sha256": "46654506338ff9a0e79baeef8a409af7d37aad001633150384a1eb4a5d1ff4cb",
+          "bytes": 25026
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/response.py",
+          "sha256": "0e4559c737914d4f8f941dca9ecfaf6caec6792258302bffec7b8b41dae3c71a",
+          "bytes": 54628
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/fetch.py",
+          "sha256": "e7171dfbebe217165dda7072d1a2bbdddb49f53b21d7261953f4945f09f089b9",
+          "bytes": 23520
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/request.py",
+          "sha256": "98bdbcb33cb52af137349856a2be633666aba7c830a650d4fbb8301996398344",
+          "bytes": 566
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/__init__.py",
+          "sha256": "c325ef7bcae6a97eecd8aa91401c43e56978f23cd63e7e7ed6efd7a100442d57",
+          "bytes": 836
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/response.py",
+          "sha256": "083a58d0616896e47723110290cda01f9b837d80ccd042f5156afb07beb0b603",
+          "bytes": 9719
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/connection.py",
+          "sha256": "822125b01a14b0a55445b6736fc182ac99aa5b6dd79ef8f668dc90545e36b258",
+          "bytes": 8960
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/emscripten/emscripten_fetch_worker.js",
+          "sha256": "cf5937cd9e3f84329ddfeb4def0cf3f0b1e31c2da9c4dfeebbc07793d0fd0377",
+          "bytes": 3677
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/socks.py",
+          "sha256": "81141f708d6928e021e62238fd30c090a6803f737f1f620de49e660652990691",
+          "bytes": 7566
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/contrib/pyopenssl.py",
+          "sha256": "5acf2f0ae6527e023a4031da552246600f6e753581f4a2f4c19ff4d7c88a8230",
+          "bytes": 21494
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/http2/__init__.py",
+          "sha256": "c73ac0487ed1e4035190f24ea2de651a70133aadca2aec97cc8e36adc9f09aab",
+          "bytes": 1741
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/http2/connection.py",
+          "sha256": "9e3960af8c0b862009bed52ac44127e12f79be27db95346b9ab6911e809cbfad",
+          "bytes": 12613
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/http2/probe.py",
+          "sha256": "9e7024a9b8406a43a217be6bcfb5b4b9d677f047a1fee0fc7e357be0def71442",
+          "bytes": 3014
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/connection.py",
+          "sha256": "8a59dab3d7b6a0e1b38a5fd6e565ef6a49381bb995729d015e4f6440ab8523e0",
+          "bytes": 47903
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/_collections.py",
+          "sha256": "1fac8ba8659d64d919d0b9bf7e72c4caaba59ce716eaab570a1daacf183bdf15",
+          "bytes": 17669
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/py.typed",
+          "sha256": "51a0ae3c56b71fc5006a46edfb91bc48f69c95d4ce1af26fd7ca4f8d42798036",
+          "bytes": 93
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/exceptions.py",
+          "sha256": "8503c7a2aa38cb0e3a7ac3525647225505d5520031580825b21e8c6f242d6be4",
+          "bytes": 9945
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/_request_methods.py",
+          "sha256": "802785f3948efd45385a83f0607228cffb70f9e33f1153a42c5a7c385b02ec30",
+          "bytes": 9931
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/urllib3/connectionpool.py",
+          "sha256": "6a147869216b94449a053e869d4311cba23294551c83ee20fe5d2f1eaff50a3e",
+          "bytes": 45250
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/python_docx-1.2.0.dist-info/RECORD",
+          "sha256": "4e104bc51f87bb7da92fdd1ae4a909d55afc274708b7da104cfd364e8affe160",
+          "bytes": 10226
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/python_docx-1.2.0.dist-info/licenses/LICENSE",
+          "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+          "bytes": 1104
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/python_docx-1.2.0.dist-info/WHEEL",
+          "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b",
+          "bytes": 91
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/python_docx-1.2.0.dist-info/top_level.txt",
+          "sha256": "ce46eb0f7826caa1e90ff5e11deee509baf6339bd3db6f67278505a85e558c8b",
+          "bytes": 5
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/python_docx-1.2.0.dist-info/METADATA",
+          "sha256": "4c4cc819ebe6de4aca44daccfd3f9173e6f46d9ed900ad1c388ff9efb7b6b1d7",
+          "bytes": 2022
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/RECORD",
+          "sha256": "35dd45a0e11c2bcdba5af4d8622b29245c4c0ec1c960d61621c9b5f354b66859",
+          "bytes": 15148
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "e7c3ce8d76331b0101cc46790ab43958ea90a364bcf962ed8763d5a818340e69",
+          "bytes": 1538
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/licenses/LICENSES.txt",
+          "sha256": "ce53f508d0cb88bdb4621e236ca34881a3fa1805f97dfccf38960128a4e2ead9",
+          "bytes": 1543
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/WHEEL",
+          "sha256": "8e1c6b44fded7447e6eeda01d57edd979c7a7f46eee93bded9c5b021d91b2fc5",
+          "bytes": 101
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/top_level.txt",
+          "sha256": "3630fdf3cc2a68aab9d769ec84d74bb7eb83c6c8e4a78061e759ba37e76152b9",
+          "bytes": 5
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml-6.1.0.dist-info/METADATA",
+          "sha256": "df97020d1cb2384aaf6a27f1d35a911c7495a8f5e8bf9ad56ef5e7811a2c9d7f",
+          "bytes": 4057
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/typing_extensions-4.16.0.dist-info/RECORD",
+          "sha256": "44dcf97810bea7b84bcd83890b6674bbcc2f4c5ef899a4887f15d524bdf6bb97",
+          "bytes": 427
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/typing_extensions-4.16.0.dist-info/licenses/LICENSE",
+          "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+          "bytes": 13936
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/typing_extensions-4.16.0.dist-info/WHEEL",
+          "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db",
+          "bytes": 82
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/typing_extensions-4.16.0.dist-info/METADATA",
+          "sha256": "b05084ca1d50879865178d9fff9fabeab61bdfb1f361bfbde95421ffc8f9be46",
+          "bytes": 3310
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/public-api.pxi",
+          "sha256": "65daf1e031d52348155e3cf65f237e4e58edb9e8b5dc11fe16e38de017f23876",
+          "bytes": 6934
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xmlid.pxi",
+          "sha256": "360ed689fbf45d79278cf30eea495d82b3877c2b08238e9404f0a451393de909",
+          "bytes": 6252
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/cleanup.pxi",
+          "sha256": "66597fc5072630191442d916ba0889ed30d058f4742072a30f939eb26434741f",
+          "bytes": 8669
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/_elementpath.py",
+          "sha256": "9a9867ec70c6849c9fa885e158b10b5885717fdc02e6e748d47e772aa9118009",
+          "bytes": 11302
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/_elementpath.cp314-win_amd64.pyd",
+          "sha256": "f4e83bed8f508ad7eaab9ee539ebf8c868e5ef8e20c9b0c254cdec5419828e24",
+          "bytes": 146944
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/XSD2Schtrn.xsl",
+          "sha256": "430791ac820cfb315c820f7c19703609a59f21b8151345ca11e6127efbfaec0d",
+          "bytes": 4563
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_abstract_expand.xsl",
+          "sha256": "492519900916845606fd8347bd6f5453a5fcb6630e1f5bdda519b3aaed25e103",
+          "bytes": 12015
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_dsdl_include.xsl",
+          "sha256": "659f9def6af14250027ebb381266836316916f177480f6be0cf2d195557a4118",
+          "bytes": 41116
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_schematron_skeleton_for_xslt1.xsl",
+          "sha256": "568d45e7bea875191d2c19ae1045ab2dae4b17748c4d7f41e841069f151bbfff",
+          "bytes": 73560
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_svrl_for_xslt1.xsl",
+          "sha256": "508ef11f1d2578d5d2f41694e9cc90e021de7e5b9f2a6004fb38ceae286e1fe1",
+          "bytes": 20970
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_schematron_message.xsl",
+          "sha256": "3506a5e33dc4b99ff9415a0c15b26a99ad922a0e3e8739bf0dbdbcdfed25d245",
+          "bytes": 2069
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/readme.txt",
+          "sha256": "3862e216cc2e2c9116e443d828e7a86aeb8224512d55aea3cb3044d4e70923df",
+          "bytes": 3310
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/xsl/RNG2Schtrn.xsl",
+          "sha256": "832f84eb1476a77e522bdc1715386b68f24423d35da084cd1dde319aacbba316",
+          "bytes": 3247
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/resources/rng/iso-schematron.rng",
+          "sha256": "702338aa97ee4d8015b6e923c65a1b3cc949f2767e6aeec380e352da0e2b60ee",
+          "bytes": 19046
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/isoschematron/__init__.py",
+          "sha256": "0a2f0989a2b17efbbe84c461ec83f6ed3161334de2110f0226836c7578cba0cf",
+          "bytes": 13622
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xslt.pxi",
+          "sha256": "3d33cf8ac13119d314cf100b9abc27ba0f13cb675f3646420936f0324389c053",
+          "bytes": 37315
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xpath.pxi",
+          "sha256": "893d52ec2068d9d067d7dcbddba92dc0f800286442e56167460ae7700e86c293",
+          "bytes": 19619
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/debug.pxi",
+          "sha256": "aada27ef0676e616b42a7b8210fac4bdc3e8c30ef6c8861a738b82c06a921163",
+          "bytes": 1161
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/etree.cp314-win_amd64.pyd",
+          "sha256": "392ffa28eab657954410cb34264af72c1100e1c7187107abfe1658f89f47e394",
+          "bytes": 4083712
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/serializer.pxi",
+          "sha256": "068957cb242ab9010c2481be2ec14db5cfdc7241872bfb71bf346ddf43798b9a",
+          "bytes": 69912
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/classlookup.pxi",
+          "sha256": "ad1b561f3f406a332a926ed1886fcf90e0ac6904d19202bbe7ba518f746f0b10",
+          "bytes": 23015
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xmlerror.pxd",
+          "sha256": "c3f4b1217f16924416d6223e621927948f4de427c4bad85e5157e6e17599093d",
+          "bytes": 59697
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/c14n.pxd",
+          "sha256": "b0eda0e0782774d1a586c4a6308efaed3f0a7d970db63a458a5cd9dce0f87aa5",
+          "bytes": 1135
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/chvalid.h",
+          "sha256": "128277df76c4c544e503fb8640e7bca8e9c9c9a2db7274111eb90c7fa7e328b8",
+          "bytes": 5317
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/parserInternals.h",
+          "sha256": "e8d4129d00d5cebd57ce73511a8a65c0447f1ed4ee28afc2d91a38e2fe83f001",
+          "bytes": 17241
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xpointer.h",
+          "sha256": "3a4a6fe62c1c837a320f9a478988ad60f56e3e7f77ef62f859b8a63b6f982fed",
+          "bytes": 3753
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/debugXML.h",
+          "sha256": "b39ada080f4d2eccdca6b66c06eb5ffbee49c934a80857d7ebdd8846c43ab8b5",
+          "bytes": 5145
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/schematron.h",
+          "sha256": "1ef0b8eb0dd4036443a96b11c8c38838eab056fc433ed5e5761f9064caf60a96",
+          "bytes": 4368
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/uri.h",
+          "sha256": "3b4935caba2cf6e3c2ea2b19f93c70cf93004ad39c69defcaf2ff6e99991bc1d",
+          "bytes": 2638
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/parser.h",
+          "sha256": "a78f4353d83352b98d89ed7264e3c03610ac40486d1e76132e0e4d6c120c4bab",
+          "bytes": 40871
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/encoding.h",
+          "sha256": "0f406ac3c778320769e255da2d647d127d1d75ff265e9c89e06a0c670d26d1ff",
+          "bytes": 8142
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/tree.h",
+          "sha256": "7eb7b8723816475eecb533de35c514df39609907b3947c675603708460030a8d",
+          "bytes": 38200
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/threads.h",
+          "sha256": "cf2e0afb6bb068654ba19225d6e18c9d16695b924c9bdc174a2ce1cab89bc217",
+          "bytes": 1969
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlversion.h",
+          "sha256": "0d8266c772dedb12e43e3f5d4607fa14053e2f4f3d26f8a72a2d2cdf3379f664",
+          "bytes": 9833
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/globals.h",
+          "sha256": "afe42f083955f894b6680ca0f9f5e95e04e88ce14752ae495f12b9e66c970dd4",
+          "bytes": 14931
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/catalog.h",
+          "sha256": "b1eea28570d1332c02f1cae75fe249d2fce0492c7741b6c101bb5941b2511751",
+          "bytes": 4800
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/pattern.h",
+          "sha256": "8c8b9d4c1de8c1659d4feeeaadbe37f3ec2db9b6522b8d92bc97474e7e495856",
+          "bytes": 2566
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlreader.h",
+          "sha256": "5ca4bdbcfd32749219788eca3bac504e08e61bfc606036b20b9a4c3fd9e614a0",
+          "bytes": 12339
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/HTMLtree.h",
+          "sha256": "2dfb7212eaceaab78966de01e462b6a6abd8fdb636b9be1352309f71c84f15ac",
+          "bytes": 3649
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/SAX2.h",
+          "sha256": "1d9a51932c85447ab964b0e53f0341e0c19651f5b091313f4e5d684fc7ba40f7",
+          "bytes": 4642
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlexports.h",
+          "sha256": "18bdfbc4c2dcdae8577ef9165abb79b88bd293146f9abf57a4746f916ca7a77b",
+          "bytes": 1042
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xlink.h",
+          "sha256": "4c2fab5d35a6d0a17a1bc132f418b1cdc7a46981e9c8470a697c1d293f5a2bf2",
+          "bytes": 5191
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/SAX.h",
+          "sha256": "9abfb9b68dcd8878100251381b85b837f86de08fe74efb406131a944cbbfefb3",
+          "bytes": 4661
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/entities.h",
+          "sha256": "8743a6cb60d0edb1041f8358ad6d62f614a99f3a78e3036069f924f38658b7f7",
+          "bytes": 4701
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlregexp.h",
+          "sha256": "85c33692cca84f488fa94659314311668452d56bb1b4fb22ebcaf574181a76a6",
+          "bytes": 5440
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/list.h",
+          "sha256": "ebb5c39b95b44cd8f213d3a75dde88b36f98cb4ff8e3d67a46907dc27415ec85",
+          "bytes": 3277
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xinclude.h",
+          "sha256": "d6ee718e32faee5fddfc05e31a6b860b3d5974ff681deb06998c7c38ef9c250b",
+          "bytes": 3016
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlerror.h",
+          "sha256": "aa4da3fbb088906315ad72627f71000c56fd4e6b4246affc3570040dbd902ab9",
+          "bytes": 37020
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/schemasInternals.h",
+          "sha256": "96a936ad44b6b6c05deeda264e1cb2297408812eff3d7578e15a5e1467b86d98",
+          "bytes": 27166
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/dict.h",
+          "sha256": "3e1388cbabc743ec67295023ab68aca0546a23cf3d4c22b5ad8d90a80fdddfaf",
+          "bytes": 1821
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlIO.h",
+          "sha256": "6f3b641373701ac6178518c864891a03578fb73d076e9c09c324f15654e998d8",
+          "bytes": 10572
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/HTMLparser.h",
+          "sha256": "e4e336f03a97988e8bde6992c7a93892156e299ae6f846d79a16347f85d6fa60",
+          "bytes": 9809
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlautomata.h",
+          "sha256": "baba4de8d314e9eeee2ed87ba9957ee56c53f4cb8213a8f08509e2ee9f0e1156",
+          "bytes": 3933
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlsave.h",
+          "sha256": "8669cc43726a00ce7c273fac3920d2e05013e4291f690f2f2674715b0642f8f4",
+          "bytes": 2345
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlstring.h",
+          "sha256": "d4b4dcd798b2e6c953faf87cdd857caa87976ae5ddcd8f02fd4a836f94d0ffb9",
+          "bytes": 5411
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xpath.h",
+          "sha256": "a48816eca97627ed0f5926ea08e0749cf46632c09ecf61710600e9b726b3f87d",
+          "bytes": 16994
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/valid.h",
+          "sha256": "974b0e8030c87b14577399809d897a7edd9e10c4a2876deea34326774e6d1e13",
+          "bytes": 13229
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlschemastypes.h",
+          "sha256": "3e3db170a2091bb28e089186718689ffb233262753ead3de3b43422a4b0708e9",
+          "bytes": 4735
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/c14n.h",
+          "sha256": "b35701c3b9f12c6947afacb30aefcf2c94d8bd17e8925a8218b55be35ec6a222",
+          "bytes": 3213
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlmodule.h",
+          "sha256": "23972e1c296f2fc233de2071017f1ef38c9a829186083b92628510a99d96a885",
+          "bytes": 1195
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/relaxng.h",
+          "sha256": "91ab9aefb2446dee4c138274e745418c22331e7f7359119cf2c17e33a6e18c87",
+          "bytes": 6019
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/nanohttp.h",
+          "sha256": "c2ee36e6212b675c51dc76d0c8c651d8483d9293bc305124fc2c74ec04b41651",
+          "bytes": 1950
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlunicode.h",
+          "sha256": "a6d84c5d5b3799fb168202890c0256f6f0e8a25eaf6a4a04a4bb429bae4f4129",
+          "bytes": 8867
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlwriter.h",
+          "sha256": "ea13171e0ee45f317140d59a72f8a274e653e027e15178cf8951e492fc394188",
+          "bytes": 21113
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlmemory.h",
+          "sha256": "80a31580f2e4d7a8f7b046d83bffed8c9f8a874a299f95d8b6a8a0706e116789",
+          "bytes": 6053
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xpathInternals.h",
+          "sha256": "d5877832f2f8537c0fc2e7aa262b1d652873c54cb2b85eb63816b3550334f407",
+          "bytes": 19049
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/nanoftp.h",
+          "sha256": "d636a53b03a091eea457c69e64f73d5b16671b0bca55743c79967e6700ebccc2",
+          "bytes": 4150
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/hash.h",
+          "sha256": "a1c3d51abf465456624e2161c9fa5761632d075486862b1922b9332fd2e2273d",
+          "bytes": 6637
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxml/xmlschemas.h",
+          "sha256": "6e30499a3a1c2fb1454ee938f760088ab5f48df40a1d384797ac0cba4ec4fa82",
+          "bytes": 7071
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/keys.h",
+          "sha256": "cb7758fe567791f61407a5f0f373919c3a12ebc789a74a065047c3b61616b4c2",
+          "bytes": 1208
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xsltutils.h",
+          "sha256": "283db4f29b6c407ac70750eee1b89953689933461be8cedcd923c9b63a38e891",
+          "bytes": 9428
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/win32config.h",
+          "sha256": "98963895cfaeee72eda877881c59c9c293db88d8e437b199a1b6998c399d0b1d",
+          "bytes": 1164
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/security.h",
+          "sha256": "d5a4874189c34ea95807bdd10286ea7dc2d6b2608245be7617fc879b235c0d9d",
+          "bytes": 2756
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/imports.h",
+          "sha256": "b9d1abdd45bd760dde12275d4835563940afc258c6c9f339ed11f6420bd9c35b",
+          "bytes": 1915
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/numbersInternals.h",
+          "sha256": "dbc67f04e1c29c9113efa4c7697b1692dfdd47c2bffd838881d62f73843cfe10",
+          "bytes": 2092
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/attributes.h",
+          "sha256": "0b25dbe19567255c3bff43077075cf70d4642c05434d34aeeb3a0b2994035a66",
+          "bytes": 996
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/triodef.h",
+          "sha256": "5e06d45ce738e3bd9109c987aa1f8d32030c2dcca4aee6ee23ef6b34491fdc9a",
+          "bytes": 6912
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xsltInternals.h",
+          "sha256": "46d8046019bc9cbc41acba55d0011bee3db128857d4b369678bdbcb8f858df32",
+          "bytes": 59886
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/preproc.h",
+          "sha256": "c619d35c85cce823483f84ac5c9abdcebaaa60e638ae7ac3527cb88d6bd5b7a8",
+          "bytes": 939
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/namespaces.h",
+          "sha256": "93bf040f57d40dee06df9b9586ba396aa27bdda4df43ec67e39cfe4248d9a169",
+          "bytes": 1734
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xsltexports.h",
+          "sha256": "19d7092f6a078b7e381a8ae7b86da2013dbbcaa238f0bf5e8a6d127008fdcb08",
+          "bytes": 1188
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/extra.h",
+          "sha256": "88eba11a314b8b4b1c9b679b800d3b111f851f5ffa1e63de1df4a08665eee57c",
+          "bytes": 1712
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xsltconfig.h",
+          "sha256": "c48b0d039b20d634fdd54ecc0d016f312621a58e4b7a743d94c6d0a1e730d6f0",
+          "bytes": 3819
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/transform.h",
+          "sha256": "0e250989ca2697443181d6d709eac29ca42ec9b7a7e8f882cba546f6742b86ca",
+          "bytes": 6518
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xsltlocale.h",
+          "sha256": "b8019effbde1bc264fe660ef1c21e070cbdb749ec56c71d2cc20c89dfb83b9bf",
+          "bytes": 986
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/functions.h",
+          "sha256": "24ae67cda07c3ab082425c4172de8c310a7c2bc73f19deb5e0eabcd9f706bda5",
+          "bytes": 2050
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/xslt.h",
+          "sha256": "8fa9d91f1c98dd4e74e466ed3bf69e2ccac9f71136baec78e573a5c93d287986",
+          "bytes": 2074
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/variables.h",
+          "sha256": "edc2f510ea73a61cd9243dfd427f5e9c76736a47b2130ec77f3f67d48790d1c6",
+          "bytes": 3261
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/libxslt.h",
+          "sha256": "42a68ba5921be1372b197d1722f289428d385a33597e1d4f7b5964c346e24046",
+          "bytes": 872
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/documents.h",
+          "sha256": "e86512f622144b5a7fe6f7837c5d549b1d71b07c4d853bb72a71158019cd76a5",
+          "bytes": 2797
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/trio.h",
+          "sha256": "927fbdf0db0953dfe143c23c976fa7f09e4b9961ffd0ad249571d1de12ad734a",
+          "bytes": 7415
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/extensions.h",
+          "sha256": "889c4f87028da917e2227de2dcbf2d2a27c2f2e2013e7d75b78eaafa3e97cc1a",
+          "bytes": 7161
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libxslt/templates.h",
+          "sha256": "08c65b6e2b2a5a6f72994f87469da18dad0cdaac318808158f00636521780427",
+          "bytes": 2345
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xmlschema.pxd",
+          "sha256": "aba7073c9a62dee8647f630b5147768779c20c1ff86b507c71e8bc6931db37ce",
+          "bytes": 1737
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libexslt/exslt.h",
+          "sha256": "2b1557d027828743297d37064abddfe7c322263c771ac2480b932fcebc67e518",
+          "bytes": 3222
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libexslt/libexslt.h",
+          "sha256": "8796399f2d4bcd6dbdecc3027d15fec277d01b47d35ea9130a9db9e4640d3e3d",
+          "bytes": 679
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libexslt/exsltconfig.h",
+          "sha256": "12b3731f9c4467618596e893ee6dec76a94bf8c1593e98ef5c2eca2d18d21a94",
+          "bytes": 1242
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libexslt/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/libexslt/exsltexports.h",
+          "sha256": "fe575d2e85233976b5ef668061215f417929f31bfc436599c642804fae04bfb8",
+          "bytes": 1140
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/__init__.pxd",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/lxml-version.h",
+          "sha256": "94b7f312dec51174ec1083ecf24dfbec85ce346aa2ac538b49e4ee2712d21f8b",
+          "bytes": 74
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/schematron.pxd",
+          "sha256": "2662831bd12534f5c9eeb6733a94233da21dcc8675a73304393fc68d944af7c5",
+          "bytes": 1638
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/tree.pxd",
+          "sha256": "e3fb6d4138a08502623f1b7715af4527cf8187132d647570e033eb75a67a90a1",
+          "bytes": 20671
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/extlibs/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/extlibs/zlib.h",
+          "sha256": "aa5d046fe1c26c0fce240ebfe014d2110a447a49e59ad5ff83975143d17a46ad",
+          "bytes": 105905
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/extlibs/zconf.h",
+          "sha256": "c67a074a7930587fd2a4a16361e3890e9ac691187e57dd5b7a137f3e1a55b8e3",
+          "bytes": 17506
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/uri.pxd",
+          "sha256": "51b4c6e1fbc76aaea390d9302f2c7a68c6db0825c60e6ac4dca8cf8ab0ad5b7d",
+          "bytes": 150
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/etree_defs.h",
+          "sha256": "811241253c157d0b78f73229c31140f3d8db3f4a92c859a7c4feae49bed1cb0f",
+          "bytes": 14914
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/etreepublic.pxd",
+          "sha256": "b361d1252b998709438b7a07b1204f0a10387604e75a359633305bdd5c6bb49c",
+          "bytes": 10421
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xpath.pxd",
+          "sha256": "2ec0e85a33b9c49501fb3d3f05db08b4458784b80ba57e3421d3666d8ce976fe",
+          "bytes": 5739
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/htmlparser.pxd",
+          "sha256": "504576c08a7c4477a4c1401c3d63107bc2817c4bf7f6ed1cdcb1ceb1dbd1af49",
+          "bytes": 2858
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xslt.pxd",
+          "sha256": "18cfc7924eef1a758c95694b33d602a6451e1a05a4f0bbe6af5294cb991b67ee",
+          "bytes": 8431
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/config.pxd",
+          "sha256": "1022b08446b1e485b62859f505077047633415b59c8954453095bba47c494aa2",
+          "bytes": 99
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xmlparser.pxd",
+          "sha256": "ecfe9bbfefc23ba2031bd095713b4192c280b65489a63871aabb875fd795843c",
+          "bytes": 14048
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/xinclude.pxd",
+          "sha256": "9f749dcf1c1d730271797f13408459ffaa33001c20ea6acc10e5c3173b397f9d",
+          "bytes": 826
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/dtdvalid.pxd",
+          "sha256": "54eb7de1ba9ee35edbc6f7e47dbb5bb1de64567c108f8a1848731f9d5da972c3",
+          "bytes": 707
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/includes/relaxng.pxd",
+          "sha256": "1f95b95ce6c8e58b51a542de891cba2ba95d5190b4b4341ab80159ecf252a84e",
+          "bytes": 2679
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/saxparser.pxi",
+          "sha256": "1c0b9abf29b17707a3500df64a9499fac94b450de297eb8f34b5f2cd165cedb5",
+          "bytes": 34413
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/sax.py",
+          "sha256": "38dd0d8d3117b0b8b2130b841993d72763cc9a9622a7b1b2aac7970d1dc4e196",
+          "bytes": 9991
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/pyclasslookup.py",
+          "sha256": "8c3198adbc6e284dc7974ecf6c82d7fe9b4b91069762ba494a0be2978848b37b",
+          "bytes": 95
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/__init__.py",
+          "sha256": "c58076f705567381e3f0d879604f38ae535c8ba3bb7fcf5f4b1c551ff338331f",
+          "bytes": 596
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/soupparser.py",
+          "sha256": "7d0fd98d6717c0a4eb6cf0fc96c3def5834fb109a4da8f7309dd5f246157d336",
+          "bytes": 10511
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/defs.py",
+          "sha256": "e23c8e731b49576b87e770136f475b838670794037049f5a21363406506f88b3",
+          "bytes": 5473
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/_setmixin.py",
+          "sha256": "e9c53221e88c227e73532b5c587b1d5995f23095d5b1f255550a002087bd87b4",
+          "bytes": 1244
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/clean.py",
+          "sha256": "8f44b41d9f98487a1d4d3cdf0ae26e81ceb24c83c0592ebbd68c176f17de5d63",
+          "bytes": 524
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/diff.cp314-win_amd64.pyd",
+          "sha256": "c3b3b8d2a959d43f037d57e4003775addefd22bf842883e77d55766d38c7f47f",
+          "bytes": 236032
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/_diffcommand.py",
+          "sha256": "31f71c698000282b730917bf3025e2842def9ee3d42a225b98ec7ce43b77ed3a",
+          "bytes": 2167
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/html5parser.py",
+          "sha256": "8aea425433bfe88d4f356b2d904ea899d0e1fab11cd0a31a217a353823fd9e83",
+          "bytes": 8894
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/__init__.py",
+          "sha256": "cd067080a1fc73f4016055f3baaf12f8aba00452ea2c5b7bbd000eb1e1d1211a",
+          "bytes": 66352
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/formfill.py",
+          "sha256": "f325c520ee0335563e1c6f2ae0ee0eb71210f2a98ba57610f13d6b1544e42bc7",
+          "bytes": 9980
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/_difflib.py",
+          "sha256": "ac51a4e0e6d368808081db95a384c027255d89c07a5ae5178231f7c699b4fe24",
+          "bytes": 87060
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/builder.py",
+          "sha256": "abe059d788feb2a4972ff1759d09f3c41d7306109d477689ec5fbe2f118c6216",
+          "bytes": 6360
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/ElementSoup.py",
+          "sha256": "7504a9ceecd44f72ca08687bd47e2b71c079442c28329c9ac9163ea9bb5604cd",
+          "bytes": 330
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/_html5builder.py",
+          "sha256": "5dfa8d1434391d43964eab9b78e7b59b9aa622eb7a23fdc48327bbe707abeed1",
+          "bytes": 3330
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/usedoctest.py",
+          "sha256": "78fd129cb2d915f6073487a07cb58f781a8efb8cb228a8d2b63b5401418937ac",
+          "bytes": 262
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/diff.py",
+          "sha256": "ed16a1e874c2796711207fda2334f05dfe56208d5cc4f890d5f7488dec25e5c2",
+          "bytes": 33961
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/html/_difflib.cp314-win_amd64.pyd",
+          "sha256": "ab954aff13664c9b09cc1a4cbd7a75e32f772fc3c5d9c5d167fbb269c25b06b9",
+          "bytes": 374272
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/objectpath.pxi",
+          "sha256": "a20ecb5fe6bcf11ae0248de5500b6e27c1efc7846935fe7b93ba6669fcc2b820",
+          "bytes": 11782
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/relaxng.pxi",
+          "sha256": "ae34df97eac16251ea42fe277f154af0a651e7d2aa296429f6566fdda2985d59",
+          "bytes": 6504
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/builder.cp314-win_amd64.pyd",
+          "sha256": "9d436fc0a450f7f21068f0ae1940ddcc1419d054d807416ee3f5c5879e01e76f",
+          "bytes": 87040
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/etree_api.h",
+          "sha256": "6caf2baa71609993cc2eb819a40d5bcc82ee1b8d7416986f9a6176e20169f559",
+          "bytes": 17924
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xinclude.pxi",
+          "sha256": "0d3adefca6084add6bcdb7ffa92ef98b1f996ebb9206779f21f36ce00aaf17e3",
+          "bytes": 2523
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/iterparse.pxi",
+          "sha256": "750640ed62c9376a5b1a8af43dbcb89e8182b1702946446368fb13bc8d434113",
+          "bytes": 17288
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/parser.pxi",
+          "sha256": "2049aaa63a8911afeaf0b7ece381281458f4f86554361ce5f1b7bcc236f74f6f",
+          "bytes": 87901
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/objectify.pyx",
+          "sha256": "72c98557ecc1179982364fbf247367db1afed691b24f178178eaccbbff892d77",
+          "bytes": 77999
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/builder.py",
+          "sha256": "cead28e99b53e4ead5d8d43f4ea5f3f1ea25059fb5a8025806d4ca30ed43baef",
+          "bytes": 8728
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/dtd.pxi",
+          "sha256": "84ee14d10977c73a6ab55f170d95e426770d11b6ff30bf1091a60bf120434c3d",
+          "bytes": 15760
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/apihelpers.pxi",
+          "sha256": "01292f57660258f0e31216a4c1541409ccd62c57da2cdce88c4b593a2c43dde1",
+          "bytes": 66423
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xmlerror.pxi",
+          "sha256": "ff2fd4ea06e15f832aa571e51f5422e7fb38299c3f7ff27bff0cd6b32c55fdd1",
+          "bytes": 51900
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/doctestcompare.py",
+          "sha256": "d6bdb73b72a2d41ca9ab39155a1f7b144751abe10dbe61445ae001396744d0ba",
+          "bytes": 18219
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/usedoctest.py",
+          "sha256": "727deb5de2f717e2128fe1d734bf60e04c1c887eb46fd35c6635c8440177d623",
+          "bytes": 243
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/readonlytree.pxi",
+          "sha256": "b07e6ad697eb432c013c6e199404e1fdde20ca2701d18c01a367336cf2e85151",
+          "bytes": 19573
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/cssselect.py",
+          "sha256": "babefb355b13936e3eb7fd40168e448df12aca17aec34d41446fbf39be430d06",
+          "bytes": 3407
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/etree.pyx",
+          "sha256": "f4456b48914cfb0ab283aab793596ac5804af7f45eb5d1797d548f2cf496756e",
+          "bytes": 142074
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/extensions.pxi",
+          "sha256": "529f5e687a0aab00786da6451291d9f0709b54745f096ce0e2036de9bcfe14a1",
+          "bytes": 33086
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xmlschema.pxi",
+          "sha256": "b09ba61046e4b91faf8f6bc3004f2f0ef6e3061833b7f2d15fe2304111602d35",
+          "bytes": 8705
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/schematron.pxi",
+          "sha256": "145db64342a826e5f641c6f6eab2f560ef50a454e79aa4524ba93c47f1b98f6f",
+          "bytes": 6237
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/objectify.cp314-win_amd64.pyd",
+          "sha256": "ba050649c1f5d72f2abf4cddaade771a43dc404d0cc4fb70ca4ab4f6f03de768",
+          "bytes": 1753600
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/lxml.etree.h",
+          "sha256": "beeff4f2fc475215bf132979cff0da396f8cc73082ca40aca2a6c8f20c974906",
+          "bytes": 10036
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/docloader.pxi",
+          "sha256": "426c365a2130520eeec0e12b59e6cfaa407ffcf5045073dea53388a7bd7d78e8",
+          "bytes": 5969
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/nsclasses.pxi",
+          "sha256": "f538998cf6cfef71fc54dd17bb5466b9107b1be0f4a534d2a8b3db753250b795",
+          "bytes": 9410
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/etree.h",
+          "sha256": "beeff4f2fc475215bf132979cff0da396f8cc73082ca40aca2a6c8f20c974906",
+          "bytes": 10036
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/parsertarget.pxi",
+          "sha256": "d2067978b276850f2d480a45110c753dfcda88fa91b9a4710ff1b028e0c8cc47",
+          "bytes": 6506
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/ElementInclude.py",
+          "sha256": "a44bcb292ca1356b594d1afa9625090fed6622a99bc5b72eaf172a66feef3478",
+          "bytes": 8804
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/xsltext.pxi",
+          "sha256": "b322a4988e8633013f7fe5cf602f2b1855c9e45f4a7908a0c73e760ac6c5e0f0",
+          "bytes": 11330
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/lxml.etree_api.h",
+          "sha256": "51912f7f276d755fab75c67cd8052910add400f0c876c60a176a5cd2e5ebe41f",
+          "bytes": 17929
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/proxy.pxi",
+          "sha256": "9db6859c842366e8f8cb07113275430a1ea8bf134542461442d64cabc8c138cc",
+          "bytes": 24639
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/lxml/sax.cp314-win_amd64.pyd",
+          "sha256": "f234222f4a8eaeb0a445217a899dede21ea106ad084525aba4e31cd9d9ee3a24",
+          "bytes": 119808
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/RECORD",
+          "sha256": "d99fd97467d5016419d0b6bee634efc254ac2bb354948f4929b893ee8d61fb60",
+          "bytes": 1870
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/licenses/LICENSE",
+          "sha256": "18577485d3704f1a479ded8e573c0976cfed315fd2fd17983fa988da4c2f70d1",
+          "bytes": 1092
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/WHEEL",
+          "sha256": "f8868e546779e082b2f4ef1acdce705bd9cc24829ee8add213946b7906f8242d",
+          "bytes": 101
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/entry_points.txt",
+          "sha256": "0034932ab91767786174e5458ba0dc5041d0452d317f10c813fa44cf8c0b2170",
+          "bytes": 65
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/top_level.txt",
+          "sha256": "ec04b2cde3ebf3fc6e65626c9ea263201b7257cbe1128d30042bf530f4518b74",
+          "bytes": 19
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/charset_normalizer-3.5.2.dist-info/METADATA",
+          "sha256": "49e955a09e1a159e0846872798006e8db7d518d8d70c637066fefdb08d3d9f7b",
+          "bytes": 47287
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/package.py",
+          "sha256": "6ed9c824430906603bcf298ee37bdb36a0c3166d59a04881e27376b209fab2e8",
+          "bytes": 3971
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/coreprops.py",
+          "sha256": "1a40d1c68c5f3aeb20368689d44c343442e1518856385ac9b3ad7fbcf537d7d5",
+          "bytes": 10768
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/simpletypes.py",
+          "sha256": "da90f8be01194e1269081e0cf8bf213fbb932178259dd95945d36bbaf0d9c26d",
+          "bytes": 13019
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/drawing.py",
+          "sha256": "264aa22aad879a1742f2a597fe96af108b239816f666b064a151a7484b2d4a28",
+          "bytes": 397
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/__init__.py",
+          "sha256": "088b1ae226528ead902bbfd5d7160533a1f5df22e1f6ea036772df8c6584c7b2",
+          "bytes": 8243
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/ns.py",
+          "sha256": "8ec923c35bbd89137911451963e345f06fa4bc6203fd6d8588c0260e07b382b0",
+          "bytes": 3779
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/section.py",
+          "sha256": "9f2e9f84ee69e17135e828e65e0b15d9ffcb521c88fddd2f7e7c726339eadc8e",
+          "bytes": 20395
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/shared.py",
+          "sha256": "880a8339ccbe0e73a6e461ac4995cb49e98d7a34aa0a3973841f3a94f12d0d83",
+          "bytes": 1857
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/numbering.py",
+          "sha256": "fcb0e2cfbc5b4c8f945277c16521f9b50efa7f88eeda6d5e1e7c1f089f7e3c2c",
+          "bytes": 3965
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/parser.py",
+          "sha256": "666e771a85a8e8abc8608caaeb8b3c927cbf573528a33bc6aeae96b16513ab15",
+          "bytes": 2324
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/document.py",
+          "sha256": "0eb8ba65adfff45d78b958283fe12cd953a2b22c4faea05ebba411fc0a9eae20",
+          "bytes": 3593
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/styles.py",
+          "sha256": "d54db891c0bd861ccc3f335c835f51542509975fea59ab970892071bf2a9d08a",
+          "bytes": 10643
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/settings.py",
+          "sha256": "79ac94fc13c0ebf486bc813ebbb9675aeb8ae5eb1256b062e97e549ea687947b",
+          "bytes": 4264
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/exceptions.py",
+          "sha256": "bf851212d79ea5ce4495d5a40368e16f9d37acb4c32c2afc65d47521b20a31d7",
+          "bytes": 261
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/shape.py",
+          "sha256": "be1ab576209db7f4d0c3003a4313e8cc80ffab0754fc0423226ade4e6f46649c",
+          "bytes": 8883
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/table.py",
+          "sha256": "a92e3a6bf4ecdcaccdca050d794c5a4c854d0c965b6d6349a8cb1ea376556910",
+          "bytes": 33610
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/run.py",
+          "sha256": "be98349fe24fc012de6a4caeb4f790e301d11a92f63e3a9628cceb8162a26e15",
+          "bytes": 11014
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/hyperlink.py",
+          "sha256": "b71e9242261a6b5db7f9ad097d44bcd26b4008e630368cb6e13ae06b64a1827f",
+          "bytes": 1467
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/font.py",
+          "sha256": "974eff74d110e8e69f78abeab72861592a041d65bab82bc8dad589b5f702c256",
+          "bytes": 10882
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/parfmt.py",
+          "sha256": "e536027fe41f730944097524acb49815f7b0140d4989e2864ed9b75f4d5fbbae",
+          "bytes": 12221
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/paragraph.py",
+          "sha256": "a29e02cb82e37122310c3d4240829e45b52c04be4005547c71829bdcaca79664",
+          "bytes": 3538
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/text/pagebreak.py",
+          "sha256": "d622b5d86028c19a454635409a767f329aa7eced0fa8f4ab55cda6c9473828ce",
+          "bytes": 11192
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/xmlchemy.py",
+          "sha256": "af31312da2606df6917f79ed9da4fa67abc45cf43fcf9cefc614bbf5cbe9e471",
+          "bytes": 25458
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/oxml/comments.py",
+          "sha256": "83815901abcdddda43fbb18bd1685e5e4fcc6dfb1e6b76b97cf5cd8ce8d8d5ef",
+          "bytes": 4912
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/drawing/__init__.py",
+          "sha256": "84c6fe615dd015df236b77973f059c327b6959046ff0e91e6ace3b457354df37",
+          "bytes": 2243
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/package.py",
+          "sha256": "450c3f96ea860da100ca5853a7ea2530267d3bdcefbfa49ef79221ed4a52b155",
+          "bytes": 8727
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/coreprops.py",
+          "sha256": "21f41ea82e68e24f4e6e3fe443864a7c597a20bede226edd7080b5019915bda7",
+          "bytes": 3468
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/oxml.py",
+          "sha256": "204dc7e05f835abf104998b4a7173bebb6a9537364f818454ecec78930f9724d",
+          "bytes": 8325
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/constants.py",
+          "sha256": "cf0ce03fecc1a1b27f2e359da65940e187e744a6d4c9a48e7d302f355aef3b8c",
+          "bytes": 17026
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/spec.py",
+          "sha256": "18ff1811bedb4a6650d22df7f0cde54025599bac949e45219b73c5295816f1b4",
+          "bytes": 638
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/shared.py",
+          "sha256": "667d9abe0da0d09d9f906e588057c26e5d77f205dec7cb2d47e43054972e4886",
+          "bytes": 996
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/packuri.py",
+          "sha256": "d7eb910308c87ed978ef99e8cefb2c1284bed04073d30fa826f4fe7cd61cc7da",
+          "bytes": 3729
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/phys_pkg.py",
+          "sha256": "f9e3590c16cb4a11e8dd6d628257f50b037f9e42bcaa79935a9e80060efb7230",
+          "bytes": 4005
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/parts/coreprops.py",
+          "sha256": "541733747f82223fad704e1b075d4bc7099990518cd801b5055ca22760369826",
+          "bytes": 1775
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/parts/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/exceptions.py",
+          "sha256": "a6a6b51ae1713251990c180606a9ed67ff1a0c834bc28da0b4fb8d470003cf23",
+          "bytes": 264
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/pkgreader.py",
+          "sha256": "8943d9ec16b890d5e33c1faad664043b8e1e5666e73f4f29a385851fe1c3d881",
+          "bytes": 9588
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/part.py",
+          "sha256": "be2d13dc9886d525249eae5a41d34bf592529c363c077f37d9d89247f99a489e",
+          "bytes": 9025
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/rel.py",
+          "sha256": "4d1ebff72e9b826aa50d9aae45fffd89946a37ff7c53f2c427bc5fa4c5b55489",
+          "bytes": 5600
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/opc/pkgwriter.py",
+          "sha256": "b210deb81b56d816c53931eb5f1f11f7b3d615a1ff7c4dfb25805f6f0e90591b",
+          "bytes": 4524
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/blkcntnr.py",
+          "sha256": "ff17bb533dd1042cf84cf297a48cd1c6d1a0fb560f6f78001bd62fb12532a0b5",
+          "bytes": 3525
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/dml/color.py",
+          "sha256": "3bbc5e570b426ce3d6d5a34a487101a9cc6962739414c8ca2afdaf736ae2246a",
+          "bytes": 4439
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/dml/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/style.py",
+          "sha256": "67d70147b377982999e789ca2712aa3e147848ccbf86a2511f6c9a6c3c512e8f",
+          "bytes": 10137
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/section.py",
+          "sha256": "98d375905d66748250f365c51599dddf25d79c2bb999f9d7ce8a5a96798f0aaa",
+          "bytes": 2391
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/text.py",
+          "sha256": "a3a6dda49a2dda2638d149e7050d6e19f744f281c59b776d5d4ae6b7d78c96f1",
+          "bytes": 10276
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/shape.py",
+          "sha256": "0ca426e89dc8b36d39d1b4f946c794a703c765997d6add0e0108d4d616b61f88",
+          "bytes": 396
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/table.py",
+          "sha256": "ecfb90fbe3c69d268d884d01bb8549f6de8b3a033e84d366284725fb74b67949",
+          "bytes": 3943
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/dml.py",
+          "sha256": "0eaaa4631974f625d0803359c7197fc22fe7f6b03b993a2475ed53a4edf28265",
+          "bytes": 3346
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/enum/base.py",
+          "sha256": "ae1ea6168c14e2a0baba7867e97bdfe79aed63734787d43e024d140054cceb96",
+          "bytes": 5070
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/__init__.py",
+          "sha256": "fcda35a3fee0a7c9e2b09713a74b274cea562a2b28dcc2f9250d4e05bd074012",
+          "bytes": 1832
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/types.py",
+          "sha256": "0609d79514beae83da345d696d05f864ed401ea2088c837ba8cc0071a0e78921",
+          "bytes": 848
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/section.py",
+          "sha256": "af648b3fa1170ad1cf9aff0fb5a4ee6198355b2f25f4ca151e503d2474f74a20",
+          "bytes": 18412
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/tiff.py",
+          "sha256": "2d9c7e3f6b8c4b381dcc77c8591a91aad9db86e22a58163f70b931f7f1d3acfb",
+          "bytes": 10379
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/gif.py",
+          "sha256": "d11ecbd2bee48dff38e2976937a50a1084ac110cce3c0c80ddc8215d77495b6b",
+          "bytes": 1118
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/constants.py",
+          "sha256": "63e304f59d8a0cbb231500ee9fc5f1857acbe87357864519a861ee0875c431fe",
+          "bytes": 3466
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/jpeg.py",
+          "sha256": "90698af18f83970446c38f8f2be39d32025431daa188a3a0071ac52b87975715",
+          "bytes": 15386
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/__init__.py",
+          "sha256": "ca07a6f978f328fdeea3efbe661b1321930b12da2e35b2044f1800dd892bc3b2",
+          "bytes": 664
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/png.py",
+          "sha256": "846a45ecdafbac1502904f4da07b5022b28cf21a6205a2575a2a36f2f7d9b345",
+          "bytes": 8214
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/bmp.py",
+          "sha256": "c3f261bba841c8072424dc8a848df31ce2ac1f289b1e0c4322388f23d7afef4e",
+          "bytes": 1347
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/exceptions.py",
+          "sha256": "ffaae48d75dc6c5c5bfc7f89d242b843527d45a2f1dd3550e61a0e54436f41a2",
+          "bytes": 383
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/helpers.py",
+          "sha256": "8f2d1f401a887ecb69f44c5f2b0ddd18d2a8ce7ef846799203f6309a896c0ea3",
+          "bytes": 3089
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/image/image.py",
+          "sha256": "c2599628b6da9e90e1273646dca7ee051957c370c50ae5171c8fc271e7185f21",
+          "bytes": 8005
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/shared.py",
+          "sha256": "37a60824a8907affb45c80b4343f5f260d5e56dd661bf3042e74dac1ffdefbd8",
+          "bytes": 13506
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/api.py",
+          "sha256": "d77539ea23d2336b4c44311bd373a64994240c03e6c068dfc68b189164b6b5c7",
+          "bytes": 1350
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/styles/style.py",
+          "sha256": "0681974114b238398f237f1b00458f8135c43f0857c9561967d9d26314521cf3",
+          "bytes": 8051
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/styles/latent.py",
+          "sha256": "10305c81dfb58ca996fb01b3eb81af7064a8a673ae3d01b58a7534a671d1b100",
+          "bytes": 7211
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/styles/__init__.py",
+          "sha256": "68226a847e09846fdc226de2c15246b56a565b4017271dd031a83b30e466add2",
+          "bytes": 1406
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/styles/styles.py",
+          "sha256": "8eaebf1f3827dd7885f8da35d24c2abc31d3607a1b5f7f34f77f6c416aa4c062",
+          "bytes": 5608
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/document.py",
+          "sha256": "b54354a7f068191e37dc9b4256480f0222665b60d22951f365402b0a7b46d9ce",
+          "bytes": 11194
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/settings.py",
+          "sha256": "b562543a3dca001824ff76d7a318481d55956391e698a2a5dadb2a89cd9837f7",
+          "bytes": 1082
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/story.py",
+          "sha256": "fe1aeaed9fae219b70154acadcf28c98684e72efd882e7a3d7136bfaa6c9b2c2",
+          "bytes": 3857
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/numbering.py",
+          "sha256": "b260ac704e08bbd5a161308d7f975a1c8ada958a0fae4e8abcbd3278588b88b8",
+          "bytes": 1054
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/hdrftr.py",
+          "sha256": "fd4d0f0a35642ba116c24c996fda13ba794d6fac79e6b1020f5c450f3c1494f3",
+          "bytes": 1709
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/document.py",
+          "sha256": "0ea6a46e07b9fdd89e1923897c603e3a93cca0b3b63ac4db73deec738dc38a14",
+          "bytes": 6417
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/styles.py",
+          "sha256": "2f2eda2723e0b704364d1230b94b47cffc75674147f494edb0da219a5d7eca43",
+          "bytes": 1391
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/settings.py",
+          "sha256": "96a703cc334b11cf0497198d30ac32eae36039eb1f61cbc10e12b3eee50c9dbe",
+          "bytes": 1717
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/image.py",
+          "sha256": "73e0c5e5816fa75a954f1ed9a27fb1397c34a8f73fdcba1e5fda8c4853ecea6a",
+          "bytes": 2739
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/parts/comments.py",
+          "sha256": "0e6c61fe2f000d1a3ec0b7cef4b5742f2868e570bfefaa14d4d24df22b70f257",
+          "bytes": 1760
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/py.typed",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-header.xml",
+          "sha256": "a0c1c9e66afa49dd4f664984404278966afb542c19885380be6252b0e28ae142",
+          "bytes": 1395
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-settings.xml",
+          "sha256": "79738b945e28e1ea8338b7848b9aa3c13bf99a60e4dd5e4232c7900fbfdb0ae8",
+          "bytes": 1640
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-footer.xml",
+          "sha256": "57d1a47f62777f11d53698581d7d857f1b92747521d7fb40ac7bf56655070315",
+          "bytes": 1395
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-comments.xml",
+          "sha256": "b23c2e04f586507f561e3c557876b52eea8e9b7a3e94d899030cd557491a8c8c",
+          "bytes": 734
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/[Content_Types].xml",
+          "sha256": "888a7cd9d95d0998436a499759f30530350ce1acf84d3c07ef47ed6aba489e9e",
+          "bytes": 1782
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/docProps/app.xml",
+          "sha256": "be664981c3141cddfc59362beb287ebf20d0773660e2dd6faac5968a5930a081",
+          "bytes": 1132
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/docProps/thumbnail.jpeg",
+          "sha256": "96367138dc44ce09bf2c8f0f8e49348a1478d2c5c0af69bbc2bbc38b63cdcead",
+          "bytes": 8324
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/docProps/core.xml",
+          "sha256": "10bfd20ea5d9c8ab0236a2f4e49f99cdb207aac6711e4780cf7a390b322a1d40",
+          "bytes": 753
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/customXml/item1.xml",
+          "sha256": "a86086ffc5d8e83ebd6c71a55d1d2efaa31b137977f5f3a752366e1023612144",
+          "bytes": 262
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/customXml/_rels/item1.xml.rels",
+          "sha256": "32fa6ddf5bdffdeec97e77d0805928f4d2411f23a3335d1ee0449b740ce1d84d",
+          "bytes": 300
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/customXml/itemProps1.xml",
+          "sha256": "c542307b13ec29a8b546217bb37936ab4822e044b265d2952985ec3d6afed24e",
+          "bytes": 354
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/_rels/.rels",
+          "sha256": "f8bc20b7e1d59262abbdc48f9ffa6aca57468688bbd40dc627817732732526b3",
+          "bytes": 748
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/fontTable.xml",
+          "sha256": "79385fb7f60247507ecaffc292e9ebd52ea0657b8634f629ba6fccc54011d6bb",
+          "bytes": 2811
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/document.xml",
+          "sha256": "f5154b3c5dae749abb0e381e10ea02e19e137650065c4b1f11b059c6d75340bf",
+          "bytes": 1594
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/settings.xml",
+          "sha256": "31522d2d3c366aec5714c921ce556b4838ca7faa33fa795a66dc32575c710b27",
+          "bytes": 2749
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/numbering.xml",
+          "sha256": "ca605d64e9ba232fd8ff401d700669f7b5c4351865b1c16b91fd5a4aac9be249",
+          "bytes": 6747
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/webSettings.xml",
+          "sha256": "349d36de7434d09f86987ff671d8814964a0588c1e630c06e562cda7e75e9f95",
+          "bytes": 438
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/styles.xml",
+          "sha256": "09e350b95e121e7b63841485a6adacf2facd496c189297b2dba634bbb2898a88",
+          "bytes": 438677
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/theme/theme1.xml",
+          "sha256": "e3a8ab7db9ca7afca56f5f2820a56e8b660016c647773555b060b0a02ac76941",
+          "bytes": 10939
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/_rels/document.xml.rels",
+          "sha256": "4f2b7b47d8a7d10d44e3bad6d03829ba2e755cc8b29a2d35a49eef79ed7b11d6",
+          "bytes": 1253
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-docx-template/word/stylesWithEffects.xml",
+          "sha256": "463ae0928cf0d84775dbf8cf18d6c3029f6707c81bf590f6d6dd8757a5e93f15",
+          "bytes": 438131
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default.docx",
+          "sha256": "2094b5bddffe9cf973d61fe03388413804f034160718494a65db7e98da40d35d",
+          "bytes": 38116
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/templates/default-styles.xml",
+          "sha256": "5a78ed3992ec0a73f885849a62131f47b256e22c43c5172bdde04f23c411c7de",
+          "bytes": 15823
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/exceptions.py",
+          "sha256": "59688ccb766db1f2914b7d56bf4f5e80b667a4f917d07eba07c26438f082dc53",
+          "bytes": 454
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/shape.py",
+          "sha256": "e5a81ab2b7971ec54839d775cfc77eddeacfbe5b1b0512508c743420b49f79a2",
+          "bytes": 2969
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/table.py",
+          "sha256": "105c5b543dda11b2cea9d7ace5ca46b77c576cfcdb64b146d1297938f1d2ae16",
+          "bytes": 19477
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/run.py",
+          "sha256": "caeafcc5ee50be34282da55827feac16e29c5740534e43090bb8fb7a15a04efe",
+          "bytes": 10282
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/hyperlink.py",
+          "sha256": "1fb606087f398bb10370f41c6282e1e0c3b1ff0fb1352b9c0396c0808dc7b554",
+          "bytes": 5257
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/font.py",
+          "sha256": "c431e1e4a05c3c0cc3357b94e812f2f605c268ce43a275e8ef982d9a53d1808a",
+          "bytes": 13605
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/tabstops.py",
+          "sha256": "6c937df06596db67f84aa8347506f251c9ee3a7eb97c7b0d66e086b30234dff7",
+          "bytes": 3896
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/parfmt.py",
+          "sha256": "ef433be47168ef2769aa621d663915ef5d66bb2aec04676be1666c705dd85496",
+          "bytes": 10339
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/paragraph.py",
+          "sha256": "37717adbf25141961aba6ba86895ca0839d14b0d832223b0cf230f57625dec62",
+          "bytes": 6828
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/text/pagebreak.py",
+          "sha256": "b08d72315a2d901b67d6ee4327d2f4e05902d3542803073255276018f0242486",
+          "bytes": 4950
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/docx/comments.py",
+          "sha256": "32668fed4f6664e505b1185a64d21b5dab6a38e03cfa9382e9496a580b931ec7",
+          "bytes": 6385
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/typing_extensions.py",
+          "sha256": "4040ca1a1ecbee00d1385c12a93084d1c5bd46f0b774f07e5ae7e91c4f55e696",
+          "bytes": 165012
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/reader/drawings.py",
+          "sha256": "8993e893c0dcfe664cc913e4fc47c35c342f65dc1f1f06d88efc5f2b6717b5a8",
+          "bytes": 2209
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/reader/workbook.py",
+          "sha256": "e30d0b455eea34d1870e761dd7dcd48169c93845fcb478e6def964c70965cefe",
+          "bytes": 4352
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/reader/__init__.py",
+          "sha256": "735dbef6430f5a551d8f04a864fb05a66796f0a5571f41c21a93b776509356a2",
+          "bytes": 35
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/reader/excel.py",
+          "sha256": "9204ad42d3b58f4bd5e7a196697c68dc6036117ba8b86b6716b45532872af046",
+          "bytes": 12357
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/reader/strings.py",
+          "sha256": "a06d8caba7810f4f849453b13dd1d30549ac854c5336b2b5b27b3550945a562b",
+          "bytes": 1113
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/workbook.py",
+          "sha256": "b388e5e20aaa3246941e6300479d9d73d66835389eb9772ad4e1b7720343623c",
+          "bytes": 6495
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/custom.py",
+          "sha256": "b82125ec8c084c55f6a4ec620084e7bcd6dfb1abfcd2e1c1d305d416f8c84544",
+          "bytes": 6738
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/relationship.py",
+          "sha256": "8cb86f16f0d56414536535e8911aebb0488b23d0a6165ba5846cc0fce60a3344",
+          "bytes": 3974
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/manifest.py",
+          "sha256": "cb9ce80d09e1275696fc73cb22d63f584f787d22d2e23c6f7c8aa7fc9db327a4",
+          "bytes": 5366
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/extended.py",
+          "sha256": "24592cc4377aeeb039ee7fafc60e3cb5b7998768362c439bd1f8092dea9b4d63",
+          "bytes": 4810
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/interface.py",
+          "sha256": "be5195b7862fc94478517f53afdc66927d46f2cff29d856d031e28909ebe83ff",
+          "bytes": 920
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/__init__.py",
+          "sha256": "29c36d3b6ce8622cce806fa26736b265f7d22f559e651f7c8b543c4184d185f2",
+          "bytes": 90
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/packaging/core.py",
+          "sha256": "3926d214666b298719b337077b72e1404ca201fd96ca5c319b8ffa37c58ef98a",
+          "bytes": 4061
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/_constants.py",
+          "sha256": "ae139e43ac0d1fa8f0ef71b8236e3656d6e6c8cf1fbdd355c0eb0e8c9949e935",
+          "bytes": 306
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/comments/comment_sheet.py",
+          "sha256": "52fd913e9231ae29033c706be588f574392eb1907def2544f8d413334f849c19",
+          "bytes": 5753
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/comments/author.py",
+          "sha256": "3d907f7e342a8849bc05d1c36e56dfcc1d20ce416f1025aae62d6348778965ca",
+          "bytes": 388
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/comments/__init__.py",
+          "sha256": "93f409f8e3d199ef07800610972c5b6d18664b59f6172a30a8879e9015beeefc",
+          "bytes": 67
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/comments/shape_writer.py",
+          "sha256": "2ecd5dd12b1c7f118cf47daca63c4c34778949a649b8b6b0957b38b78a87eefe",
+          "bytes": 3809
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/comments/comments.py",
+          "sha256": "0b1bab01633b59b09d6dec9af8342495b8964856b186dad4341644cee953cb17",
+          "bytes": 1466
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/relation.py",
+          "sha256": "2276ccef9ca65948c8097863c82718aa9d4559c7c2169f6af6f79c60ba6dce4e",
+          "bytes": 344
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/picture.py",
+          "sha256": "b436286f6c787a7710f6b51639edbd3eab624520c48fbe3a8fe4af43bad5575d",
+          "bytes": 4205
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/fill.py",
+          "sha256": "67f9006396e7720bb55a464dbe08e25f9b9cad823a18b5f2522e87dff9a77b69",
+          "bytes": 13092
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/properties.py",
+          "sha256": "4f22ce1777a1a77f1726fbaea4d65db0ea99d073579153c10d8c14e4ed468413",
+          "bytes": 4948
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/line.py",
+          "sha256": "091c55d0d52971ee117d73c3965a1d7277a81e4f2faf622777c1da5a752fd871",
+          "bytes": 3904
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/drawing.py",
+          "sha256": "59bbf6e1365b35a3e780347769d3a3ea350183e8b2318c9fbe010f83ee483eef",
+          "bytes": 2339
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/__init__.py",
+          "sha256": "c655d5693dc5b3d96dbdb6d12064d2468c3d930f6784b637663d4c9babd74471",
+          "bytes": 66
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/xdr.py",
+          "sha256": "5c4db2473942aa82415a0dd33d1c5e9736781a6055f5d0c54ed889809664bbe5",
+          "bytes": 626
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/graphic.py",
+          "sha256": "d35dca8664eaa753c52a1b7d951440e921e3ce7c6af442f8bbfc9b03cf0eb829",
+          "bytes": 4811
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/text.py",
+          "sha256": "ebf4a122ef452c6ecc26f30bb3f1bfb536ad4da06ac69697e4a30ac527d363b6",
+          "bytes": 22421
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/geometry.py",
+          "sha256": "d1433984c1d8cbf4770be947b79c773440839fb3b5b5f6cabb907078bc1d2e58",
+          "bytes": 17523
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/connector.py",
+          "sha256": "e1b7ba905c039a2c6a617ea4a36d8913772a27dc5433b951a2749eaf50435606",
+          "bytes": 3863
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/spreadsheet_drawing.py",
+          "sha256": "094592a48616387504a7e5123801953652df5c140e6dc19d83f459fdb8203d83",
+          "bytes": 10721
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/effect.py",
+          "sha256": "bd9e6bf64dc97f2680a0182017337dc32bec1039cc9c09a4419b1d550375fb0a",
+          "bytes": 9435
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/image.py",
+          "sha256": "44e3b46098f31fd7aa8cf50a5396ccb6de1b5e71c52bdba87c36b6fff4771b69",
+          "bytes": 1455
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/drawing/colors.py",
+          "sha256": "77dd9de8b42fdb18b8c55b7417a6c4273fa4a5ee1a86084db0e218d3f7318102",
+          "bytes": 15251
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/pivot/fields.py",
+          "sha256": "d0240b75338185801af607c465bfdbbe4802c7c7de012629eb876a16c90392a5",
+          "bytes": 7057
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/pivot/cache.py",
+          "sha256": "90a40c11ca186fdb1c97f08d3567e634e4dec03e52de1a411b056232d0c2cb1d",
+          "bytes": 27840
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/pivot/__init__.py",
+          "sha256": "735dbef6430f5a551d8f04a864fb05a66796f0a5571f41c21a93b776509356a2",
+          "bytes": 35
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/pivot/record.py",
+          "sha256": "738e5fb7562c3c05519de31587f5af510d6766df51250fe3a2c46ea252b1dea1",
+          "bytes": 2671
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/pivot/table.py",
+          "sha256": "ae228179bd5a2025d68a99e1a52692c7d8aa3fe0247dcc8e4a6dc37e5e34edd0",
+          "bytes": 40756
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/__init__.py",
+          "sha256": "7e5b45fff09d18af7b97657732d203c5bc2057fa75019bcb772a9c12d5cab2ab",
+          "bytes": 1592
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/numbers.py",
+          "sha256": "d9d7241343c74fb781f3d49cd8176558e1f864b5d6b77fdea3bdfe0b346e8d46",
+          "bytes": 1617
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/singleton.py",
+          "sha256": "4751e21fb5e98da5b892bdc620b58c738851199917c9cd322bb4f58dc83f4168",
+          "bytes": 1023
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/product.py",
+          "sha256": "f9b0e034c1c60e06da860c348ea6a57bc4de20044bc3b1ced2ca1000bf5bff89",
+          "bytes": 264
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/strings.py",
+          "sha256": "0ff4d67fc427307e96331eb1b820df5e5d1ba1cd64f6aee3f2119a9554364549",
+          "bytes": 604
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/compat/abc.py",
+          "sha256": "63e2faa68cf3823afcd4e7d7b230e418378a12ae8139f32bea7beb169b3fa3a4",
+          "bytes": 155
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/relation.py",
+          "sha256": "64001f1196fadfdbded24e81c91c261dd8c1ae3a950b46c738b808701c11c7aa",
+          "bytes": 2731
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/chartsheet.py",
+          "sha256": "1935cd7d03d805a4b807b5c1e1fee00e4028da40a3b59aa2765ea20f1a7e250f",
+          "bytes": 3911
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/custom.py",
+          "sha256": "a9581e0b34fbb75b4dfe90f068baad477b9bb8f0cb79347928a95cc709d359af",
+          "bytes": 1691
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/properties.py",
+          "sha256": "751d67ae9db616c3e4c83af041a655eedfa9f99d8973cf18d8884819b06f1619",
+          "bytes": 679
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/__init__.py",
+          "sha256": "dce9f2d5635bc715ae75d4d6fa97ae50fbcedf1a8858559edc36b6394cec5672",
+          "bytes": 71
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/protection.py",
+          "sha256": "7898b110199da130cedbfd21ea0e75b1d49d7d274268ff1450db1b12a1ddb3a5",
+          "bytes": 1265
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/views.py",
+          "sha256": "332dc0bbe0c401c0b8970040461ac2730b0decba7d1fa705413f92880709964a",
+          "bytes": 1341
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chartsheet/publish.py",
+          "sha256": "3ebc2ab142a7d922baed9337344193f451f89ce282d5c3b1c66df7db68476b04",
+          "bytes": 1587
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/ole.py",
+          "sha256": "92156fa8cb7818f73d62beb084b0df914a39d5ebb22d77c97b5a78cc579ee27a",
+          "bytes": 3530
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/print_settings.py",
+          "sha256": "93f8387e4aecf5b7f3f92f9120a2011aacd582e6ee7cc76bc964377a35d0a112",
+          "bytes": 5215
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/controls.py",
+          "sha256": "14f2e0e0df784fe20bdbb34b83c2defd4e166034ffe806b6e4b0c6fe48840d50",
+          "bytes": 2735
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/merge.py",
+          "sha256": "80d3881fa109f3055c26989b02fe0231ced4a43eff0eb1af81a092bc6da29b90",
+          "bytes": 4125
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/related.py",
+          "sha256": "64b0e981cad6e835a5f2fbe1dac49507faf52721bc6c2f0489c0812a37ecb13b",
+          "bytes": 335
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/custom.py",
+          "sha256": "091950f7c1b0aaa2a610392ff203d409ad00a4d336573f812ecffe44cbb78cb0",
+          "bytes": 639
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/formula.py",
+          "sha256": "e72bae97ab3597e2bfefc2971c2e87ac5fe92e1c72a6895d8798cc83bce69726",
+          "bytes": 1045
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/picture.py",
+          "sha256": "ef64dcb42c73936254f2e15f8e211b4c1b9f11ee5e4312227923c146153a9b54",
+          "bytes": 185
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/dimensions.py",
+          "sha256": "1f333bec5ad88b18900c2ba0453f82f59a4aabb18d15a19c8714fbdd4e1c8ac6",
+          "bytes": 9102
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/properties.py",
+          "sha256": "f625d33950bc07d0beda9a7f894e65d2be458dfdd4cefd1220e50a46b676870e",
+          "bytes": 3087
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/_writer.py",
+          "sha256": "6c3b70e81579b5dced0114049103e9ac4c51afc859545923d03ca896ac55bb69",
+          "bytes": 10283
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/cell_range.py",
+          "sha256": "60ff00527a9414fe70395fdabcc0c5452674422da9efc45616ec32c82b9aee6f",
+          "bytes": 15013
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/hyperlink.py",
+          "sha256": "b17ccf9248e5f4158dcc2c70c0411a492e77277ee32173e69e7103fa3f0c201a",
+          "bytes": 1103
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/_write_only.py",
+          "sha256": "caa5be0ed0430d84f018204745523092179207b4922cedf1970f91b17b4fa2b1",
+          "bytes": 4232
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/drawing.py",
+          "sha256": "da77eb2f24d7d24022ccf208345d762b00d6f664676aaf21b3e36b481716a661",
+          "bytes": 275
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/__init__.py",
+          "sha256": "735dbef6430f5a551d8f04a864fb05a66796f0a5571f41c21a93b776509356a2",
+          "bytes": 35
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/page.py",
+          "sha256": "e2379245c0c4d12d913f3200980dc187eb97472ab48676cee61e6925d1876db4",
+          "bytes": 4901
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/_reader.py",
+          "sha256": "be9fc3ef0e038800cc77236b62942096b095bd52d3f7f0ec4998a439dfbe9f67",
+          "bytes": 16375
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/_read_only.py",
+          "sha256": "e8a77843eef752824363aeac911272fe4b3ec021cdb6d94686c0f1bc1f7d3ee6",
+          "bytes": 5709
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/worksheet.py",
+          "sha256": "e09339aa3a09ba6b5ca9fb471648a6b45110af3ec4d830665e7915a3b477597f",
+          "bytes": 27572
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/scenario.py",
+          "sha256": "565256e298b5393cb5709f66ed9c5acc8cbc3d2968d7b046a675188b198da2d4",
+          "bytes": 2401
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/cell_watch.py",
+          "sha256": "2ddc467139976d9e2cc66ea29dab058193e57758a374be7f383494befcf5dc35",
+          "bytes": 608
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/table.py",
+          "sha256": "823b7e8cd3fc761572f30e60fa0309a5f1cef9e575128c49cbdd728bee471bae",
+          "bytes": 11671
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/header_footer.py",
+          "sha256": "f7517a3540d4130ae181e5abc46f57b433f23c3d375c0b4653f38d0699007d47",
+          "bytes": 7886
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/errors.py",
+          "sha256": "2a4142e1b9dc92f0a9ef85ec55703b2540a2e0c22298416edee01d75c4298e8d",
+          "bytes": 2435
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/smart_tag.py",
+          "sha256": "9cb6edd3822a78996593b4e6352d5e4cd75bece9f98cc7f79657f2cb7a2d0d29",
+          "bytes": 1608
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/datavalidation.py",
+          "sha256": "9be3bb34ea130ebfdb01fc41f7111e63942db458ae3edcecf88140945d23e051",
+          "bytes": 6131
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/copier.py",
+          "sha256": "d038b5a9292cd20ec9b609a973f336d0ef8a3c25bcd58af69b20b98f8e7c9f25",
+          "bytes": 2319
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/protection.py",
+          "sha256": "be3e4ce96582e712a21de592fed26a5f1ae53891c9ec6a56d8974fc3bafd8e31",
+          "bytes": 3758
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/filters.py",
+          "sha256": "f1e523d8bb8ff106f3d51d6090ad5ce96fd4292f3efffe9794531592e9c8b9ad",
+          "bytes": 13854
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/views.py",
+          "sha256": "0e465ca6dc296e99251c82d296f2be6b62e627b0566f5c1b0dccf625597be34e",
+          "bytes": 4974
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/worksheet/pagebreak.py",
+          "sha256": "5d714830e63855d3d009df3a9c63e0840ea139f2c62b91bf285baf8c134f46cc",
+          "bytes": 1811
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/_chart.py",
+          "sha256": "8f9c67ea6418999e04ef2d95d57bf1d63c215f6fceebc329fbccde5d1b5e4bb1",
+          "bytes": 5746
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/data_source.py",
+          "sha256": "180b96a02389e24ed164d259919724d33b7ff83e547c3130ab0437343e3eb37e",
+          "bytes": 5782
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/print_settings.py",
+          "sha256": "53007a2a7eb190b4417a35d2725faeb45f1d90d855ecb9b72df93b002a5b460b",
+          "bytes": 1454
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/axis.py",
+          "sha256": "ca89a6cb9ab699058a9a62d1a2e581a629a20590c13352be50a008c02c0a0cd7",
+          "bytes": 12580
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/trendline.py",
+          "sha256": "f6959225af40770b5deaffe2edd3d3eea34ace13ab48c599e10b803a7b595958",
+          "bytes": 3045
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/shapes.py",
+          "sha256": "26480ccb70d458328b57a2591ca6ffa5406f5a9cd3010ddb89432bfb57c95995",
+          "bytes": 2815
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/picture.py",
+          "sha256": "43878135030a4031d1f754673dceed33e61955d7275a771e75495f6a08faee09",
+          "bytes": 1156
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/layout.py",
+          "sha256": "4076a4a7f08872836ebe3c9932c436a7fa8fe380c842ce1aaaecbbca59fde093",
+          "bytes": 2040
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/surface_chart.py",
+          "sha256": "ffec86117f8ebb634956624203f2bf6d22f2ce4f91bdb3eea7240b9a37c25a3d",
+          "bytes": 2914
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/legend.py",
+          "sha256": "88f33270e8580c0558774e4e53f40307e1926af770ff52fd08cb892044cea062",
+          "bytes": 2040
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/series.py",
+          "sha256": "93c791f1cbe21fd10f9654638ebff66be947e52dff1d60532f213b5ca821cd67",
+          "bytes": 5896
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/__init__.py",
+          "sha256": "6a0e1808dd41dc91f49644bbb628990a8855000e75c7fa5e8c674032ec5a2356",
+          "bytes": 564
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/pie_chart.py",
+          "sha256": "50ebe48eb06935dfeb4feaef29ca4f79577d74af842dd3086878c0504afaa0df",
+          "bytes": 4793
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/chartspace.py",
+          "sha256": "3ee3c606c55ba4ae496a06c1ed25a0a78270750b53ad9cc89bc99fde47c602e6",
+          "bytes": 6069
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/updown_bars.py",
+          "sha256": "400e25c8432d315bd90ab614a476583154b5c6c9da378fd3e54062e84ee2950d",
+          "bytes": 897
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/plotarea.py",
+          "sha256": "7a6ef2a2b5c5cfd4a626bbaa391e0f9feda8123d12bb8ae7cf235ce5ed0867f5",
+          "bytes": 5805
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/marker.py",
+          "sha256": "91fc9b324b212b7a9e7ce516ece5fe3acd2f7e5e4e0977e0f0ccadc070b68bec",
+          "bytes": 2600
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/reader.py",
+          "sha256": "a100fedbda3148b5b6cb35ddc97361cd060d5e033ae18de455238892b3d90ae5",
+          "bytes": 802
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/descriptors.py",
+          "sha256": "ba3faaa6dc0a3817a0ed4e7104de10250d8ec10bc543ba389f978c5d72164bb3",
+          "bytes": 736
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/radar_chart.py",
+          "sha256": "f772356357665d9e98d05d55297cfd237c75b9f830ca004e75b3d9ba64799f7b",
+          "bytes": 1521
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/label.py",
+          "sha256": "223bc8f826634d8f3276853350e8a171bc68456892a456ff8a90fa0b623c3eee",
+          "bytes": 4133
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/text.py",
+          "sha256": "be82427f83cae689665f483fe6ef5a428f01e4ba4252539eab88f8a673b2fc0d",
+          "bytes": 1847
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/line_chart.py",
+          "sha256": "ead0320c2cc58ae88116e5034d68507a91fcc550b1dace7b947f79d5c11cc27d",
+          "bytes": 3951
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/series_factory.py",
+          "sha256": "7b2d7380dc0cd60e1b43007d94b84ce84f9cb4b20cda42d63375fb08fc3c483b",
+          "bytes": 1368
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/reference.py",
+          "sha256": "3774f8a98307f4156bb5b0d188a219cfea86bcf01d7eab964c62f45cac43f46f",
+          "bytes": 3098
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/bar_chart.py",
+          "sha256": "fd340795e313de049ae81d4190a0ff1642c572ff0b45aa221dba72db27e52cee",
+          "bytes": 4142
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/_3d.py",
+          "sha256": "49d9b44cda571d736838b53088e49c72fef2170ade97ffab8d0864ac3a80005e",
+          "bytes": 3104
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/stock_chart.py",
+          "sha256": "609ede125057e68987ce22a8e35ca04c0ec5fcd124c8894551f74325766e2a13",
+          "bytes": 1604
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/pivot.py",
+          "sha256": "f645439a7c67474b90450f966e5eaac3c79ec3d2c686aa2668305a5ea406658e",
+          "bytes": 1741
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/area_chart.py",
+          "sha256": "b91383ddf76eb3ac83d531aef3b8f8cfb2ad3841fbb48fb76793452bbdf0c20c",
+          "bytes": 2890
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/bubble_chart.py",
+          "sha256": "28bed56581722c3a40f0c0be205b5101420ddbadb12ba3338d4e350eb4958296",
+          "bytes": 2004
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/scatter_chart.py",
+          "sha256": "24c537da38f14e3eedc4f2764de6c11cf4b951c32c44756a2f3fe9b27376619b",
+          "bytes": 1563
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/error_bar.py",
+          "sha256": "192fcbecf8b228d9c9547bd0a86da12f1116db7ee280b2c26ad08d0bec463319",
+          "bytes": 1832
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/chart/title.py",
+          "sha256": "2feecac7072931bd9a664e2292032c22014f56d05a7c8a69c7dca477914f278c",
+          "bytes": 1952
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/__init__.py",
+          "sha256": "b36b17729f138575c7b3035287e52e422e411eca1ab2e7335328cd373d15ba97",
+          "bytes": 603
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/indexed_list.py",
+          "sha256": "841b103fd82e9d38adee229d306c3fb4cdf2e6e2295c38d4c7b8ecc1b405e837",
+          "bytes": 1257
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/formulas.py",
+          "sha256": "f88d33caf89c05931a007d57cec9a6104cc4e0607e340eb4e5a02b595b7d8a4e",
+          "bytes": 4248
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/escape.py",
+          "sha256": "e1d81c4a549d3cd934be424d1d150af69a047bca67e2c048439463cfeec7d549",
+          "bytes": 790
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/units.py",
+          "sha256": "786a46addcf2a0a96a2ecf7d7802cd0b97358122d7468e06754340a9d078c338",
+          "bytes": 2642
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/cell.py",
+          "sha256": "3fba20e1ce0971237ffda988b2e6c832048c950e12ac0039799d1c8e4a1795a4",
+          "bytes": 6967
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/dataframe.py",
+          "sha256": "77748f79be29f58285c2515351685d554618c8c2cdaddf5ab42ea249fd9007ac",
+          "bytes": 2957
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/__init__.py",
+          "sha256": "c0230d5e0228038685e2da52b92cf19b59374a624918e123b5d6ea7496591bb2",
+          "bytes": 324
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/bound_dictionary.py",
+          "sha256": "cdfcdf950a26d45a9f130f2e7b106a23c784c427805842f34a4e13aaaa43fb0f",
+          "bytes": 717
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/inference.py",
+          "sha256": "74cd45056fd1c7fc44ecff2f1a8e963616c17bed9eaa91ae263e1ea9d4bb5231",
+          "bytes": 1583
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/exceptions.py",
+          "sha256": "593e34813c9df5852183531ea993731e9f6a2672f9797cdb0846ff56d1e9dca9",
+          "bytes": 889
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/datetime.py",
+          "sha256": "c50f331c915bfa7e2794de9f03f7c564a1e51de34e07b125e3ca7df9838fbc61",
+          "bytes": 4529
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/utils/protection.py",
+          "sha256": "a299bb19533678f42fa4dcca4fe5b9eaefb4c8ff25892f56264c69ce91bfb44d",
+          "bytes": 830
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/xml/functions.py",
+          "sha256": "8c1b5f6bcfffc388019443c61cb18202d26268d28fca28532ec7e68a0caadbf4",
+          "bytes": 2025
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/xml/constants.py",
+          "sha256": "1c336785c8fe58ef5ac8ee0cab071adc0bb465335fb03a960ed95e444b3f5ada",
+          "bytes": 4833
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/xml/__init__.py",
+          "sha256": "0392a3d065a4e5723ecc9c5b00be6f229a55fc08041cb46f786bbc44ae5ced4d",
+          "bytes": 1016
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/read_only.py",
+          "sha256": "0295e4a1f9942b94084acb93819be664ab14f0fb9f490b6a7b6c666164e02e77",
+          "bytes": 3097
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/_writer.py",
+          "sha256": "dc8e962ca1091ae15ef2b3a3c5d015b834f8b19623718a39efeeaf7a519ea5d4",
+          "bytes": 4015
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/cell.py",
+          "sha256": "85526c302f64240c716ff0aca49941af00eddaacdf71c3ba6037cf1cadc10424",
+          "bytes": 8922
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/__init__.py",
+          "sha256": "39737314547d765c545e2b965f229255044989085915e97efd1412de61cd9eb4",
+          "bytes": 122
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/text.py",
+          "sha256": "69c53a05940d4a6571e1b0573e015abe8c667e83db558ae6ff3b69d5b19e3a67",
+          "bytes": 4367
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/cell/rich_text.py",
+          "sha256": "b80666181edb6035276a71c8d2f26629b7d217cae2b88612e42c25554ff7fdf3",
+          "bytes": 5628
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/cell_style.py",
+          "sha256": "f0e97917a92d29e4aa843545fb5d30e5e221ed6fa39338a3a4f3c7aaabf5a83b",
+          "bytes": 5414
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/alignment.py",
+          "sha256": "c10384b666213c916d9ee06ad23b8c7b912c0a9f43352552d62781865027c161",
+          "bytes": 2198
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/builtins.py",
+          "sha256": "70cb49bdead54a37487427243fa2fe02523438b3113e06d0c1a25652495d0345",
+          "bytes": 31182
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/proxy.py",
+          "sha256": "6a3b2fcd1a7f30e795feb65211f568b62ebeded5bc6a8c28e7f1e3c29d8095f0",
+          "bytes": 1432
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/borders.py",
+          "sha256": "04b5133b205bc56433bfc2ae875bb8b167c98883c973c404c5bee71b07529977",
+          "bytes": 3302
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/__init__.py",
+          "sha256": "d9034d765cf80a386790141536167ed76633ef7fee1c88a7a91296a3f4e33708",
+          "bytes": 363
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/numbers.py",
+          "sha256": "ea42bb99d043fb4c6cedb8d80c5346b1402fa05bd1bb9c12323385f49e63f86a",
+          "bytes": 5097
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/table.py",
+          "sha256": "55ec51a8f3d09a347359ed6b5533a0c8e420be5081b8461389fe4c115ff4aac9",
+          "bytes": 2801
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/named_styles.py",
+          "sha256": "9df2f528fa5de9bd18d2a06b189435e4450e79b7de3b579905084f5697195bea",
+          "bytes": 7254
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/differential.py",
+          "sha256": "76a1069f2fe8bb58c2ded7a005a975c3f51b38dc901095ef18f511b3cc56c1f5",
+          "bytes": 2267
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/fills.py",
+          "sha256": "2e64781f4d06cca0d6c988f30c46b2cca64ddbc4bf9ae0fae43bc015695b6822",
+          "bytes": 6380
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/fonts.py",
+          "sha256": "9e47a225480a62759a113be7e75b0ea3dcd05c988e1092870d3aafc6dd098817",
+          "bytes": 3516
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/stylesheet.py",
+          "sha256": "ee4669cf26af2eb38971d66a6739775994f233ad02a963fc8bf390d09ff5c72d",
+          "bytes": 8790
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/protection.py",
+          "sha256": "0541e0011abb4a33957d6fd24f9de12825287d50445979f72e79ff7399f88bf2",
+          "bytes": 394
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/styleable.py",
+          "sha256": "625ffea0f96312e17383db57292482baf5912f82f41c2e5b1cc1495617b1e8e7",
+          "bytes": 4499
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/styles/colors.py",
+          "sha256": "4acdd0a8d4b9608495909c6535f778abf612ac529d2a301358b0d2bb6acf3017",
+          "bytes": 4612
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/writer/theme.py",
+          "sha256": "e4786afb4b8fe79b1ffd9870ee2dccf5acc27c28c02d0c68a3b095ffd40f9930",
+          "bytes": 10320
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/writer/__init__.py",
+          "sha256": "735dbef6430f5a551d8f04a864fb05a66796f0a5571f41c21a93b776509356a2",
+          "bytes": 35
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/writer/excel.py",
+          "sha256": "ea2a179f78521c72149e45b6c02c8180f0380a770ee855cbe72192033b2aa7a6",
+          "bytes": 9572
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formatting/__init__.py",
+          "sha256": "be990bdc48a631afa6a098dc5a4e25ddb216749ddcedaf2928e7c69673ed7bd7",
+          "bytes": 59
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formatting/formatting.py",
+          "sha256": "01d5e5ae189ce023efc89df4d281493c9507fb6bd2d1534e2e236e76ddd4dba7",
+          "bytes": 2701
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formatting/rule.py",
+          "sha256": "f7a15ce7e8520720abbe40b53b46a01286722fd1bf01d7ae96b8d15e77ffad9f",
+          "bytes": 9288
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/slots.py",
+          "sha256": "c4d8f9bcb596a28ba7a58a9b3f62439e78654e24cb467fae4df4319dca457e7d",
+          "bytes": 824
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/sequence.py",
+          "sha256": "3aa177e0afe7502e3a5c3e41ffac73187784202cfff368641643455e90644921",
+          "bytes": 3490
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/__init__.py",
+          "sha256": "78849347449ad5928a3503f1319b6a944dfd26e818ce48f18997fbbbd7edb62c",
+          "bytes": 1952
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/excel.py",
+          "sha256": "77a6ba9ada19fb7de3c0c1a582f3532f9e1ca8b00d2b284c8a11baf3cee3f2bd",
+          "bytes": 2412
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/container.py",
+          "sha256": "21c3bdd4cd36851d2f5d9b561aeaf3d081f5562d8fa041023f53c46f3eb61494",
+          "bytes": 889
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/serialisable.py",
+          "sha256": "53fef03041904483a28a65142f801b74e89631cfda2f229e6919e3fd9edd54ef",
+          "bytes": 7361
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/namespace.py",
+          "sha256": "2e32387bd474f4d49b0a5aff7b0bf46261e0598f113b9c6ad6cf92a40bf3db0a",
+          "bytes": 313
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/base.py",
+          "sha256": "f82b8d7ecc0419ace03a85f71ae33606cdb39012264fdf764ef476475c6c9d73",
+          "bytes": 7135
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/descriptors/nested.py",
+          "sha256": "e4b4ac7f6baf4cab2b1841101752955cc2c7645a118262df2ff9735b49564232",
+          "bytes": 2603
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formula/translate.py",
+          "sha256": "66cf5a76a7d94c0ba8f09fd035ba8adef8d00e5485856734bd673a4c230362b2",
+          "bytes": 6653
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formula/__init__.py",
+          "sha256": "020bc476e9d5af2873c1e72e1553b611ecdd253de1e60097a70da3ddfe555160",
+          "bytes": 69
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/formula/tokenizer.py",
+          "sha256": "a358c300e97bf588825abfb62e64880b201b866da175bfb7ee3ae26ac9afe1d7",
+          "bytes": 15088
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/workbook.py",
+          "sha256": "a1a12bbd21f5a94a615003ce6530878f6507c8a783aac8f60f270a083720a3b3",
+          "bytes": 13232
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/web.py",
+          "sha256": "f3b07998467abdf1d3c32c1c1ad7182fabbb0f74722550c22715749c765e4bec",
+          "bytes": 2642
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/smart_tags.py",
+          "sha256": "c471d70ab50f9c7791a0cfde6a4ac23b3f9e0a972ddd8ef12874a1afdc06bfbb",
+          "bytes": 1181
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/properties.py",
+          "sha256": "bcc52b8aeebb890535d71228b37edacafef7823ab591d1e0236ee7709dd5936e",
+          "bytes": 5261
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/_writer.py",
+          "sha256": "a41e2cd397ab344049153ff0e4b4fed83971a979192cebad5d65607b044b55db",
+          "bytes": 6506
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/defined_name.py",
+          "sha256": "1001755af198538586eddbac0e2dbdc8102bd79061918b6417f1ab1729b50c36",
+          "bytes": 5394
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/external_reference.py",
+          "sha256": "f5b297f7f420349c6fedf1147741bea1c5f265a8cc02c0f31b5d5dd268a0bb16",
+          "bytes": 348
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/__init__.py",
+          "sha256": "c8a32290df15aa855925ca194955b7a7d4a6b7cf226dea8dabd347846049a843",
+          "bytes": 68
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/function_group.py",
+          "sha256": "c7941f52915db23b5b15b009cd9a1fed2ad9dfbea7b9f358f769a909c6923e24",
+          "bytes": 803
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/external_link/__init__.py",
+          "sha256": "60e90b236dba9f2a2907a9a84a1cc621f05172475080f8855e3559c175be0e91",
+          "bytes": 71
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/external_link/external.py",
+          "sha256": "2d75ee7a3d3e7748919f0949fb5dd2f3591bb83c6f8405a8dea7e7c69b0296f3",
+          "bytes": 4509
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/child.py",
+          "sha256": "affe55f433641926198738bad8fd74667b0ee624f9d7c628a5c4dd992bed0147",
+          "bytes": 4052
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/protection.py",
+          "sha256": "2e18b2ba839c85daee9fdc4cc2afe9c46cdb932b3389385f2a2be4d1d1c738bc",
+          "bytes": 6008
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/openpyxl/workbook/views.py",
+          "sha256": "bb042a642ad16af0280432d9201b60cfbae2384844687a65c9b578717fd33206",
+          "bytes": 5214
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna-3.20.dist-info/RECORD",
+          "sha256": "8e2670b3fc1bbf1e2cf99050b062fda50203881e43420bbc6772dad2cde2d548",
+          "bytes": 1185
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna-3.20.dist-info/licenses/LICENSE.md",
+          "sha256": "1a9a4f0e3d479a27240ddd59a9137a66ab4a0f9dfdc8ca6188cc0bfd85187f04",
+          "bytes": 1541
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna-3.20.dist-info/WHEEL",
+          "sha256": "96a37c8d7b7f425a05386731f644adbd66ebca17c45e8236176cfe614466df9d",
+          "bytes": 81
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna-3.20.dist-info/entry_points.txt",
+          "sha256": "ec7de718e1daa778e72c4e5eeeaed8c2bf55abc6b107b5888f9f82ff8376be1c",
+          "bytes": 38
+        },
+        {
+          "path": "runtime/python-portable/Lib/site-packages/idna-3.20.dist-info/METADATA",
+          "sha256": "dbd8c14c1e4ca1e0c9824a6dbc7cbbf78884f38eb52d91148cd3025f671e4b85",
+          "bytes": 7207
+        },
+        {
+          "path": "runtime/python-portable/_queue.pyd",
+          "sha256": "bb53357b4e91ac23ed4061f15ff3e5e91a5b3be1cbb0c6cf294521ae5b4efa1c",
+          "bytes": 36576
+        },
+        {
+          "path": "runtime/python-portable/_socket.pyd",
+          "sha256": "25ac83cac32ed0d67b2cc9672ce64cb53f0a29a75b14c276e901023ff43da5f9",
+          "bytes": 87776
+        },
+        {
+          "path": "runtime/python-portable/LICENSE.txt",
+          "sha256": "935cf13e19f8c31b497d20b05d73623431a226b230c3599bc30fa3348979bc68",
+          "bytes": 35407
+        },
+        {
+          "path": "runtime/python-portable/_remote_debugging.pyd",
+          "sha256": "38f30e6188450374a993e8fc07e7d41a90842c19290f5c6b46ca10b93c831587",
+          "bytes": 84704
+        },
+        {
+          "path": "runtime/python-portable/_ctypes.pyd",
+          "sha256": "25d9b0be550d428fecc697ca20450343a7c3ce77c9f5283e9aecfd188d609250",
+          "bytes": 142560
+        },
+        {
+          "path": "runtime/python-portable/_bz2.pyd",
+          "sha256": "d28c3dd1c22bfb8a6e8a6a9c2359842b797d08e878ecb7805f60e86a45589d11",
+          "bytes": 87776
+        },
+        {
+          "path": "runtime/python-portable/python314._pth",
+          "sha256": "aefa3349d1d849a7c1da1a697564d8d89f654c5c87505eac3310d5ce5529f97d",
+          "bytes": 92
+        },
+        {
+          "path": "runtime/python-portable/select.pyd",
+          "sha256": "fab1b4cee101359d82d72061b83cff1855337b3677b9fe01cd69f7548f4c496e",
+          "bytes": 33504
+        },
+        {
+          "path": "runtime/python-portable/_decimal.pyd",
+          "sha256": "8d41a84db20a9b985e98c802ad6833cf9625c744ad35478dd346f54f81488706",
+          "bytes": 290528
+        },
+        {
+          "path": "runtime/python-portable/unicodedata.pyd",
+          "sha256": "0d4f124b2d6622d276d777f7106972219f9b310edb5df8149c253da7c013d6d8",
+          "bytes": 759008
+        }
+      ],
+      "tools": [
+        {
+          "name": "esbuild",
+          "version": "0.25.12",
+          "url": "https://registry.npmjs.org/esbuild/-/esbuild-0.25.12.tgz",
+          "integrity": "sha512-bbPBYYrtZbkt6Os6FiTLCTFxvq4tt3JKall1vRwshA3fdVztsLAatFaZobhkBC8/BrPetoa0oksYoKXoG4ryJg==",
+          "transport": "Windows HTTPS with certificate validation",
+          "installScriptsRun": false
+        },
+        {
+          "name": "@esbuild/win32-x64",
+          "version": "0.25.12",
+          "url": "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz",
+          "integrity": "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==",
+          "transport": "Windows HTTPS with certificate validation",
+          "installScriptsRun": false
+        },
+        {
+          "name": "postject",
+          "version": "1.0.0-alpha.6",
+          "url": "https://registry.npmjs.org/postject/-/postject-1.0.0-alpha.6.tgz",
+          "integrity": "sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==",
+          "transport": "Windows HTTPS with certificate validation",
+          "installScriptsRun": false
+        }
+      ]
+    }
+  }
+}

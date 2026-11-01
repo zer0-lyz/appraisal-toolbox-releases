@@ -1,0 +1,20 @@
+{
+  "runId": 38880197994,
+  "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/actions/runs/38880197994",
+  "status": "completed",
+  "conclusion": "success",
+  "headSha": "8cbc9dfeca78d8b56b8f6f9a2bc0671d0e290cb5",
+  "macJob": {
+    "conclusion": "success",
+    "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/actions/runs/38880197994/job/116905121970",
+    "checks": ["shared source regressions", "macOS arm64 candidate build", "isolated install/upgrade/rollback", "packaged Native Host protocol"]
+  },
+  "windowsJob": {
+    "conclusion": "success",
+    "url": "https://github.com/zer0-lyz/appraisal-toolbox-releases/actions/runs/38880197994/job/116905121406",
+    "checks": ["shared source regressions", "locked Windows tools bootstrap", "Windows x64 candidate build", "SEA imports", "Native Messaging protocol"]
+  },
+  "windowsDesktopGui": "not-covered",
+  "publishedMacReleaseSourceSha": "fe41e9f5cbc53265f662a3f9dc75788aadd33dc9",
+  "ciCandidateHeadIncludesDocsOnlyCommitsAfterReleaseSource": true
+}

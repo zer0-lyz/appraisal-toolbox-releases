@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "giteeManifestUrl": "https://gitee.com/zer0_y/appraisal-toolbox-releases/raw/master/update-manifest.json",
+  "manifestUrls": [
+    "https://github.com/zer0-lyz/appraisal-toolbox-releases/releases/latest/download/update-manifest.json"
+  ]
+}

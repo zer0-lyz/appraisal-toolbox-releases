@@ -1,0 +1,676 @@
+{
+  "schemaVersion": 3,
+  "product": "评估工具箱",
+  "productVersion": "0.2.1",
+  "target": "macos-arm64",
+  "buildId": "mac-handoff-20261012-final",
+  "buildNumber": 2026101201,
+  "extensionId": "aamfmhcbjgofhmannejoiilkkpchfkgm",
+  "nativeHost": "com.appraisal.toolbox.helper",
+  "sourceCommit": "80eec2bbec08001f4052a2b0adf7f1791f0b0b09",
+  "sourceDirty": false,
+  "installerBuild": "macos-transactional.1",
+  "lockSha256": "d52bd4e01dfc10d0e31ca82f98f332ad1681a91c8bc197627abe4593bb84b689",
+  "archive": {
+    "path": "appraisal-toolbox-v0.2.1-macos-arm64-mac-handoff-20261012-final.zip",
+    "sha256": "3127d5bd3fed07c9cd75c9974f3bec38a6d95ad3bddc8c9025f56839065472c6"
+  },
+  "packageRoot": "appraisal-toolbox-v0.2.1-macos-arm64-mac-handoff-20261012-final",
+  "native": {
+    "path": "native-helper/native_host.js",
+    "sha256": "f56dc0ba01790d987af7d875f984d5eba534496802221c91557859f3a40f712e",
+    "signing": "source executed with byte-identical vendor Node; product launcher unsigned"
+  },
+  "cache": {
+    "runtimeHit": true,
+    "key": "macos-arm64-d52bd4e01dfc10d0e31ca82f98f332ad1681a91c8bc197627abe4593bb84b689"
+  },
+  "payload": [
+    {
+      "path": "BUILD-PROVENANCE.json",
+      "sha256": "3dbce68914c554cc5bee6ada3720f4b80be0b2f8ab7500b7143e802833e5e8f0",
+      "bytes": 1449
+    },
+    {
+      "path": "extension/LICENSE",
+      "sha256": "fee9ddec589dbd464f3fb9cc5ec5f45da30ae1c133745c67027d8f87c4495009",
+      "bytes": 1117
+    },
+    {
+      "path": "extension/manifest.json",
+      "sha256": "69606c23dc79da1a29a22a88dc42cceef4464331b2de50e019cab095c73e8b0c",
+      "bytes": 1238
+    },
+    {
+      "path": "extension/README.md",
+      "sha256": "1c6370719d818662546b87796d04377d38bd937bedae201d77b89c7aaee3ad60",
+      "bytes": 2831
+    },
+    {
+      "path": "extension/runtime-compat.json",
+      "sha256": "09b33d0ae7c117c3fe2e6a28267032fbd3371f6cfd91f90db51723bddb2f1e4c",
+      "bytes": 317
+    },
+    {
+      "path": "extension/src/background/service_worker.js",
+      "sha256": "a08f4fc7cda977d71fb590034e626bc776cbfe032bdfd64aa2373c9c2e3f04b1",
+      "bytes": 2797
+    },
+    {
+      "path": "extension/src/core/alibaba-page-state.js",
+      "sha256": "5db34c477a98a73c742b81147c34d261849bb562e920cbfbad5ae96f77a92cbe",
+      "bytes": 5460
+    },
+    {
+      "path": "extension/src/core/browser-results.js",
+      "sha256": "6c0b124641e0650abc75e284bf175b8291051336ffb72fcace50b3ff0dcd3885",
+      "bytes": 1844
+    },
+    {
+      "path": "extension/src/core/event-bus.js",
+      "sha256": "2192f82a200b14d7dbbd8516dd1a8671756b2e3c851d76912f9c9621ccce88a9",
+      "bytes": 572
+    },
+    {
+      "path": "extension/src/core/feature-flags.js",
+      "sha256": "8eaabc210d9e3df5e5eca1f9bfbe36e5d523b45cc44062fc019aec28a362cfa4",
+      "bytes": 717
+    },
+    {
+      "path": "extension/src/core/module-registry.js",
+      "sha256": "4950233a54a9841593a6c3d8f2343635414be656c9504d05c23189c2d3f07352",
+      "bytes": 5388
+    },
+    {
+      "path": "extension/src/core/module-scope.js",
+      "sha256": "b3db0b31c63bd582498f100a1c3618c9d74443fc4d18a2ec42bf1621505ad89b",
+      "bytes": 1435
+    },
+    {
+      "path": "extension/src/core/module-storage.js",
+      "sha256": "3385d335273e42e64b6a827563ff464e4960b5c4bf1a79b09314be224acf9901",
+      "bytes": 1546
+    },
+    {
+      "path": "extension/src/core/native-errors.js",
+      "sha256": "4148747e5efd8a6ff38deafe3abb255593d0998afcab82c6bf332cfae2f59dca",
+      "bytes": 5478
+    },
+    {
+      "path": "extension/src/core/native-messaging.mjs",
+      "sha256": "c172f34d2a91e7067fa556dcd7b217a4bb3fbc56c884c9f4e622ef3604dafc4f",
+      "bytes": 5484
+    },
+    {
+      "path": "extension/src/core/user-errors.js",
+      "sha256": "2a45ed7b8ba0e698cacfa138c4944ae43808d4b1fbe354cef0c5694b578d0192",
+      "bytes": 1851
+    },
+    {
+      "path": "extension/src/data/china-regions.js",
+      "sha256": "80d7b5da48d6e96b646cfdcbd69786bbde0e77cf15fc1d9d4c0176b501bed000",
+      "bytes": 178751
+    },
+    {
+      "path": "extension/src/modules/alibaba-auction/module.js",
+      "sha256": "7a06f29a6395987e70e393555d4af31ebba2a0c369974ec04d981b29d3a66036",
+      "bytes": 164561
+    },
+    {
+      "path": "extension/src/modules/alibaba-auction/styles.css",
+      "sha256": "585f3bc4c1d66d2fe7d7f0b057b3fc133d905e52388f6cc63fdab7d640d17ee6",
+      "bytes": 5105
+    },
+    {
+      "path": "extension/src/modules/alibaba-auction/template.js",
+      "sha256": "ec4cac5a35fdb4cf02a13b4cf785d4977eb5fc85d13b07c3ec6c5e44bb9a6ff2",
+      "bytes": 8946
+    },
+    {
+      "path": "extension/src/modules/alibaba-lease/module.js",
+      "sha256": "657faef426cb83a58cd6594dafab52779be55caaf70f21e614853220628cf4d5",
+      "bytes": 92302
+    },
+    {
+      "path": "extension/src/modules/alibaba-lease/styles.css",
+      "sha256": "a71512206f2faa33ad13beb1e04e22bebe00f393d19f27a9e760da3f38ef7f3c",
+      "bytes": 3812
+    },
+    {
+      "path": "extension/src/modules/alibaba-lease/template.js",
+      "sha256": "b38071eac15efcab6fa3d8011260c3d1da74773acf0882efd3187cb80e0f6c88",
+      "bytes": 7802
+    },
+    {
+      "path": "extension/src/modules/anjuke-property/module.js",
+      "sha256": "5eb0b833182a3e27a5bdc6213d50ea1f59f6a77100c75713f28ef0fa941e3f21",
+      "bytes": 47732
+    },
+    {
+      "path": "extension/src/modules/anjuke-property/styles.css",
+      "sha256": "ae1d5412a33421458cba823974c3b4e57253bc4568ba088f1764fed357bf4374",
+      "bytes": 3672
+    },
+    {
+      "path": "extension/src/modules/anjuke-property/template.js",
+      "sha256": "730cf0b3cb0c940e602d3e541035064ea066a9dddfd55060b26bdc174cf706e1",
+      "bytes": 6769
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/assets/折旧摊销预测输入模板.xlsx",
+      "sha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701",
+      "bytes": 26882
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/details.html",
+      "sha256": "1ed74348aad00ddd5a937902d9e3beee16c886d3e1f76067b1d032c082d71dfe",
+      "bytes": 2913
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/details.js",
+      "sha256": "edb04482a35d135f5f6b538b7fafa88588a790645ae79a9767f5105570efc1bb",
+      "bytes": 5342
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/input.html",
+      "sha256": "e5b13e71148d773bf30bbb5b8f06da38be3cf3444eeaa1fa9c914a9ddb50c7d4",
+      "bytes": 3150
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/input.js",
+      "sha256": "c732f9fc053c95516e822ddeda5c3f6209d05ad7beebce5caa9772f182ce4e83",
+      "bytes": 11945
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/module.js",
+      "sha256": "6a848a33ee2fe6164e0f0da5d0395344e8e2f0e182b1df0bc11e0b2a4e918c6d",
+      "bytes": 14128
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/page-common.js",
+      "sha256": "795fe2fe90b94960fdad672c7d044b32cfd3912db25f1133a44f138f12f9d358",
+      "bytes": 6420
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/page.css",
+      "sha256": "045186d72e85866abdbf14ba70851966a307b1fd44472900db85a5ffd7b2e606",
+      "bytes": 5593
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/results.html",
+      "sha256": "367d693489029b2cb09bb335388b37c8ba4df39f1e399b330e4b1d8366036f12",
+      "bytes": 2086
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/results.js",
+      "sha256": "203e894f47bb3a2b6cca1a86c2b31a8ef7c608bf5edf5007a16444bb56dcfce6",
+      "bytes": 4561
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/styles.css",
+      "sha256": "da32c042e1d92f7f825ac2ee3dfa00c1be82702632548362266bbe0331b15063",
+      "bytes": 2166
+    },
+    {
+      "path": "extension/src/modules/depreciation-capex-forecast/template.js",
+      "sha256": "267b98014a2b325318d988f0850c37721620360f3b4db158f6f564f95fc89814",
+      "bytes": 5983
+    },
+    {
+      "path": "extension/src/modules/land-publicity/module.js",
+      "sha256": "6f221832f97e794d7ef927eee2917304ce34f4d5301850e86d1d72e6f3d5c399",
+      "bytes": 33067
+    },
+    {
+      "path": "extension/src/modules/land-publicity/styles.css",
+      "sha256": "f65504c3e95b3b6313ef1b5ee034719aa60ed29210497f6ae08bfbdb225cc07c",
+      "bytes": 5493
+    },
+    {
+      "path": "extension/src/modules/land-publicity/template.js",
+      "sha256": "15071e44a4fb9e2f3d9c1c050da884aeefff055e8a0cfe9e215075ebeb6bfcd5",
+      "bytes": 8127
+    },
+    {
+      "path": "extension/src/modules/map-settings/module.js",
+      "sha256": "3104ad570cebec13ef62a285aced57493700c0ac2fbaf3e1aed0c570e0163427",
+      "bytes": 7128
+    },
+    {
+      "path": "extension/src/modules/map-settings/styles.css",
+      "sha256": "7f2a3ef7f4677b51848da134bd7a4c9f08a6a971c12e9f637d036f9a210033a6",
+      "bytes": 1391
+    },
+    {
+      "path": "extension/src/modules/map-settings/template.js",
+      "sha256": "cdcac558312eae962faffc39f8b4bfd8d2f7187159ce3ff4ec8b8c14830b78a3",
+      "bytes": 3076
+    },
+    {
+      "path": "extension/src/modules/table-format/module.js",
+      "sha256": "3e9b82fd570cba305d74c0f8c6ea328dac6aded4279ab6cf772d170ca470eaef",
+      "bytes": 14112
+    },
+    {
+      "path": "extension/src/modules/table-format/styles.css",
+      "sha256": "8e13f403db0b49348cc983ba3d462727dc20b083f87ca051e0c0f5732989865d",
+      "bytes": 4514
+    },
+    {
+      "path": "extension/src/modules/table-format/template.js",
+      "sha256": "1ec908d0ddbb7146469bf2ccc61501f664c2f508032b28825c356af536e0e907",
+      "bytes": 4400
+    },
+    {
+      "path": "extension/src/modules/updates/module.js",
+      "sha256": "c7ce50bbd6860c21eed40ef20affa9dcebcba5d2ab086ad7889c77a6f0833fa8",
+      "bytes": 28457
+    },
+    {
+      "path": "extension/src/modules/updates/styles.css",
+      "sha256": "1dc8ef3aa94ef59d9ec851e722a75dac582fb6896162fe7063400747db3c29d7",
+      "bytes": 1666
+    },
+    {
+      "path": "extension/src/modules/updates/template.js",
+      "sha256": "b0d5f504cfd3b05577cd1291612d91651f3afbdea11c7344a9b1e15693eb99f7",
+      "bytes": 3255
+    },
+    {
+      "path": "extension/src/shell/index.html",
+      "sha256": "a9ea23a7693854b7e78989920b59ed7510c9313cb8c95b11940763c71f6bad98",
+      "bytes": 9169
+    },
+    {
+      "path": "extension/src/shell/shell.js",
+      "sha256": "fcee253f65d225232845a250efcefc1cbf4280a927084d4a960ef5a3b1af119f",
+      "bytes": 7482
+    },
+    {
+      "path": "extension/src/styles/native-diagnostics.css",
+      "sha256": "a63b88f9b2cebb7a3944071772247baeda6bd3fd4fd5718a049ed90f75bb961f",
+      "bytes": 787
+    },
+    {
+      "path": "extension/src/styles/shell.css",
+      "sha256": "b657c037a64d40df3a55b2abf113684dec00477aefd89adf7e6534090d803e59",
+      "bytes": 28111
+    },
+    {
+      "path": "extension/version.json",
+      "sha256": "0ff3c66fa2c1b43dcbf40532ea48e86394df8d1714ba961364307519c8dac60a",
+      "bytes": 2335
+    },
+    {
+      "path": "native-helper/alibaba-auction.js",
+      "sha256": "21fa02fa107c6dfbf044ac5b452818f86bf23d4115f89c031d9947efddaf4ca4",
+      "bytes": 189819
+    },
+    {
+      "path": "native-helper/alibaba-lease.js",
+      "sha256": "53b9b5cfae2e18a2f8065899ae448419f0e60229988c81edc023505683f0b4e5",
+      "bytes": 88900
+    },
+    {
+      "path": "native-helper/amap-map.js",
+      "sha256": "57e3b67026994cb40ce3dec21ae38ea366b7ee10ac3f1b5edfb61d0e5d01058b",
+      "bytes": 1176
+    },
+    {
+      "path": "native-helper/anjuke-property.js",
+      "sha256": "b9be10badd0e40dd666fe64f1fe598adb843a0f4dd218485f0a7701201c402e5",
+      "bytes": 6387
+    },
+    {
+      "path": "native-helper/depreciation-capex-forecast.js",
+      "sha256": "430f7cea6fcd009d559c91de14d9f2f324da7485266b9395d962386463968ff5",
+      "bytes": 23878
+    },
+    {
+      "path": "native-helper/diagnostics.js",
+      "sha256": "14bd1be9777effca85b1b2c4c50722874f505f94d5646586675636daa138b322",
+      "bytes": 2875
+    },
+    {
+      "path": "native-helper/land-publicity-http.js",
+      "sha256": "85355fee5fcbabe7d303d95c3d2d076eb818b6413e169aee1dc80b348f6a2f7c",
+      "bytes": 10786
+    },
+    {
+      "path": "native-helper/map-assets/amap-only.js",
+      "sha256": "0335eb166f61ad66d902def7b9d3b384bd8bf9f5b718ecb2cc71d15de5457744",
+      "bytes": 6924
+    },
+    {
+      "path": "native-helper/map-assets/images/layers-2x.png",
+      "sha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+      "bytes": 1259
+    },
+    {
+      "path": "native-helper/map-assets/images/layers.png",
+      "sha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+      "bytes": 696
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon-2x.png",
+      "sha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+      "bytes": 2464
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon.png",
+      "sha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+      "bytes": 1466
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-shadow.png",
+      "sha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+      "bytes": 618
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.css",
+      "sha256": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
+      "bytes": 14145
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.js",
+      "sha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+      "bytes": 147552
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.markercluster.js",
+      "sha256": "1e4e1d22972a3926f48598e0caf14e3fe7049835d428a344fed4f9e3665b3508",
+      "bytes": 34136
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.css",
+      "sha256": "614dea0a98ff3f4ead74f04918f6b1d1b9ba435c25b5fc23b21a394d1e3e4d87",
+      "bytes": 872
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.Default.css",
+      "sha256": "61258232d98d64dc2a7b1e02130d67421bc5b9bda5994eef70228ff97570c170",
+      "bytes": 1287
+    },
+    {
+      "path": "native-helper/native_host.js",
+      "sha256": "f56dc0ba01790d987af7d875f984d5eba534496802221c91557859f3a40f712e",
+      "bytes": 190934
+    },
+    {
+      "path": "native-helper/platform/common.js",
+      "sha256": "eb5e5ec8d9507b1fc230328b73046417f1a805d9e446b14c56633d67679d2469",
+      "bytes": 2203
+    },
+    {
+      "path": "native-helper/platform/index.js",
+      "sha256": "c2e0316b117713e11ccdb4f4d81cadf7b5a10413993f8215a376b29606a05d02",
+      "bytes": 537
+    },
+    {
+      "path": "native-helper/platform/macos.js",
+      "sha256": "946a1d3f87dc7384afd1fe25b54de59d9147a6ee457882bb66d0704b52f7eccf",
+      "bytes": 14931
+    },
+    {
+      "path": "native-helper/platform/unsupported.js",
+      "sha256": "ae1f4036c462a7b8f90f337d70fbf5275bc1b4b8e9588fc0772c77892848963e",
+      "bytes": 2187
+    },
+    {
+      "path": "native-helper/platform/windows.js",
+      "sha256": "d881770bbe180f7923b8f486a38d37cee2cb4106e7c8f8f599c28344832f2bd8",
+      "bytes": 25143
+    },
+    {
+      "path": "native-helper/platform-update-manifest.js",
+      "sha256": "951186ca8e18a13b561eb49bfc6770a63a2907884c51af8f81a7f2830f6dbfb2",
+      "bytes": 700
+    },
+    {
+      "path": "native-helper/process_launcher.js",
+      "sha256": "6725ba6c273660f6cbcd40f7e5e3438fdd0d2b14b3455c6c5d05c050e02a94c0",
+      "bytes": 2836
+    },
+    {
+      "path": "native-helper/README.md",
+      "sha256": "08accf426bd7c56ef90341bc7b6bfdc9b384569903ee65761cc966ee0414d94c",
+      "bytes": 377
+    },
+    {
+      "path": "native-helper/runtime_config.js",
+      "sha256": "ce07235a5487ae5ecc5e5f71228e4d33b3a772a110ecc99ffea203250172ce0e",
+      "bytes": 899
+    },
+    {
+      "path": "native-helper/runtime_paths.js",
+      "sha256": "8e4e2dad865ec83effd6157ac6b828a854ac443ced36d438a9e35961ea6fa9f7",
+      "bytes": 380
+    },
+    {
+      "path": "native-helper/update_checker.js",
+      "sha256": "40dd4a14776c6655016d6b21bedb0d93c0345e3df7b0eac60053f588bc271271",
+      "bytes": 33638
+    },
+    {
+      "path": "native-helper/update-sources.json",
+      "sha256": "ecaaabddd0fd9c98b716434ef32fe202a1456610e10505295304ddb7037fdaec",
+      "bytes": 266
+    },
+    {
+      "path": "release-inputs.lock.json",
+      "sha256": "d52bd4e01dfc10d0e31ca82f98f332ad1681a91c8bc197627abe4593bb84b689",
+      "bytes": 157100
+    },
+    {
+      "path": "runtime/node/bin/node",
+      "sha256": "20a18709f0154d668f1bd6f6ea8c2a7ae001447b4b2c339732f22e57a8767a55",
+      "bytes": 119133456
+    },
+    {
+      "path": "runtime/node/LICENSE",
+      "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18",
+      "bytes": 156926
+    },
+    {
+      "path": "runtime/python-3.14.6-macos11.pkg",
+      "sha256": "d3c9fff52214847e4fab03e9eaf53dd2a8e51e3534aa0b61f201b749f86bef28",
+      "bytes": 78097715
+    },
+    {
+      "path": "runtime/python-wheels/certifi-2026.7.22-py3-none-any.whl",
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+      "bytes": 136983
+    },
+    {
+      "path": "runtime/python-wheels/charset_normalizer-3.5.2-cp314-cp314-macosx_10_15_universal2.whl",
+      "sha256": "fcff63213e8e6e47770541a4607175404f47cbb3ebea7b6058cc82d524a0e424",
+      "bytes": 367815
+    },
+    {
+      "path": "runtime/python-wheels/et_xmlfile-2.0.0-py3-none-any.whl",
+      "sha256": "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa",
+      "bytes": 18059
+    },
+    {
+      "path": "runtime/python-wheels/idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "bytes": 69583
+    },
+    {
+      "path": "runtime/python-wheels/lxml-6.1.0-cp314-cp314-macosx_10_15_universal2.whl",
+      "sha256": "ab863fd37458fed6456525f297d21239d987800c46e67da5ef04fc6b3dd93ac8",
+      "bytes": 8576713
+    },
+    {
+      "path": "runtime/python-wheels/openpyxl-3.1.5-py2.py3-none-any.whl",
+      "sha256": "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2",
+      "bytes": 250910
+    },
+    {
+      "path": "runtime/python-wheels/python_docx-1.2.0-py3-none-any.whl",
+      "sha256": "3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7",
+      "bytes": 252987
+    },
+    {
+      "path": "runtime/python-wheels/requests-2.32.5-py3-none-any.whl",
+      "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+      "bytes": 64738
+    },
+    {
+      "path": "runtime/python-wheels/typing_extensions-4.16.0-py3-none-any.whl",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "bytes": 45571
+    },
+    {
+      "path": "runtime/python-wheels/urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "bytes": 135717
+    },
+    {
+      "path": "SHA256SUMS",
+      "sha256": "cdefae26c32c0d9bf2fc4a87c4da0f645c6cdd1f702d3e651f94801b81b9d331",
+      "bytes": 14029
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/agents/openai.yaml",
+      "sha256": "343d23ccb022d4e73c314513f99dcb886c1b3bd00982d5f2dfcf5260f513be88",
+      "bytes": 319
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/scripts/fetch_anjuke_property_cases.py",
+      "sha256": "11c763acaf001a6fc044022a6af52de7d914b3fa8e3f645854cf457f246ca181",
+      "bytes": 55629
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/SKILL.md",
+      "sha256": "31708155a49039dea8ee2b817232fd4e1b16911e0af26f88a100ab98f8dc149a",
+      "bytes": 2573
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/agents/openai.yaml",
+      "sha256": "bfa942b30756ce8c0383f8d4647499667b440ce8d9f658ff38222b16b10ceb75",
+      "bytes": 890
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/assets/折旧摊销预测输入模板.xlsx",
+      "sha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701",
+      "bytes": 26882
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/references/workflow.md",
+      "sha256": "7cf1af2b6572150eed7b9e93cc6a618b7647fa48dce89fcd4e0e1744c8decd8c",
+      "bytes": 2169
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__init__.py",
+      "sha256": "76c440f9277a9bf818aceb9b864ff5b2b48a4553fe14abe44ab446e004c252ae",
+      "bytes": 313
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "bytes": 48
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/cli.py",
+      "sha256": "ba7e8cd4bbd13ea3ca362e2f6edeb335bedf0ff5daf4dd80c5573f27b5ec63ea",
+      "bytes": 3642
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/model.py",
+      "sha256": "2db43281e79c2fac1516125a6384517bd1b76c8ee59668c37898c9f0e23b34b4",
+      "bytes": 19665
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/workbook.py",
+      "sha256": "1428a59d84595ed709dd7ffd3a83d7c45cc721e5b1fa4b335e50eb2ce920a1ee",
+      "bytes": 62684
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/workflow.py",
+      "sha256": "306ef3fd86ee0339dd082cff67f3e7317700c928de926b230792b58819861518",
+      "bytes": 39116
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/SKILL.md",
+      "sha256": "c2d6978fad15fd0bf06173fbb9309bf43af2048754c4a2225f0877fd1f729a69",
+      "bytes": 3914
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/tests/test_workbook.py",
+      "sha256": "f7613b55a3a1f9dbf36df38298da0825dba817439a1846e47b06a6631d14dc4c",
+      "bytes": 8383
+    },
+    {
+      "path": "skills/map-shared/amap_support.py",
+      "sha256": "3f399b5ec66c10afc3fb818a9189523c19bf5e6a47ea11a2aec7f660c93dad7f",
+      "bytes": 1390
+    },
+    {
+      "path": "skills/table-format/scripts/format_word_tables.py",
+      "sha256": "a7a80b9ab15d0c7bccc8b77ecdb1b53c5f9bdc078da06e6acd7e264a5b55f97a",
+      "bytes": 40942
+    },
+    {
+      "path": "skills/table-format/SKILL.md",
+      "sha256": "70b6a8fff0d63f181887b101205f89bc1645bbe85945e0427f1215cb2e95c2b5",
+      "bytes": 1422
+    },
+    {
+      "path": "skills/zj-land-publicity/land_http.py",
+      "sha256": "29a53dbc9142f85ef9829e46f84acc2bc49c0c936537f5b7abb50902cd19f577",
+      "bytes": 12989
+    },
+    {
+      "path": "skills/zj-land-publicity/land_publicity_runner.py",
+      "sha256": "1cf4b0980ad000f3079e07f4141f73ce5f9877742d82a6416855e65ec01f8978",
+      "bytes": 82010
+    },
+    {
+      "path": "skills/zj-land-publicity/scrape_zj_land.py",
+      "sha256": "69ba80851fd9e498f8e112ed2d128ca94e284709d096c0209d1960f6d264b29b",
+      "bytes": 91615
+    },
+    {
+      "path": "skills/zj-land-publicity/SKILL.md",
+      "sha256": "e0283bdf5ca8501410116b121c0de812bc14420b3f2ace644152d04713b2f38f",
+      "bytes": 11167
+    },
+    {
+      "path": "skills/zj-land-publicity/tests/test_land_publicity_runner.py",
+      "sha256": "62dd15ad580a87bb34fec1af67d8deda248e4ea87bf7cf1df7f0cef3e2b305c4",
+      "bytes": 6366
+    },
+    {
+      "path": "SOURCE-INVENTORY.json",
+      "sha256": "323b27a6a90fae4612217d4975ab0606f8985224261f2881fc3b591d8bd42a41",
+      "bytes": 27108
+    },
+    {
+      "path": "VERSION.txt",
+      "sha256": "d384c4309f86f95744a523a28ea86f29b17a7de0ffb08f5333605e2a57bec0c2",
+      "bytes": 84
+    },
+    {
+      "path": "卸载.command",
+      "sha256": "1a33e026d9059cf133ecb0bdf2a65a4416e76e2f2416c370f5fa142f0125812d",
+      "bytes": 1032
+    },
+    {
+      "path": "安装.command",
+      "sha256": "6a826a1ae7a9802b0aeddc33c1ebce2d84cda93df5108de9974b2358e49c30c7",
+      "bytes": 10305
+    },
+    {
+      "path": "安装说明.md",
+      "sha256": "dc08adc00538422ac726d5241bfb0b1c7de2b54952b8c39bc4c32eff248390ef",
+      "bytes": 1582
+    }
+  ],
+  "acceptance": {
+    "offline": "pending",
+    "installer": "pending",
+    "gui": "not-covered",
+    "windowsRevalidation": "required for shared/Windows changes"
+  }
+}

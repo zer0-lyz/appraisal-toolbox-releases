@@ -1,0 +1,58 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
+const { probe } = require('./nm-probe.cjs');
+const [packageRoot, evidence] = process.argv.slice(2).map(value => path.resolve(value));
+if (fs.existsSync(evidence)) throw new Error('Use new evidence directory');
+fs.mkdirSync(evidence, { recursive: true });
+const root = path.join(evidence, 'runtime-under-test');
+fs.cpSync(packageRoot, root, { recursive: true });
+const python = path.join(root, 'runtime', 'python-portable', 'python.exe');
+const outcomes = {};
+async function run(name, message, options) {
+  const result = await probe(root, message, options);
+  fs.writeFileSync(path.join(evidence, name + '.json'), JSON.stringify(result, null, 2));
+  assert.equal(result.exitCode, 0, name + ': Native host process exit');
+  return result.final;
+}
+async function main() {
+  const regions = await run('regions', { action: 'list_land_publicity_regions' });
+  assert.equal(regions.ok, true);
+  const regionText = JSON.stringify(regions.regions);
+  const cities = ['杭州市','宁波市','温州市','嘉兴市','湖州市','绍兴市','金华市','衢州市','舟山市','台州市','丽水市'];
+  assert(cities.every(city => regionText.includes(city)));
+  outcomes.regions = { ok: true, cities: 11 };
+  const outputDirectory = path.join(evidence, 'land-output'); fs.mkdirSync(outputDirectory);
+  const request = { tradeForm: '国有土地', tradeMethods: ['挂牌出让','拍卖出让'], tradeStages: ['结果公示'], district: '杭州市', county: '', provinceWide: false, location: '', landUses: [], startDate: '2026-10-07', endDate: '2026-10-09', districtExact: false, generateMap: false, maxPages: 200, outputDirectory };
+  fs.writeFileSync(path.join(evidence, 'request-hangzhou.json'), JSON.stringify({ action: 'run_land_publicity', request }, null, 2));
+  const land = await run('land-success', { action: 'run_land_publicity', request }, { timeout: 300000 });
+  assert.equal(land.ok, true, land.reason);
+  for (const key of ['excelPath', 'htmlPath', 'historyPath']) assert(fs.statSync(land[key]).size > 0, key);
+  const history = JSON.parse(fs.readFileSync(land.historyPath, 'utf8'));
+  assert.equal(history.type, 'zj-land-publicity-history');
+  assert(fs.readFileSync(land.htmlPath, 'utf8').includes('</html>'));
+  const workbookCheck = execFileSync(python, ['-X', 'utf8', '-c', 'import json,sys,zipfile; from openpyxl import load_workbook; p=sys.argv[1]; z=zipfile.ZipFile(p); assert z.testzip() is None; w=load_workbook(p,read_only=True); print(json.dumps({"ok":True,"sheets":w.sheetnames,"rows":w.active.max_row},ensure_ascii=False)); w.close()', land.excelPath], { encoding: 'utf8', windowsHide: true });
+  fs.writeFileSync(path.join(evidence, 'land-workbook-readback.json'), workbookCheck);
+  outcomes.land = { ok: true, fetched: land.fetchedCount, written: land.writtenCount, excelPath: land.excelPath, htmlPath: land.htmlPath, historyPath: land.historyPath, desktopOpenCovered: false };
+  const faultySkills = path.join(evidence, 'faulty-skills'); fs.cpSync(path.join(root, 'skills'), faultySkills, { recursive: true });
+  const faultyRunner = path.join(faultySkills, 'zj-land-publicity', 'land_publicity_runner.py');
+  fs.writeFileSync(faultyRunner, fs.readFileSync(faultyRunner, 'utf8').replace('from land_http import LandSourceError', 'from deliberately_missing_acceptance_module import LandSourceError'));
+  const failed = await run('land-import-failure', { action: 'run_land_publicity', request }, { env: { TIANYUAN_PRINT_SKILLS_DIR: faultySkills } });
+  assert.equal(failed.ok, false); assert.equal(failed.reason, 'LAND_RUNNER_FAILED');
+  assert.equal(failed.diagnostics.exitCode, 1); assert(failed.diagnostics.stderrTail.some(line => line.includes('ModuleNotFoundError')));
+  outcomes.importFailure = { ok: true, diagnostics: failed.diagnostics };
+  const workbook = path.join(evidence, 'depreciation', 'input.xlsx');
+  const depreciation = operation => ({ action: 'depreciation_capex_forecast', operation, workbookPath: workbook });
+  assert.equal((await run('depreciation-prepare', depreciation('prepare'))).ok, true);
+  const values = { '评估基准日': '2026-10-09', '结束日期': '2027-12-31', '折现率': 0.08, '最低尚可使用年限': 1 };
+  const parallel = await Promise.all(['prepare','status','write_params','status','write_params'].map((operation, index) => run('depreciation-parallel-' + index, { ...depreciation(operation), ...(operation === 'write_params' ? { values } : {}) })));
+  assert(parallel.every(result => result.ok === true), JSON.stringify(parallel));
+  outcomes.depreciationConcurrency = { ok: true, nativeHostProcesses: parallel.length, sameWorkbook: true, winError5: false, uiWithin3SecondsCovered: false };
+  const rejected = await run('unauthorized-action', { action: 'start_connector_bridge' });
+  assert.equal(rejected.ok, false); assert.equal(rejected.reason, 'APPRAISAL_TOOLBOX_ACTION_NOT_ALLOWED');
+  outcomes.actionGate = { ok: true, reason: rejected.reason };
+  fs.writeFileSync(path.join(evidence, 'regression-summary.json'), JSON.stringify({ ok: true, outcomes, browserUiCovered: false }, null, 2));
+  console.log(JSON.stringify({ ok: true, regions: 11, landWritten: land.writtenCount, importFailureDiagnostics: true, depreciationParallel: true, evidence }, null, 2));
+}
+main().catch(error => { fs.writeFileSync(path.join(evidence, 'regression-error.txt'), error.stack); console.error(error); process.exitCode = 1; });

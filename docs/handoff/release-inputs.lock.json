@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scope": "historic-windows-package-inputs-not-yet-unified-build-entry",
+  "target": "windows-x64",
+  "node": {
+    "version": "v24.18.1",
+    "sha256": "ac51903c4c111815d52280b1fdcc8da067cbb37e2fe1a765097b85c3292c8582"
+  },
+  "baseRuntimeAsset": {
+    "tag": "v0.2.1",
+    "name": "appraisal-toolbox-v0.2.1-windows-x64-full.zip",
+    "sha256": "a71aabe5008d06e4ba519a0abfb7c84fcdf6e53085a8eb54100313e626366a28",
+    "pythonIsolation": "python314._pth",
+    "runtimeFileLock": "base package SHA256SUMS"
+  },
+  "tools": [
+    {
+      "name": "esbuild",
+      "version": "0.25.12",
+      "url": "https://registry.npmjs.org/esbuild/-/esbuild-0.25.12.tgz",
+      "integrity": "sha512-bbPBYYrtZbkt6Os6FiTLCTFxvq4tt3JKall1vRwshA3fdVztsLAatFaZobhkBC8/BrPetoa0oksYoKXoG4ryJg==",
+      "transport": "Windows HTTPS with certificate validation",
+      "installScriptsRun": false
+    },
+    {
+      "name": "@esbuild/win32-x64",
+      "version": "0.25.12",
+      "url": "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz",
+      "integrity": "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==",
+      "transport": "Windows HTTPS with certificate validation",
+      "installScriptsRun": false
+    },
+    {
+      "name": "postject",
+      "version": "1.0.0-alpha.6",
+      "url": "https://registry.npmjs.org/postject/-/postject-1.0.0-alpha.6.tgz",
+      "integrity": "sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==",
+      "transport": "Windows HTTPS with certificate validation",
+      "installScriptsRun": false
+    }
+  ],
+  "macTargetLock": "pending-Mac-agent-audit"
+}

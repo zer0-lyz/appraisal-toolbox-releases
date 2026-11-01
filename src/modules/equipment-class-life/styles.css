@@ -1,0 +1,35 @@
+[data-module-id="equipment-class-life"] .equipment-skill-heading,
+[data-module-id="equipment-class-life"] .equipment-class-config,
+[data-module-id="equipment-class-life"] .equipment-class-reference,
+[data-module-id="equipment-class-life"] .equipment-class-review,
+[data-module-id="equipment-class-life"] .equipment-class-finish { display: grid; gap: 9px; }
+[data-module-id="equipment-class-life"] .equipment-skill-notice { border-color: var(--accent); background: var(--accent-soft); }
+[data-module-id="equipment-class-life"] .equipment-skill-notice p,
+[data-module-id="equipment-class-life"] .section-description { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+[data-module-id="equipment-class-life"] .equipment-skill-path-row { display: grid; gap: 5px; }
+[data-module-id="equipment-class-life"] .equipment-skill-path-row > span { color: var(--muted); font-size: 12px; }
+[data-module-id="equipment-class-life"] .equipment-skill-path-row > div { display: flex; gap: 7px; min-width: 0; }
+[data-module-id="equipment-class-life"] .equipment-skill-path-row input { flex: 1; min-width: 0; font-size: 12px; }
+[data-module-id="equipment-class-life"] #equipmentClassLifePathFeedback[data-kind="error"] { color: var(--bad); }
+[data-module-id="equipment-class-life"] #equipmentClassLifePathFeedback[data-kind="warn"] { color: var(--warn); }
+[data-module-id="equipment-class-life"] #equipmentClassLifePathFeedback[data-kind="ok"] { color: var(--good); }
+[data-module-id="equipment-class-life"] .equipment-class-reference-search { display: flex; gap: 7px; }
+[data-module-id="equipment-class-life"] .equipment-class-reference-search input { flex: 1; min-width: 0; }
+[data-module-id="equipment-class-life"] .equipment-class-reference-results { max-height: 190px; overflow: auto; padding: 8px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface-muted); color: var(--muted); font-size: 12px; line-height: 1.45; }
+[data-module-id="equipment-class-life"] .equipment-class-reference-item { padding: 6px 0; border-bottom: 1px solid var(--line-soft); overflow-wrap: anywhere; }
+[data-module-id="equipment-class-life"] .equipment-class-reference-item:last-child { border-bottom: 0; }
+[data-module-id="equipment-class-life"] .equipment-class-reference-item strong { display: block; color: var(--text); }
+[data-module-id="equipment-class-life"] .equipment-class-filter { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+[data-module-id="equipment-class-life"] .equipment-class-filter input { flex: 1; min-width: 0; }
+[data-module-id="equipment-class-life"] .equipment-class-table-scroll { width: 100%; overflow: auto; border: 1px solid var(--line-soft); border-radius: 6px; }
+[data-module-id="equipment-class-life"] .equipment-class-table { width: 100%; min-width: 920px; border-collapse: collapse; font-size: 11px; }
+[data-module-id="equipment-class-life"] .equipment-class-table th,
+[data-module-id="equipment-class-life"] .equipment-class-table td { padding: 5px; border-bottom: 1px solid var(--line-soft); vertical-align: top; text-align: left; }
+[data-module-id="equipment-class-life"] .equipment-class-table th { position: sticky; top: 0; z-index: 1; background: var(--surface-muted); white-space: nowrap; }
+[data-module-id="equipment-class-life"] .equipment-class-table td:first-child { min-width: 150px; max-width: 190px; overflow-wrap: anywhere; }
+[data-module-id="equipment-class-life"] .equipment-class-table input,
+[data-module-id="equipment-class-life"] .equipment-class-table select { width: 100%; min-width: 105px; padding: 5px; font-size: 11px; }
+[data-module-id="equipment-class-life"] .equipment-class-table td:first-child .equipment-class-row-name { color: var(--text); font-weight: 600; }
+[data-module-id="equipment-class-life"] .equipment-class-table td:first-child .equipment-class-row-sequence { display: block; color: var(--muted); margin-bottom: 3px; }
+[data-module-id="equipment-class-life"] .equipment-class-paging { align-items: center; justify-content: space-between; }
+[data-module-id="equipment-class-life"] .equipment-skill-output { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 9px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface-muted); color: var(--text); font: 11px/1.5 ui-monospace, Consolas, monospace; }

@@ -1,0 +1,79 @@
+Alibaba page-state regressions passed (14 cases). Evidence: /var/folders/q2/t3vn6_wd78g__hngzhqxcpv00000gn/T/toolbox-source-checks-hTK3wW/alibaba-module-regression.mjs
+{
+  "ok": true,
+  "realRegistryAndScope": true,
+  "fixtureDomAndChrome": true,
+  "browserUiCovered": false,
+  "results": [
+    {
+      "button": "openLandPublicityHtml",
+      "currentWindow": true,
+      "inlineFeedback": true
+    },
+    {
+      "button": "openLandPublicityMap",
+      "currentWindow": true,
+      "inlineFeedback": true
+    }
+  ],
+  "excelDispatchAndFailureFeedback": true,
+  "autoOpenFailurePreservesCompletedJob": true,
+  "fileAccessGuidance": true,
+  "windowsOpenAdapterCases": 3
+}
+Lease regressions passed (8 groups). Evidence: /var/folders/q2/t3vn6_wd78g__hngzhqxcpv00000gn/T/toolbox-source-checks-hTK3wW/lease-outcome-regression.mjs
+{
+  "ok": true,
+  "componentOnly": true,
+  "browserUiCovered": false,
+  "actions": [
+    {
+      "action": "open_land_publicity_path",
+      "usesCurrentWindow": true,
+      "oneNewActiveTab": true
+    },
+    {
+      "action": "open_anjuke_property_path",
+      "usesCurrentWindow": true,
+      "oneNewActiveTab": true
+    },
+    {
+      "action": "open_alibaba_auction_path",
+      "usesCurrentWindow": true,
+      "oneNewActiveTab": true
+    },
+    {
+      "action": "open_alibaba_lease_path",
+      "usesCurrentWindow": true,
+      "oneNewActiveTab": true
+    }
+  ],
+  "pathCases": [
+    "E:\\中文 文件\\结果 # %.html",
+    "\\\\server\\share\\中文 结果.html",
+    "/Users/test/中文 # %.html"
+  ],
+  "failedValidationDoesNotOpenTab": true,
+  "tabFailurePropagatesWithoutOsFallback": true
+}
+{"ok":true,"fixturesOnly":true,"realRegistryAndModule":true,"missingKeyBlocked":true,"keyOnlySaveAccepted":true,"keyReplacementAccepted":true,"existingKeyRepair":true,"clearShowsConfigurationGuidance":true,"browserUiCovered":false}
+Round2 UI regressions passed: 5
+✔ build requires explicit identity and rejects unsafe/unknown parameters (0.631917ms)
+✔ cache rejects changed or extra runtime bytes (6.739375ms)
+✔ Windows-only higher build in schema 2 does not prompt unchanged Mac (1.378958ms)
+✔ diagnostics preserve bounded Chinese reasons without source/credentials (1.496625ms)
+✔ same-version older official build never repairs a newer Mac or Windows build (1.852125ms)
+✔ Mac update protocol completes once without loading Windows installer engine (0.455958ms)
+✔ actual shell stream settles legacy rejection and multi-frame progress/terminal responses (0.933167ms)
+✔ Windows picker exit 1 is failure; cancel exit 2 remains cancellation (1.447417ms)
+✔ all three inherited workbook tools retain their scripts and development status (0.171542ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.527792
+Shared source checks passed; GUI and installer acceptance are separate. Evidence: /var/folders/q2/t3vn6_wd78g__hngzhqxcpv00000gn/T/toolbox-source-checks-hTK3wW
+{"sourceCommit":"fe41e9f5cbc53265f662a3f9dc75788aadd33dc9","archive":{"path":"appraisal-toolbox-v0.2.1-macos-arm64-mac-build16-20261016.3.zip","sha256":"6816b2c8ddaf8b597fcb41bb7a99062c0c1817f229b25d224abd5e5dc855d0df"},"manifest":"release-manifest.json","runtimeCacheHit":true}

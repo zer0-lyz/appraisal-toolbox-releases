@@ -1,0 +1,682 @@
+{
+  "schemaVersion": 1,
+  "scope": "Original Windows source inventory copied byte-for-byte; extra repository platform/build documentation preserved",
+  "originalBuildSourceGitHead": "46a67bc48766703e13a182f57a1ca5375a2a1aef",
+  "builtFromDirtySource": true,
+  "rebuiltForThisPublication": false,
+  "sourceInventorySha256": "236a9acbde74cdbc4705e75b8798e0982c9e78cf92b943ba3ecafe98ef0547ae",
+  "sourceFiles": [
+    {
+      "path": "LICENSE",
+      "sha256": "fee9ddec589dbd464f3fb9cc5ec5f45da30ae1c133745c67027d8f87c4495009"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1c6370719d818662546b87796d04377d38bd937bedae201d77b89c7aaee3ad60"
+    },
+    {
+      "path": "RECOVERED_SOURCE_PROVENANCE.md",
+      "sha256": "76f420cb3f180f56c680479f127eb7674f677e69b4a87f357eec11516bf0d3c0"
+    },
+    {
+      "path": "gate-components.json",
+      "sha256": "10e54615a53235cb26747debbb3a75f12a447d324e818247cb07468b042de159"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "97bc2ebcd384221cc6939baed4e98d5d292d32cb9b407f0350ae8228b6536725"
+    },
+    {
+      "path": "native-helper/README.md",
+      "sha256": "08accf426bd7c56ef90341bc7b6bfdc9b384569903ee65761cc966ee0414d94c"
+    },
+    {
+      "path": "native-helper/alibaba-auction.js",
+      "sha256": "21fa02fa107c6dfbf044ac5b452818f86bf23d4115f89c031d9947efddaf4ca4"
+    },
+    {
+      "path": "native-helper/alibaba-lease.js",
+      "sha256": "53b9b5cfae2e18a2f8065899ae448419f0e60229988c81edc023505683f0b4e5"
+    },
+    {
+      "path": "native-helper/amap-map.js",
+      "sha256": "57e3b67026994cb40ce3dec21ae38ea366b7ee10ac3f1b5edfb61d0e5d01058b"
+    },
+    {
+      "path": "native-helper/anjuke-property.js",
+      "sha256": "b9be10badd0e40dd666fe64f1fe598adb843a0f4dd218485f0a7701201c402e5"
+    },
+    {
+      "path": "native-helper/depreciation-capex-forecast.js",
+      "sha256": "430f7cea6fcd009d559c91de14d9f2f324da7485266b9395d962386463968ff5"
+    },
+    {
+      "path": "native-helper/diagnostics.js",
+      "sha256": "8e873aaf8f6719013e04a914e261177b20c83d1b87a8a95dd8771d5d052f88ad"
+    },
+    {
+      "path": "native-helper/land-publicity-http.js",
+      "sha256": "85355fee5fcbabe7d303d95c3d2d076eb818b6413e169aee1dc80b348f6a2f7c"
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.Default.css",
+      "sha256": "61258232d98d64dc2a7b1e02130d67421bc5b9bda5994eef70228ff97570c170"
+    },
+    {
+      "path": "native-helper/map-assets/MarkerCluster.css",
+      "sha256": "614dea0a98ff3f4ead74f04918f6b1d1b9ba435c25b5fc23b21a394d1e3e4d87"
+    },
+    {
+      "path": "native-helper/map-assets/amap-only.js",
+      "sha256": "7a9d9deb6e2299379b232aa7133842583602982556857216a2cb0abf47fb6d34"
+    },
+    {
+      "path": "native-helper/map-assets/images/layers-2x.png",
+      "sha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf"
+    },
+    {
+      "path": "native-helper/map-assets/images/layers.png",
+      "sha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6"
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon-2x.png",
+      "sha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528"
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-icon.png",
+      "sha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437"
+    },
+    {
+      "path": "native-helper/map-assets/images/marker-shadow.png",
+      "sha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da"
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.css",
+      "sha256": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303"
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.js",
+      "sha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a"
+    },
+    {
+      "path": "native-helper/map-assets/leaflet.markercluster.js",
+      "sha256": "1e4e1d22972a3926f48598e0caf14e3fe7049835d428a344fed4f9e3665b3508"
+    },
+    {
+      "path": "native-helper/native_host.js",
+      "sha256": "5511bdf1d8aeeae0332603b26b6efa91dc11e08159b2a6dceb173035d3bd71d3"
+    },
+    {
+      "path": "native-helper/platform/common.js",
+      "sha256": "5b133d24ae6c225a1bfc8b2084217067358b06bd5f4b8a742a184e58c14b700f"
+    },
+    {
+      "path": "native-helper/platform/index.js",
+      "sha256": "c2e0316b117713e11ccdb4f4d81cadf7b5a10413993f8215a376b29606a05d02"
+    },
+    {
+      "path": "native-helper/platform/macos.js",
+      "sha256": "946a1d3f87dc7384afd1fe25b54de59d9147a6ee457882bb66d0704b52f7eccf"
+    },
+    {
+      "path": "native-helper/platform/unsupported.js",
+      "sha256": "ae1f4036c462a7b8f90f337d70fbf5275bc1b4b8e9588fc0772c77892848963e"
+    },
+    {
+      "path": "native-helper/platform/windows.js",
+      "sha256": "f7fc6b0622d8e3d4f425ac1fcacacb112d014d58fd4d9d98c595aaedcb3ac61b"
+    },
+    {
+      "path": "native-helper/process_launcher.js",
+      "sha256": "6725ba6c273660f6cbcd40f7e5e3438fdd0d2b14b3455c6c5d05c050e02a94c0"
+    },
+    {
+      "path": "native-helper/runtime_config.js",
+      "sha256": "ce07235a5487ae5ecc5e5f71228e4d33b3a772a110ecc99ffea203250172ce0e"
+    },
+    {
+      "path": "native-helper/runtime_paths.js",
+      "sha256": "8e4e2dad865ec83effd6157ac6b828a854ac443ced36d438a9e35961ea6fa9f7"
+    },
+    {
+      "path": "native-helper/update-sources.json",
+      "sha256": "ecaaabddd0fd9c98b716434ef32fe202a1456610e10505295304ddb7037fdaec"
+    },
+    {
+      "path": "native-helper/update_checker.js",
+      "sha256": "45d22fc9d6e8dc2a0394273cb221339b536620737121705103b181c096118acc"
+    },
+    {
+      "path": "native-helper/update_engine.js",
+      "sha256": "b1438fe1294fbdf229de974d085fef9509b973decb3cdbb375c2216b9fea271a"
+    },
+    {
+      "path": "runtime-compat.json",
+      "sha256": "b9793bda7774fbcaeb1f0e4e8a55617ac2d2b6c2acf7620595757bc71b09f59b"
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/SKILL.md",
+      "sha256": "31708155a49039dea8ee2b817232fd4e1b16911e0af26f88a100ab98f8dc149a"
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/agents/openai.yaml",
+      "sha256": "343d23ccb022d4e73c314513f99dcb886c1b3bd00982d5f2dfcf5260f513be88"
+    },
+    {
+      "path": "skills/anjuke-property-case-fetcher/scripts/fetch_anjuke_property_cases.py",
+      "sha256": "11c763acaf001a6fc044022a6af52de7d914b3fa8e3f645854cf457f246ca181"
+    },
+    {
+      "path": "skills/appraisal-declaration-print-format/SKILL.md",
+      "sha256": "190026bb921386d55d95390f31b7a0ab98bb1c99fc41c1d4836db8b04b28543d"
+    },
+    {
+      "path": "skills/appraisal-declaration-print-format/agents/openai.yaml",
+      "sha256": "e0123cbe1b807bd97fe6516895b57adc414bd5b91d1c1f883d0448854a1186b9"
+    },
+    {
+      "path": "skills/appraisal-declaration-print-format/scripts/adjust_appraisal_declaration_print.py",
+      "sha256": "70a60a4a7d72eb7511c0e29142f244483dbce2bc1285bb1ed37b6d4de6935a8a"
+    },
+    {
+      "path": "skills/appraisal-detail-print-format/SKILL.md",
+      "sha256": "6cebb0df46f03d7cabc66aae29f5e6884161ce8317bb841bd433d3667c6ac978"
+    },
+    {
+      "path": "skills/appraisal-detail-print-format/agents/openai.yaml",
+      "sha256": "5258fecb3e89e0382b8c9fefe27f3b152f6c1dcaaf6b32636cdaf43f2eb18000"
+    },
+    {
+      "path": "skills/appraisal-detail-print-format/scripts/adjust_appraisal_detail_print.py",
+      "sha256": "c1d5394a09fdde4f60c3094d31c8ab79907a8bc2faa5926e1fc97e3bfd0368ef"
+    },
+    {
+      "path": "skills/asset-link-restore/SKILL.md",
+      "sha256": "d91a50732de007fb1cb4cb81ec75615e50ca73d76461c609f6aeaf99a8491a1b"
+    },
+    {
+      "path": "skills/asset-link-restore/references/structure.md",
+      "sha256": "24d21c225d6319e0882c74dd4e4b6cbba6c3e0ead54077a2b41655afb6d49044"
+    },
+    {
+      "path": "skills/asset-link-restore/scripts/audit_restore.py",
+      "sha256": "9d631ccafa0dae2e35ac874976f14b50ce92abf70396297af746ad67a797bb7f"
+    },
+    {
+      "path": "skills/asset-link-restore/scripts/restore_links.py",
+      "sha256": "3be512c6a2b29e093dd6faa17ec0fad7f2695755f275ac09f2809ccbc93594fe"
+    },
+    {
+      "path": "skills/asset-link-restore/scripts/verify_formulas.py",
+      "sha256": "ce9d5d607203c26fca9494be87888b06feb97c5c12ad545cf503714fe732b1d5"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/SKILL.md",
+      "sha256": "c2d6978fad15fd0bf06173fbb9309bf43af2048754c4a2225f0877fd1f729a69"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/agents/openai.yaml",
+      "sha256": "bfa942b30756ce8c0383f8d4647499667b440ce8d9f658ff38222b16b10ceb75"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/assets/折旧摊销预测输入模板.xlsx",
+      "sha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/references/workflow.md",
+      "sha256": "7cf1af2b6572150eed7b9e93cc6a618b7647fa48dce89fcd4e0e1744c8decd8c"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__init__.py",
+      "sha256": "76c440f9277a9bf818aceb9b864ff5b2b48a4553fe14abe44ab446e004c252ae"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/cli.py",
+      "sha256": "ba7e8cd4bbd13ea3ca362e2f6edeb335bedf0ff5daf4dd80c5573f27b5ec63ea"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/model.py",
+      "sha256": "2db43281e79c2fac1516125a6384517bd1b76c8ee59668c37898c9f0e23b34b4"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/depreciation_forecast/workbook.py",
+      "sha256": "1428a59d84595ed709dd7ffd3a83d7c45cc721e5b1fa4b335e50eb2ce920a1ee"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/scripts/workflow.py",
+      "sha256": "306ef3fd86ee0339dd082cff67f3e7317700c928de926b230792b58819861518"
+    },
+    {
+      "path": "skills/depreciation-capex-forecast/tests/test_workbook.py",
+      "sha256": "f7613b55a3a1f9dbf36df38298da0825dba817439a1846e47b06a6631d14dc4c"
+    },
+    {
+      "path": "skills/map-shared/amap_support.py",
+      "sha256": "3f399b5ec66c10afc3fb818a9189523c19bf5e6a47ea11a2aec7f660c93dad7f"
+    },
+    {
+      "path": "skills/map-shared/update_map_page.py",
+      "sha256": "f2f572b3f882e7279ff30f8d7f2ccc84089cdcaae8fdf6459b5782aeb52411a2"
+    },
+    {
+      "path": "skills/table-format/SKILL.md",
+      "sha256": "70b6a8fff0d63f181887b101205f89bc1645bbe85945e0427f1215cb2e95c2b5"
+    },
+    {
+      "path": "skills/table-format/scripts/format_word_tables.py",
+      "sha256": "a7a80b9ab15d0c7bccc8b77ecdb1b53c5f9bdc078da06e6acd7e264a5b55f97a"
+    },
+    {
+      "path": "skills/zj-land-publicity/SKILL.md",
+      "sha256": "e0283bdf5ca8501410116b121c0de812bc14420b3f2ace644152d04713b2f38f"
+    },
+    {
+      "path": "skills/zj-land-publicity/land_http.py",
+      "sha256": "29a53dbc9142f85ef9829e46f84acc2bc49c0c936537f5b7abb50902cd19f577"
+    },
+    {
+      "path": "skills/zj-land-publicity/land_publicity_runner.py",
+      "sha256": "1cf4b0980ad000f3079e07f4141f73ce5f9877742d82a6416855e65ec01f8978"
+    },
+    {
+      "path": "skills/zj-land-publicity/scrape_zj_land.py",
+      "sha256": "69ba80851fd9e498f8e112ed2d128ca94e284709d096c0209d1960f6d264b29b"
+    },
+    {
+      "path": "skills/zj-land-publicity/tests/test_land_publicity_runner.py",
+      "sha256": "62dd15ad580a87bb34fec1af67d8deda248e4ea87bf7cf1df7f0cef3e2b305c4"
+    },
+    {
+      "path": "src/background/service_worker.js",
+      "sha256": "a08f4fc7cda977d71fb590034e626bc776cbfe032bdfd64aa2373c9c2e3f04b1"
+    },
+    {
+      "path": "src/core/alibaba-page-state.js",
+      "sha256": "5db34c477a98a73c742b81147c34d261849bb562e920cbfbad5ae96f77a92cbe"
+    },
+    {
+      "path": "src/core/browser-results.js",
+      "sha256": "6c0b124641e0650abc75e284bf175b8291051336ffb72fcace50b3ff0dcd3885"
+    },
+    {
+      "path": "src/core/event-bus.js",
+      "sha256": "2192f82a200b14d7dbbd8516dd1a8671756b2e3c851d76912f9c9621ccce88a9"
+    },
+    {
+      "path": "src/core/feature-flags.js",
+      "sha256": "8eaabc210d9e3df5e5eca1f9bfbe36e5d523b45cc44062fc019aec28a362cfa4"
+    },
+    {
+      "path": "src/core/module-registry.js",
+      "sha256": "4950233a54a9841593a6c3d8f2343635414be656c9504d05c23189c2d3f07352"
+    },
+    {
+      "path": "src/core/module-scope.js",
+      "sha256": "b3db0b31c63bd582498f100a1c3618c9d74443fc4d18a2ec42bf1621505ad89b"
+    },
+    {
+      "path": "src/core/module-storage.js",
+      "sha256": "3385d335273e42e64b6a827563ff464e4960b5c4bf1a79b09314be224acf9901"
+    },
+    {
+      "path": "src/core/native-errors.js",
+      "sha256": "4148747e5efd8a6ff38deafe3abb255593d0998afcab82c6bf332cfae2f59dca"
+    },
+    {
+      "path": "src/core/native-messaging.mjs",
+      "sha256": "c172f34d2a91e7067fa556dcd7b217a4bb3fbc56c884c9f4e622ef3604dafc4f"
+    },
+    {
+      "path": "src/core/user-errors.js",
+      "sha256": "2a45ed7b8ba0e698cacfa138c4944ae43808d4b1fbe354cef0c5694b578d0192"
+    },
+    {
+      "path": "src/data/china-regions.js",
+      "sha256": "80d7b5da48d6e96b646cfdcbd69786bbde0e77cf15fc1d9d4c0176b501bed000"
+    },
+    {
+      "path": "src/modules/alibaba-auction/module.js",
+      "sha256": "7a06f29a6395987e70e393555d4af31ebba2a0c369974ec04d981b29d3a66036"
+    },
+    {
+      "path": "src/modules/alibaba-auction/styles.css",
+      "sha256": "585f3bc4c1d66d2fe7d7f0b057b3fc133d905e52388f6cc63fdab7d640d17ee6"
+    },
+    {
+      "path": "src/modules/alibaba-auction/template.js",
+      "sha256": "ec4cac5a35fdb4cf02a13b4cf785d4977eb5fc85d13b07c3ec6c5e44bb9a6ff2"
+    },
+    {
+      "path": "src/modules/alibaba-lease/module.js",
+      "sha256": "657faef426cb83a58cd6594dafab52779be55caaf70f21e614853220628cf4d5"
+    },
+    {
+      "path": "src/modules/alibaba-lease/styles.css",
+      "sha256": "a71512206f2faa33ad13beb1e04e22bebe00f393d19f27a9e760da3f38ef7f3c"
+    },
+    {
+      "path": "src/modules/alibaba-lease/template.js",
+      "sha256": "b38071eac15efcab6fa3d8011260c3d1da74773acf0882efd3187cb80e0f6c88"
+    },
+    {
+      "path": "src/modules/anjuke-property/module.js",
+      "sha256": "5eb0b833182a3e27a5bdc6213d50ea1f59f6a77100c75713f28ef0fa941e3f21"
+    },
+    {
+      "path": "src/modules/anjuke-property/styles.css",
+      "sha256": "ae1d5412a33421458cba823974c3b4e57253bc4568ba088f1764fed357bf4374"
+    },
+    {
+      "path": "src/modules/anjuke-property/template.js",
+      "sha256": "730cf0b3cb0c940e602d3e541035064ea066a9dddfd55060b26bdc174cf706e1"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/assets/折旧摊销预测输入模板.xlsx",
+      "sha256": "0e4147d9319b587b675d671216b306b10ed76c79aa0e9ab0759d03cf5bafd701"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/details.html",
+      "sha256": "1ed74348aad00ddd5a937902d9e3beee16c886d3e1f76067b1d032c082d71dfe"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/details.js",
+      "sha256": "edb04482a35d135f5f6b538b7fafa88588a790645ae79a9767f5105570efc1bb"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/input.html",
+      "sha256": "e5b13e71148d773bf30bbb5b8f06da38be3cf3444eeaa1fa9c914a9ddb50c7d4"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/input.js",
+      "sha256": "c732f9fc053c95516e822ddeda5c3f6209d05ad7beebce5caa9772f182ce4e83"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/module.js",
+      "sha256": "6a848a33ee2fe6164e0f0da5d0395344e8e2f0e182b1df0bc11e0b2a4e918c6d"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/page-common.js",
+      "sha256": "795fe2fe90b94960fdad672c7d044b32cfd3912db25f1133a44f138f12f9d358"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/page.css",
+      "sha256": "045186d72e85866abdbf14ba70851966a307b1fd44472900db85a5ffd7b2e606"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/results.html",
+      "sha256": "367d693489029b2cb09bb335388b37c8ba4df39f1e399b330e4b1d8366036f12"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/results.js",
+      "sha256": "203e894f47bb3a2b6cca1a86c2b31a8ef7c608bf5edf5007a16444bb56dcfce6"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/styles.css",
+      "sha256": "da32c042e1d92f7f825ac2ee3dfa00c1be82702632548362266bbe0331b15063"
+    },
+    {
+      "path": "src/modules/depreciation-capex-forecast/template.js",
+      "sha256": "267b98014a2b325318d988f0850c37721620360f3b4db158f6f564f95fc89814"
+    },
+    {
+      "path": "src/modules/land-publicity/module.js",
+      "sha256": "6f221832f97e794d7ef927eee2917304ce34f4d5301850e86d1d72e6f3d5c399"
+    },
+    {
+      "path": "src/modules/land-publicity/styles.css",
+      "sha256": "f65504c3e95b3b6313ef1b5ee034719aa60ed29210497f6ae08bfbdb225cc07c"
+    },
+    {
+      "path": "src/modules/land-publicity/template.js",
+      "sha256": "15071e44a4fb9e2f3d9c1c050da884aeefff055e8a0cfe9e215075ebeb6bfcd5"
+    },
+    {
+      "path": "src/modules/map-settings/module.js",
+      "sha256": "3104ad570cebec13ef62a285aced57493700c0ac2fbaf3e1aed0c570e0163427"
+    },
+    {
+      "path": "src/modules/map-settings/styles.css",
+      "sha256": "7f2a3ef7f4677b51848da134bd7a4c9f08a6a971c12e9f637d036f9a210033a6"
+    },
+    {
+      "path": "src/modules/map-settings/template.js",
+      "sha256": "cdcac558312eae962faffc39f8b4bfd8d2f7187159ce3ff4ec8b8c14830b78a3"
+    },
+    {
+      "path": "src/modules/table-format/module.js",
+      "sha256": "3e9b82fd570cba305d74c0f8c6ea328dac6aded4279ab6cf772d170ca470eaef"
+    },
+    {
+      "path": "src/modules/table-format/styles.css",
+      "sha256": "8e13f403db0b49348cc983ba3d462727dc20b083f87ca051e0c0f5732989865d"
+    },
+    {
+      "path": "src/modules/table-format/template.js",
+      "sha256": "1ec908d0ddbb7146469bf2ccc61501f664c2f508032b28825c356af536e0e907"
+    },
+    {
+      "path": "src/modules/updates/module.js",
+      "sha256": "6fbe565143ca9d14319b9f8c9e259ced1e998e63ec43c69d270a59928bccd6a3"
+    },
+    {
+      "path": "src/modules/updates/styles.css",
+      "sha256": "1dc8ef3aa94ef59d9ec851e722a75dac582fb6896162fe7063400747db3c29d7"
+    },
+    {
+      "path": "src/modules/updates/template.js",
+      "sha256": "00f28f0ad96731cdd1a3109557d2f664af4afdf36630cf46d100283a411ede6b"
+    },
+    {
+      "path": "src/modules/workbook-tools/module.js",
+      "sha256": "77efba20ac63b2ae7543458f1b506922c587568a33128c42d32f6ddb52879975"
+    },
+    {
+      "path": "src/modules/workbook-tools/styles.css",
+      "sha256": "f71339e55cf668326a4a590d0604a9270a162e7ae5ed8115d51f141c0652e909"
+    },
+    {
+      "path": "src/shell/index.html",
+      "sha256": "a76f5c50797cacc983b13a4f5141b707682701a66deb9b70d7cf02d54074cafe"
+    },
+    {
+      "path": "src/shell/shell.js",
+      "sha256": "cdb6f6867fb91b35d1038f018b193f842fb66f52ca303f2a0243cebaa4ec5b01"
+    },
+    {
+      "path": "src/styles/native-diagnostics.css",
+      "sha256": "a63b88f9b2cebb7a3944071772247baeda6bd3fd4fd5718a049ed90f75bb961f"
+    },
+    {
+      "path": "src/styles/shell.css",
+      "sha256": "b657c037a64d40df3a55b2abf113684dec00477aefd89adf7e6534090d803e59"
+    },
+    {
+      "path": "version.json",
+      "sha256": "b4bca820155367d883b8f0698eb8215ab74211bca65ffad2d99b18ad22649fc9"
+    },
+    {
+      "path": "windows/ALIBABA_MODULES_LOGIN_GATE_FIX_2026-10-09.md",
+      "sha256": "49bbcfa5d315986ed0ffbc6be52207763728950d3972db0383c9eb0b8da99aa0"
+    },
+    {
+      "path": "windows/INCIDENT_WINDOWS_INSTALLER_2026-10-09.md",
+      "sha256": "ff7a34e0098c20e33976ef7e4021f8d278a4e4ec721ea60582fa3d298f926b74"
+    },
+    {
+      "path": "windows/MAC_CODEX_HANDOFF_PROMPT.md",
+      "sha256": "52bfda8c4c96a51b144094b0208a854cac4729ce87e7df0139df955e7d681517"
+    },
+    {
+      "path": "windows/MULTIPLATFORM_INSTALL_PACKAGING.md",
+      "sha256": "a8095288ede08cc03489dcf0590608ba004143c95038e6665daa03be92b08067"
+    },
+    {
+      "path": "windows/WINDOWS_CODEX_ACCEPTANCE_PROMPT.md",
+      "sha256": "3a79f9a0c3b205fae8fe85ec2795c84e9ead36247cc5d0e38b36eb6708a0824d"
+    },
+    {
+      "path": "windows/bootstrap-build-tools.ps1",
+      "sha256": "92afb823aa4f1391d23296fb7e6d8b5a2e4599922beb885136c4233ad112e4ee"
+    },
+    {
+      "path": "windows/build-windows-fix2.cjs",
+      "sha256": "5e7d295d9c8d017280723b2c63ea022ccd66b097f248e20ae56de6f66ad64218"
+    },
+    {
+      "path": "windows/build-windows-fix2.ps1",
+      "sha256": "051fd3f12efd98e699c68a945fc25b0420821bb40163ea1f9a43b7a7f4327a80"
+    },
+    {
+      "path": "windows/build-windows-installer-fix.ps1",
+      "sha256": "efff071810f8b09034ce59609fbf4baad9e282a3d88328178c074ea98eaa96dd"
+    },
+    {
+      "path": "windows/finalize-alibaba-module-package.cjs",
+      "sha256": "8915ec0d1c3e52523bad0264a08a084266cbdbdded91ac909a7b5fddb9832187"
+    },
+    {
+      "path": "windows/finalize-windows-fix2.cjs",
+      "sha256": "48c533d1e1596f2b7d013d846703a43bbbb27efaae03f4d256c3bd1eeec83b35"
+    },
+    {
+      "path": "windows/installer/INSTALL.md",
+      "sha256": "5499e00c1a9e3c56125c6c28bfbaf07dd3a677c4008fc30ad1d90ccdcc6569cf"
+    },
+    {
+      "path": "windows/installer/WINDOWS_FIX2_NOTES.md",
+      "sha256": "d8c750002396f0e6caac15f6b33211a1bc94037e5e165785df3dfbbb9573278c"
+    },
+    {
+      "path": "windows/installer/extension-deployment.ps1",
+      "sha256": "f78459ea920b525049952a14e40d6b433a519005f44c92fafe5f2ecd1ccbac6a"
+    },
+    {
+      "path": "windows/installer/install.cmd",
+      "sha256": "b8393975c9ec133dbb42870aa9d26c2b9922880791bf8325d4eba140aeb1c074"
+    },
+    {
+      "path": "windows/installer/install.ps1",
+      "sha256": "ce2dbed6a557ae1f3b6b8a7ee7f5909394d8d47881eb53804fcdb3d6cb690cef"
+    },
+    {
+      "path": "windows/installer/registration-context.ps1",
+      "sha256": "faa4d86ee214cb200b1d654e0182e83942ff4feddd02d473cd6d6b650ec6b972"
+    },
+    {
+      "path": "windows/installer/uninstall.cmd",
+      "sha256": "8158e899f12c3e95fab052659fe7ae325f9009b55a5f2bc69bfb4e827e5cbb9d"
+    },
+    {
+      "path": "windows/installer/uninstall.ps1",
+      "sha256": "bf02d8236c5758f9a339f15b3b2074fa8c6b1f84d216ef87a69717d69468e51d"
+    },
+    {
+      "path": "windows/installer/verify-desktop-registration.ps1",
+      "sha256": "d0f8e0bbf716ddf4a3982071b0aa0e3a6dab09bc9f9c614eb966e86ca3865925"
+    },
+    {
+      "path": "windows/installer/verify-registration.ps1",
+      "sha256": "c3d6146a90b4eae78c5fa1b30a837c964d46a455d3e1431f9e19d40835a81968"
+    },
+    {
+      "path": "windows/installer/修复已有地图.cmd",
+      "sha256": "61baafd7680c84670cd985e59ab6c2f57c9dd4f4022d3983c4677d700a3d13e1"
+    },
+    {
+      "path": "windows/tests/alibaba-module-regression.mjs",
+      "sha256": "c5f377044b5fe2d77c464a985da4281663b76ae2a711266bb56a0bc9c79b8003"
+    },
+    {
+      "path": "windows/tests/alibaba-native-regression.cjs",
+      "sha256": "156af1d19ad128378552a726d0eaacdb39c05d134cac4a6f1b39946e3a54763f"
+    },
+    {
+      "path": "windows/tests/amap-config-native.cjs",
+      "sha256": "59ddfbe6229effa7dbf6772ac6348e1cd27dec055c63a26794854b3febd3c9d6"
+    },
+    {
+      "path": "windows/tests/amap-only-generators.py",
+      "sha256": "2c83a359291396cb184b494abfb2abb33b919c35312c2607a02bdcc6c691aab7"
+    },
+    {
+      "path": "windows/tests/amap-only.test.cjs",
+      "sha256": "a88595718a80d6e4e5e5b8d47b1a77aefaf9112adff7d24bd08bd16f4da1f3ad"
+    },
+    {
+      "path": "windows/tests/current-browser-native.cjs",
+      "sha256": "7d20668c8f38357a68e3b399fb7e2136f137e91bd2df44b1ac97af62d076c17a"
+    },
+    {
+      "path": "windows/tests/current-browser-results.test.mjs",
+      "sha256": "7d4a2f75f8ea2827b59348c4ff36a892326fc95b7999e6fcac562608e1874e44"
+    },
+    {
+      "path": "windows/tests/final-artifact-check.cjs",
+      "sha256": "36f53460b7b2b7b0a8d6d8c97c415e8e727c9f60af74be7c83caf7435b817214"
+    },
+    {
+      "path": "windows/tests/frontend-gates-fix2.cjs",
+      "sha256": "1101190385591eba57130e037a2df93950df22e2591c7b4a0b3cd70ae48ec026"
+    },
+    {
+      "path": "windows/tests/installer-contract.test.mjs",
+      "sha256": "d49e5fcda0a2780605172b6fcad59bd82d7d3824f8c2fae9a69bacd9b5600ffe"
+    },
+    {
+      "path": "windows/tests/installer-fix2-regression.cjs",
+      "sha256": "c634627a17a1ee0c7823f2f6f1cc471a15a4cf606e5fd3b0252ab114d1d4c80b"
+    },
+    {
+      "path": "windows/tests/land-layout-map.py",
+      "sha256": "600f15ff2d448328a6aa1649ebc622af4ca49ca49d7be32df477ae37b23df47f"
+    },
+    {
+      "path": "windows/tests/lease-outcome-regression.mjs",
+      "sha256": "6a6127fcceb454bdad4e34cc82c37a29bc0ce2edfc6eb8d807603a1ca95c68a5"
+    },
+    {
+      "path": "windows/tests/map-settings.test.mjs",
+      "sha256": "c024cb0d36e9427413e17db5ef81006468873eeb7f1d3886ccebcca77663b9c1"
+    },
+    {
+      "path": "windows/tests/native-business-fix2-regression.cjs",
+      "sha256": "4a59647ac9a0dd69812d0fd7a9a9f987058e22dfe7c0d211aa0da3f47615793a"
+    },
+    {
+      "path": "windows/tests/native-fix2-regression.cjs",
+      "sha256": "3fce44e5e54bad30fc8c01ac0365af87822fa42b4584d8a9e4ae4940ff831633"
+    },
+    {
+      "path": "windows/tests/nm-probe.cjs",
+      "sha256": "ebdaf7c2d8052e44d53a2ddaaae8af76c2b98cfa5f50941c603a25dc0d417a56"
+    },
+    {
+      "path": "windows/tests/package-alibaba-current.cjs",
+      "sha256": "0d293422aedd64325e9cf02d80ca2dfe88ba8d908428e8408905cf094d120b08"
+    },
+    {
+      "path": "windows/tests/registration-context.test.ps1",
+      "sha256": "3daa58f024ad4465f42e2148f11a8aed7331a482f5945457b9e5d2ee652fe746"
+    },
+    {
+      "path": "windows/tests/result-buttons.test.mjs",
+      "sha256": "e4fb53a3455d47fbdc6cd23b9618729091de8e4adfa45c09702971c5237ad4f7"
+    },
+    {
+      "path": "windows/tests/round2-native-regression.cjs",
+      "sha256": "1938c2b25be3ab1381b2801de5bee84e0f2185e5709b480773c9361933a85997"
+    },
+    {
+      "path": "windows/tests/round2-ui-regression.mjs",
+      "sha256": "6fbff3bd53d7b39dfec5bc1d47518a31aac2d8f92a89da62ce384baa0eb4896e"
+    },
+    {
+      "path": "windows/tests/runner-diagnostics-fix2.cjs",
+      "sha256": "fcd8908282d858d7fc9a1c569908b058a5aa6128e743152aeb2cd8d601f362bb"
+    }
+  ]
+}
