@@ -2284,6 +2284,9 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   const seen = new Set();
   let prefiltered = 0;
   let advancedToNextPage = true;
+  // 列表提前收尾的原因（如“官网内容已到边界/疑似风控拦截”），随结果返回，
+  // 由面板实例层追加显示——本函数不可直接触碰面板 DOM（elements 在实例闭包里）。
+  let listingStopNote = "";
   const progress = (payload) => emit({ security: { credentialsReturned: false }, ...payload });
   progress({ phase: "opening", percent: 2, message: `${isAlibabaListPage(tab.url) ? (zcEntry ? "正在读取当前阿里资产出售筛选结果…" : "正在读取当前阿里拍卖筛选结果…") : (zcEntry ? "正在当前浏览器打开阿里资产搜索列表页…" : "正在当前浏览器打开阿里拍卖列表页…")}${request.bidOnly !== false ? "〔抓取模式：先读列表·仅核验有出价条目〕" : "〔抓取模式：逐条核验全部列表〕"}`, fetched: 0, verified: 0, skipped: 0 });
 
@@ -2378,7 +2381,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         break;
       }
       if (!pageItems.length) {
-        setMessage(elements.alibabaAuctionResultMessage, `第 ${page} 页未读取到任何条目，列表收尾（页面记录 ${candidates.length} 条）。若该页在官网仍有内容，多为触发了淘宝安全验证，请完成滑块验证后重新抓取。`, "ok");
+        listingStopNote = `第 ${page} 页未读取到任何条目，列表收尾（页面记录 ${candidates.length} 条）。若该页在官网仍有内容，多为触发了淘宝安全验证，请完成滑块验证后重新抓取。`;
         break;
       }
       // 翻页：点击页面内“下一页”控件（sf 列表页为 <a class="next">，zc 搜索页
@@ -2393,8 +2396,9 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
           const dbg = (Array.isArray(extracted.paginationDebug) ? extracted.paginationDebug : [])
             .map((d) => [d.tag, d.cls, d.text, d.disabled ? "disabled" : ""].filter(Boolean).join("#")).join(" | ").slice(0, 400);
           const diagnostic = `列表翻页在第 ${page} 页后停止：未找到“下一页”控件。分页控件诊断（标签#类名#文字#状态）：${dbg || "页面上未捕获到任何疑似分页元素"}`;
-          // 诊断写入持久消息：详情核验阶段不会覆盖，便于用户截图反馈。
-          setMessage(elements.alibabaAuctionResultMessage, diagnostic, "error");
+          // 诊断随结果返回（stopNote）：由面板实例层持久显示——本函数不可直接
+          // 触碰面板 DOM（elements 在实例闭包里，直接引用会 ReferenceError）。
+          listingStopNote = diagnostic;
           progress({
             phase: "listing",
             percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
@@ -2408,7 +2412,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
           break;
         }
         if (!nextClick.clicked) {
-          setMessage(elements.alibabaAuctionResultMessage, `列表翻页在第 ${page} 页后停止：“下一页”控件已禁用，官网列表已全部读取（页面记录 ${candidates.length} 条）。`, "ok");
+          listingStopNote = `列表翻页在第 ${page} 页后停止：“下一页”控件已禁用，官网列表已全部读取（页面记录 ${candidates.length} 条）。`;
           progress({
             phase: "listing",
             percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
@@ -2505,13 +2509,12 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         }
         advancedToNextPage = freshDetected;
         if (!freshDetected) {
-          // 收尾原因写入持久消息：详情核验阶段的进度不会覆盖它，便于回溯。
-          const stopNote = `点击“下一页”后未检测到新条目（含自动重试），列表在第 ${page} 页收尾：页面记录 ${candidates.length} 条、预过滤流拍 ${prefiltered} 条。若官网实际还有下一页，多为触发了淘宝安全验证——请到标签页完成滑块验证后重新抓取。`;
-          setMessage(elements.alibabaAuctionResultMessage, stopNote, "ok");
+          // 收尾原因随结果返回（stopNote），由面板实例层持久显示。
+          listingStopNote = `点击“下一页”后未检测到新条目（含自动重试），列表在第 ${page} 页收尾：页面记录 ${candidates.length} 条、预过滤流拍 ${prefiltered} 条。若官网实际还有下一页，多为触发了淘宝安全验证——请到标签页完成滑块验证后重新抓取。`;
           progress({
             phase: "listing",
             percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
-            message: stopNote,
+            message: listingStopNote,
             page,
             pages: page,
             fetched: candidates.length,
@@ -2532,7 +2535,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       const reason = stopped || knownCodeShape || error?.code
         ? rawReason
         : `列表读取阶段异常：${rawReason.slice(0, 160)}`;
-      return { ok: false, phase: stopped ? "stopped" : "failed", errorCode, reason, stopped, candidates: candidates.length, results: [], security: { credentialsReturned: false } };
+      return { ok: false, phase: stopped ? "stopped" : "failed", errorCode, reason, stopped, candidates: candidates.length, results: [], stopNote: listingStopNote, security: { credentialsReturned: false } };
     }
   }
 
@@ -2671,6 +2674,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
           : "候选记录中没有找到详情页可确认的成交案例。",
     candidates: candidates.length,
     results: Array.isArray(saved?.results) ? saved.results : results,
+    stopNote: listingStopNote,
     htmlPath: String(saved?.htmlPath || ""),
     mapPath: String(saved?.mapPath || ""),
     historyPath: String(saved?.historyPath || ""),
@@ -3239,7 +3243,7 @@ export const alibabaAuctionModule = {
         }
         if (result?.stopped) {
           renderProgress({ phase: "stopped", message: "抓取已终止；未生成本次半成品结果。" });
-          setMessage(elements.alibabaAuctionResultMessage, `抓取已终止，已读取 ${result.candidates || 0} 条页面记录。可以重新开始。`, "warn");
+          setMessage(elements.alibabaAuctionResultMessage, `抓取已终止，已读取 ${result.candidates || 0} 条页面记录。可以重新开始。${result.stopNote ? " " + result.stopNote : ""}`, "warn");
           elements.alibabaAuctionResultStatus.textContent = "抓取已终止";
           context.setStatus("阿里拍卖抓取已终止", "warn");
           return;
@@ -3266,7 +3270,7 @@ export const alibabaAuctionModule = {
         const coordinateSummary = requestConfig.generateMap && (result.geocodeRequested || result.geocodeCacheHits || result.geocodeResolved || result.geocodeFailed || result.geocodeTimedOut)
           ? `坐标查询 ${result.geocodeRequested || 0} 次，缓存命中 ${result.geocodeCacheHits || 0} 条，定位 ${result.geocodeResolved || 0} 条。`
           : "";
-        setMessage(elements.alibabaAuctionResultMessage, `${mode === "history" ? "历史详情重新抓取完成" : "抓取完成"}：页面记录 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。${coordinateSummary}`, "ok");
+        setMessage(elements.alibabaAuctionResultMessage, `${mode === "history" ? "历史详情重新抓取完成" : "抓取完成"}：页面记录 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。${coordinateSummary}${result.stopNote ? " " + result.stopNote : ""}`, "ok");
         await openResultPage();
         context.setStatus(`阿里拍卖抓取完成：${results.length} 条有效案例`, "ok");
       } catch (error) {

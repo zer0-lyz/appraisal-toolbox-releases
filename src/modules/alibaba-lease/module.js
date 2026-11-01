@@ -198,10 +198,10 @@ async function waitForRunResume(control, emit) {
   emit({ phase: "listing", message: "已继续抓取。" });
 }
 
-// 在租赁列表页内查找并点击“下一页”控件。阿里资产搜索页（zc-paimai，Rax 渲染）
-// 实测（2026-10 实机 DOM）：“下一页”是 pc-pagination 容器里文本为“>”的 div，
-// 类名带构建哈希、无“next”语义；点击已实测可翻页。另兼容阿里
-// Fusion(.next-next)、ant-design 与 title/aria/纯文本“下一页”。
+// 【已废弃，v0.2.10 起租赁循环改用 URL 页码导航，此函数不再被调用。】
+// 历史实现保留备查：在租赁列表页内查找并点击“下一页”控件。阿里资产搜索页
+// （zc-paimai，Rax 渲染）实测（2026-10 实机 DOM）：“下一页”是 pc-pagination
+// 容器里文本为“>”的 div，类名带构建哈希、无“next”语义；点击已实测可翻页。
 function clickLeaseListNextPage(chromeRef, tab) {
   return executeCurrentTab(chromeRef, tab.id, () => {
     const isVisible = (element) => {
@@ -1089,22 +1089,25 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   let prefiltered = 0;
   let datePrefiltered = 0;
   let nonLeasePrefiltered = 0;
-  let advancedToNextPage = true;
+  // 列表提前收尾的原因（如“官网内容已到边界/疑似风控拦截”），随结果返回，
+  // 由面板实例层追加显示——本函数不可直接触碰面板 DOM（elements 在实例闭包里）。
+  let listingStopNote = "";
   const progress = (payload) => emit({ security: { credentialsReturned: false }, ...payload });
   progress({ phase: "opening", percent: 2, message: isLeaseListPage(tab.url) ? "正在读取当前阿里资产租赁筛选结果…" : "正在当前浏览器打开阿里资产租赁列表页…", fetched: 0, verified: 0, skipped: 0 });
 
   for (let page = firstPage; page < firstPage + maxPages; page += 1) {
     try {
       await waitForRunResume(control, progress);
-      if (page === firstPage) {
-        const expectedListUrl = safePaginationUrl(sourceUrl, firstPage);
-        if (!listPageMatchesRequest(tab.url, request) || !urlsReferToSamePage(tab.url, expectedListUrl)) {
-          tab = await navigateCurrentTab(chromeRef, tab, expectedListUrl);
-        }
-      } else if (!advancedToNextPage) {
-        break;
+      const expectedListUrl = safePaginationUrl(sourceUrl, page);
+      if (page !== firstPage) {
+        // 翻页前随机等待 2~4.5 秒：连续快速翻页会触发淘宝“验证码拦截”风控，
+        // 放慢节奏能显著降低被拦概率。
+        const pacingMs = 2000 + Math.floor(Math.random() * 2500);
+        await new Promise((resolve) => setTimeout(resolve, pacingMs));
       }
-      const expectedListUrl = page === firstPage ? safePaginationUrl(sourceUrl, firstPage) : tab.url;
+      if (page !== firstPage || !listPageMatchesRequest(tab.url, request) || !urlsReferToSamePage(tab.url, expectedListUrl)) {
+        tab = await navigateCurrentTab(chromeRef, tab, expectedListUrl);
+      }
       const listRead = await readPageWithManualVerification(context, tab, extractLeaseListPage, progress, page === firstPage ? "读取租赁列表" : `读取租赁列表第 ${page} 页`, control, { expectedUrl: expectedListUrl, pageKind: "list" });
       tab = listRead.tab;
       const extracted = listRead.value;
@@ -1147,139 +1150,11 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       });
       // 未取得官网按结束时间排序的可靠依据，不能因当前页日期较早就停翻页。
       // 始终执行用户选定的页数上限，逐条按明确的结束日期过滤。
-      if (!pageItems.length) break;
-      // 翻页：点击页面内“下一页”控件。阿里资产租赁列表分页为前端异步加载，
-      // 模拟真实翻页点击比 URL 拼接更可靠。
-      if (page < firstPage + maxPages - 1) {
-        // 翻页前随机等待 2~4.5 秒：连续快速翻页会触发淘宝“验证码拦截”风控，
-        // 放慢节奏能显著降低被拦概率。
-        const pacingMs = 2000 + Math.floor(Math.random() * 2500);
-        await new Promise((resolve) => setTimeout(resolve, pacingMs));
-        const nextClick = await clickLeaseListNextPage(chromeRef, tab);
-        if (!nextClick.found) {
-          progress({
-            phase: "listing",
-            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / maxPages) * 30)),
-            message: `第 ${page} 页后未找到“下一页”控件，列表读取完成（页面记录 ${seen.size} 条）。`,
-            page,
-            pages: page,
-            fetched: seen.size,
-            verified: 0,
-            skipped: prefiltered,
-          });
-          break;
-        }
-        if (!nextClick.clicked) {
-          progress({
-            phase: "listing",
-            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / maxPages) * 30)),
-            message: `第 ${page} 页为最后一页（“下一页”已禁用），列表读取完成（页面记录 ${seen.size} 条）。`,
-            page,
-            pages: page,
-            fetched: seen.size,
-            verified: 0,
-            skipped: prefiltered,
-          });
-          break;
-        }
-        let freshDetected = false;
-        for (let wait = 0; wait < 40; wait += 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          // 点击“下一页”触发整页跳转：导航途中 executeScript 会被 Chrome 拒绝，
-          // 这类瞬时竞态必须继续轮询，不能当作致命错误中断整轮抓取。
-          let reRead = null;
-          try {
-            reRead = await executeCurrentTab(chromeRef, tab.id, extractLeaseListPage);
-          } catch {
-            continue;
-          }
-          const blocked = pageLooksBlocked(reRead);
-          if (/LOGIN_REQUIRED$/.test(blocked) || /VERIFICATION_REQUIRED$/.test(blocked)) {
-            // 快速翻页可能触发淘宝登录/滑块验证墙：进入人工等待流程，
-            // 用户在当前标签页完成后自动继续，而不是把整轮抓取判为失败。
-            const wallTab = await resolveVerificationTab(chromeRef, tab, tab.url);
-            const settled = /LOGIN_REQUIRED$/.test(blocked)
-              ? await waitForManualLogin(context, wallTab || tab, extractLeaseListPage, progress, "列表翻页", control, { expectedUrl: tab.url, pageKind: "list" })
-              : await waitForManualVerification(context, wallTab || tab, extractLeaseListPage, progress, "列表翻页", control, { expectedUrl: tab.url, pageKind: "list" });
-            if (settled?.tab) tab = settled.tab;
-            reRead = settled?.value || null;
-          } else if (blocked) {
-            const wallError = new Error(blocked);
-            wallError.code = blocked;
-            throw wallError;
-          }
-          if (!reRead) continue;
-          const items = Array.isArray(reRead.items) ? reRead.items : [];
-          if (items.some((item) => { const u = canonicalDetailUrl(item.href); return u && !seen.has(u); })) {
-            freshDetected = true;
-            break;
-          }
-        }
-        // 首轮等待未见新条目：先判断点击是否真的让页码前进了——偶发的点击
-        // 丢失会让下一页内容根本没加载，却按“无新条目”收尾。页码没前进就
-        // 重试一次点击并再等 20 秒。
-        if (!freshDetected) {
-          let advanced = false;
-          try {
-            const liveTab = await chromeRef.tabs.get(tab.id);
-            const pageParam = Number(new URL(liveTab.url).searchParams.get("page") || "1");
-            advanced = Number.isFinite(pageParam) && pageParam >= page + 1;
-          } catch {
-            advanced = true; // 无法判断时不去重试，保持原收尾行为
-          }
-          if (!advanced) {
-            const retry = await clickLeaseListNextPage(chromeRef, tab);
-            if (retry.clicked) {
-              for (let wait2 = 0; wait2 < 20 && !freshDetected; wait2 += 1) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                let reRead2 = null;
-                try {
-                  reRead2 = await executeCurrentTab(chromeRef, tab.id, extractLeaseListPage);
-                } catch {
-                  continue;
-                }
-                const blocked2 = pageLooksBlocked(reRead2);
-                if (/LOGIN_REQUIRED$/.test(blocked2) || /VERIFICATION_REQUIRED$/.test(blocked2)) {
-                  const wallTab2 = await resolveVerificationTab(chromeRef, tab, tab.url);
-                  const settled2 = /LOGIN_REQUIRED$/.test(blocked2)
-                    ? await waitForManualLogin(context, wallTab2 || tab, extractLeaseListPage, progress, "列表翻页重试", control, { expectedUrl: tab.url, pageKind: "list" })
-                    : await waitForManualVerification(context, wallTab2 || tab, extractLeaseListPage, progress, "列表翻页重试", control, { expectedUrl: tab.url, pageKind: "list" });
-                  if (settled2?.tab) tab = settled2.tab;
-                  reRead2 = settled2?.value || null;
-                }
-                if (!reRead2) continue;
-                const items2 = Array.isArray(reRead2.items) ? reRead2.items : [];
-                if (items2.some((item) => { const u = canonicalDetailUrl(item.href); return u && !seen.has(u); })) {
-                  freshDetected = true;
-                }
-              }
-            }
-          }
-        }
-        if (freshDetected) {
-          // 点击翻页后 tab.url 已过期（仍是上一页地址），后续读取要用当前真实地址。
-          try {
-            tab = await chromeRef.tabs.get(tab.id);
-          } catch {
-            // 标签页若被替换，下一页读取器会重新解析并给出明确错误。
-          }
-        }
-        advancedToNextPage = freshDetected;
-        if (!freshDetected) {
-          const stopNote = `点击“下一页”后未检测到新条目（含自动重试），列表在第 ${page} 页收尾：页面记录 ${seen.size} 条、预过滤 ${prefiltered} 条。若官网实际还有下一页，多为触发了淘宝安全验证——请到标签页完成滑块验证后重新抓取。`;
-          setMessage(elements.alibabaLeaseResultMessage, stopNote, "ok");
-          progress({
-            phase: "listing",
-            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / maxPages) * 30)),
-            message: stopNote,
-            page,
-            pages: page,
-            fetched: seen.size,
-            verified: 0,
-            skipped: prefiltered,
-          });
-          break;
-        }
+      // 无新增条目或空页即收尾：页内去重后没有新增，说明官网内容已到边界
+      // （或同页内容重复）。原因随结果返回（stopNote），由面板持久显示。
+      if (!pageItems.length || newItems === 0) {
+        listingStopNote = `第 ${page} 页未读取到新增条目，列表在第 ${page} 页收尾：页面记录 ${seen.size} 条、预过滤 ${prefiltered} 条。若官网实际还有下一页，多为触发了淘宝安全验证——请到标签页完成滑块验证后重新抓取。`;
+        break;
       }
     } catch (error) {
       const rawReason = String(error?.message || error);
@@ -1317,6 +1192,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       results: [],
       skipped: prefiltered,
       datePrefiltered,
+      stopNote: listingStopNote,
       security: { credentialsReturned: false },
     };
   }
@@ -1379,7 +1255,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   if (!results.length) {
     const reason = noValidCasesReason(skippedReasons, candidates.length);
     progress({ phase: "completed_empty", percent: 100, fetched: seen.size, verified: 0, skipped, message: reason });
-    return { ok: false, empty: true, phase: "completed_empty", errorCode: "ALIBABA_LEASE_NO_VALID_CASES", reason, ...counts, results: [], security: { credentialsReturned: false } };
+    return { ok: false, empty: true, phase: "completed_empty", errorCode: "ALIBABA_LEASE_NO_VALID_CASES", reason, stopNote: listingStopNote, ...counts, results: [], security: { credentialsReturned: false } };
   }
   if (control) control.percent = 99;
   progress(resultGenerationProgress(results, request, {
@@ -1407,6 +1283,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       ? "本地结果写入完成，抓取已终止。"
       : writeFailed ? String(saved?.reason || "本地结果写入失败，请检查输出目录后重试。")
         : "阿里资产租赁成交案例已完成详情核验。",
+    stopNote: listingStopNote,
     ...counts,
     candidates: candidates.length,
     results: Array.isArray(saved?.results) ? saved.results : results,
@@ -1877,7 +1754,7 @@ export const alibabaLeaseModule = {
         await context.storage.save(storageState());
         renderConfig();
         renderResults();
-        setMessage(elements.alibabaLeaseResultMessage, `抓取完成：列表记录 ${result.listedCount ?? result.candidates ?? 0} 条，详情候选 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。`, "ok");
+        setMessage(elements.alibabaLeaseResultMessage, `抓取完成：列表记录 ${result.listedCount ?? result.candidates ?? 0} 条，详情候选 ${result.candidates || 0} 条，核验通过 ${results.length} 条，跳过 ${result.skipped || 0} 条。${result.stopNote ? " " + result.stopNote : ""}`, "ok");
         await openResultPage();
         context.setStatus(`阿里资产租赁抓取完成：${results.length} 条有效案例`, "ok");
       } catch (error) {
