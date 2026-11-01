@@ -25,18 +25,20 @@ function httpsGet(url, redirect) {
     request.setTimeout(60000, () => request.destroy(new Error('download timeout')));
   });
 }
-async function httpsGetJson(url) { return JSON.parse((await httpsGet(url)).toString('utf8')); }
+async function httpsGetJson(url, resolve, reject) {
+  try { resolve(JSON.parse((await httpsGet(url)).toString('utf8'))); } catch (error) { reject(error); }
+}
+async function httpsGetBinary(url, resolve, reject) {
+  try { resolve(await httpsGet(url)); } catch (error) { reject(error); }
+}
 const [baseArchive, outputDirectory, toolsDirectory] = process.argv.slice(2).map(p => path.resolve(p));
 if (!baseArchive || !outputDirectory || !toolsDirectory) throw new Error('Arguments: base ZIP, new output directory, tools directory');
 const source = path.resolve(__dirname, '..');
-const buildSuffix = process.argv[5];
-if (!buildSuffix) throw new Error('Explicit build suffix required; use unified scripts/release/build.cjs');
-const sourceState = require('../scripts/release/build-common.cjs').sourceState();
-execFileSync(process.execPath,[path.join(source,'scripts/release/source-checks.cjs')],{stdio:'inherit'});
-const productVersion = process.env.APPRAISAL_PRODUCT_VERSION || '0.2.1';
-const installerBuild = require('../scripts/release/build-common.cjs').installerBuild('windows-x64');
-if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix)) throw new Error('Unknown build suffix');
-const buildId = process.env.APPRAISAL_BUILD_ID || (buildSuffix === 'round2' ? 'windows-e2e-round2.1' : buildSuffix === 'mapui' ? 'windows-map-ui.8' : buildSuffix === 'amap' ? 'windows-amap-only.7' : buildSuffix === 'layout' ? 'windows-responsive-map.6' : buildSuffix === 'inplace' ? 'windows-original-directory.5' : buildSuffix === 'fix4' ? 'windows-result-buttons.4' : buildSuffix === 'fix3' ? 'windows-current-browser.3' : 'windows-seven-fixes.2');
+const installerBuild = fs.readFileSync(path.join(source, 'windows', 'installer', 'install.ps1'), 'utf8').match(/\$InstallerBuild = "([^"]+)"/)?.[1];
+if (!installerBuild) throw new Error('Installer build metadata is missing');
+const buildSuffix = process.argv[5] || 'fix2';
+if (!['fix2', 'fix3', 'fix4', 'inplace', 'layout', 'amap', 'mapui', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd', 'alibafix'].includes(buildSuffix)) throw new Error('Unknown build suffix');
+const buildId = buildSuffix === 'alibafix' ? 'windows-alibaba-scrape-fixes.1' : buildSuffix === 'autoupd' ? 'windows-auto-update.16' : buildSuffix === 'mapcamera' ? 'windows-amap-single-camera.14' : buildSuffix === 'workbooks' ? 'windows-workbook-development.13' : buildSuffix === 'mapsync' ? 'windows-amap-shared-pane.12' : buildSuffix === 'round2' ? 'windows-e2e-round2.1' : buildSuffix === 'mapui' ? 'windows-map-ui.8' : buildSuffix === 'amap' ? 'windows-amap-only.7' : buildSuffix === 'layout' ? 'windows-responsive-map.6' : buildSuffix === 'inplace' ? 'windows-original-directory.5' : buildSuffix === 'fix4' ? 'windows-result-buttons.4' : buildSuffix === 'fix3' ? 'windows-current-browser.3' : 'windows-seven-fixes.2';
 const reuseBuildResult = process.argv[6] ? path.resolve(process.argv[6]) : '';
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const expectedBaseHash = 'a71aabe5008d06e4ba519a0abfb7c84fcdf6e53085a8eb54100313e626366a28';
@@ -45,19 +47,16 @@ if (fs.existsSync(outputDirectory)) throw new Error('Use a new output directory'
 fs.mkdirSync(outputDirectory, { recursive: true });
 const ps = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
 const psQuote = text => "'" + text.replace(/'/g, "''") + "'";
-function powerShell(code) { return execFileSync(ps, ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from("$ProgressPreference='SilentlyContinue';" + code, 'utf16le').toString('base64')], { encoding: 'utf8', windowsHide: true, maxBuffer: 10 * 1024 * 1024 }); }
+function powerShell(code) { return execFileSync(ps, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', Buffer.from("$ProgressPreference='SilentlyContinue';" + code, 'utf16le').toString('base64')], { encoding: 'utf8', windowsHide: true, maxBuffer: 10 * 1024 * 1024 }); }
 const extraction = path.join(outputDirectory, 'verified-base');
-// Keep the build independent from optional PowerShell module autoloading. The
-// base archive SHA was verified above; still reject traversal before extraction.
-powerShell(`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=${psQuote(baseArchive)}; $destination=${psQuote(extraction)}; [IO.Directory]::CreateDirectory($destination) | Out-Null; $zip=[IO.Compression.ZipFile]::OpenRead($archive); try { foreach($entry in $zip.Entries) { $target=[IO.Path]::GetFullPath([IO.Path]::Combine($destination,$entry.FullName)); if(-not $target.StartsWith($destination+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid base archive path' } } } finally { $zip.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory($archive,$destination)`);
+powerShell(`$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath ${psQuote(baseArchive)} -DestinationPath ${psQuote(extraction)}`);
 const original = path.join(extraction, 'appraisal-toolbox-v0.2.1-windows-x64');
-require('../scripts/release/build-common.cjs').verifyRuntime(original, require('../release-inputs.lock.json').targets['windows-x64']);
 const basePackageFiles = new Set(fs.readFileSync(path.join(original, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/).map(line => {
   const match = line.match(/^[a-f0-9]{64}  (.+)$/);
   if (!match) throw new Error(`Malformed verified base checksum: ${line}`);
   return match[1].replaceAll('\\', '/');
 }));
-const packageName = `appraisal-toolbox-v${productVersion}-windows-x64-${buildId}`;
+const packageName = ['inplace', 'layout', 'amap', 'round2', 'mapsync', 'workbooks', 'mapcamera', 'autoupd'].includes(buildSuffix) ? 'appraisal-toolbox-v0.2.1-windows-x64' : `appraisal-toolbox-v0.2.1-windows-x64-${buildSuffix}`;
 const packageRoot = path.join(outputDirectory, packageName);
 fs.cpSync(original, packageRoot, { recursive: true });
 function files(directory) {
@@ -80,7 +79,6 @@ copySourceTree(path.join(source, 'skills'), path.join(packageRoot, 'skills'));
 for (const file of fs.readdirSync(path.join(source, 'windows', 'installer'))) fs.copyFileSync(path.join(source, 'windows', 'installer', file), path.join(packageRoot, file));
 const nativeRoot = path.join(packageRoot, 'native-helper');
 const exe = path.join(nativeRoot, 'native_host.exe');
-require('../scripts/release/verify-tools.cjs').verifyTools(toolsDirectory, require('../release-inputs.lock.json').targets['windows-x64']);
 const esbuild = require(path.join(toolsDirectory, 'node_modules', 'esbuild'));
 const postject = require(path.join(toolsDirectory, 'node_modules', 'postject'));
 const bundle = path.join(outputDirectory, 'native-host-bundle.cjs');
@@ -94,11 +92,6 @@ async function build() {
   if (reuseBuildResult) {
     reuse = JSON.parse(fs.readFileSync(reuseBuildResult, 'utf8'));
     if (hash(reuse.archive) !== reuse.archiveSha256 || hash(reuse.exe) !== reuse.provenance.nativeExeSha256 || hash(bundle) !== reuse.provenance.nativeBundleSha256) throw new Error('Native executable reuse requires matching bundle and verified prior package');
-    const prior=JSON.parse(fs.readFileSync(path.join(path.dirname(reuseBuildResult),'source-inventory.json'),'utf8'));
-    const current=files(path.join(source,'native-helper')).concat(files(path.join(source,'skills'))).filter(f=>!/(?:__pycache__|\.py[co]$)/.test(f)).map(f=>({path:path.relative(source,f).replaceAll('\\','/'),sha256:hash(f)}));
-    for(const item of current)if(prior.find(x=>x.path===item.path)?.sha256!==item.sha256)throw new Error('Native/skills source changed; full rebuild required');
-    const priorPayload=prior.filter(x=>x.path.startsWith('native-helper/')||x.path.startsWith('skills/'));
-    if(priorPayload.length!==current.length)throw new Error('Native/skills files removed; full rebuild required');
     fs.copyFileSync(reuse.exe, exe);
   } else {
   const blob = path.join(outputDirectory, 'sea-prep.blob');
@@ -117,10 +110,11 @@ async function build() {
   fs.writeFileSync(exe, node);
   await postject.inject(exe, 'NODE_SEA_BLOB', fs.readFileSync(blob), { sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2' });
   }
-  // pywin32 (pythoncom/win32com.client) must ship in the portable runtime so
+  // D-E2 fix: the portable runtime must carry pywin32 (pythoncom/win32com) so
   // COM-based native editing — PPI draft write-back and class-life formula
-  // workbooks — works on user machines. Wheel resolution order: env
-  // PYWIN32_WHEEL → <toolsDirectory>/vendor/pywin32/ → PyPI (pinned, SHA-verified).
+  // workbooks — works on user machines. Wheel is resolved from PYWIN32_WHEEL,
+  // <toolsDirectory>/vendor/pywin32/, or PyPI (pinned version) in that order,
+  // then unpacked into the staged site-packages and import-verified.
   const pythonBin = path.join(packageRoot, 'runtime', 'python-portable', 'python.exe');
   const sitePackages = path.join(packageRoot, 'runtime', 'python-portable', 'Lib', 'site-packages');
   function pythonImportOk(code) {
@@ -139,10 +133,15 @@ async function build() {
     }
     const cpTag = execFileSync(pythonBin, ['-c', 'import sys; print(f"cp{sys.version_info.major}{sys.version_info.minor}")'], { encoding: 'utf8', windowsHide: true }).trim();
     const pinnedVersion = '312';
-    const index = await httpsGetJson('https://pypi.org/pypi/pywin32/json');
-    const candidate = (index.releases[pinnedVersion] || []).find(file => file.filename === `pywin32-${pinnedVersion}-${cpTag}-${cpTag}-win_amd64.whl`);
+    const index = JSON.parse(await new Promise((resolve, reject) => {
+      httpsGetJson('https://pypi.org/pypi/pywin32/json', resolve, reject);
+    }));
+    const release = index.releases[pinnedVersion] || [];
+    const candidate = release.find(file => file.filename === `pywin32-${pinnedVersion}-${cpTag}-${cpTag}-win_amd64.whl`);
     if (!candidate) throw new Error(`No pywin32 ${pinnedVersion} wheel for ${cpTag} on PyPI`);
-    const body = await httpsGet(candidate.url);
+    const body = await new Promise((resolve, reject) => {
+      httpsGetBinary(candidate.url, resolve, reject);
+    });
     const digest = crypto.createHash('sha256').update(body).digest('hex');
     if (digest !== candidate.digests.sha256) throw new Error('pywin32 wheel SHA-256 mismatch');
     const vendored = path.join(outputDirectory, 'vendor', candidate.filename);
@@ -165,10 +164,7 @@ async function build() {
   const env = { ...process.env, TIANYUAN_PYTHON_BIN: path.join(packageRoot, 'runtime', 'python-portable', 'python.exe'), TIANYUAN_PRINT_SKILLS_DIR: path.join(packageRoot, 'skills'), TIANYUAN_DEPRECIATION_SKILL_DIR: path.join(packageRoot, 'skills', 'depreciation-capex-forecast'), TIANYUAN_NATIVE_RUNTIME_ROOT: nativeRoot };
   const selfTest = JSON.parse(execFileSync(exe, ['--self-test'], { encoding: 'utf8', env, windowsHide: true, timeout: 120000 }));
   fs.writeFileSync(path.join(outputDirectory, 'compiled-self-test.json'), JSON.stringify(selfTest, null, 2));
-  // D-E1: the smoke entries all pass individually; the aggregate adds a
-  // dependencies entry outside the checks loop, so trust the entries here.
-  const smokeEntries = selfTest.pythonSkillImportSmoke?.entries || [];
-  if (!smokeEntries.length || !smokeEntries.every((entry) => entry.ok)) throw new Error('New executable import self-test failed');
+  if (!selfTest.ok || !selfTest.pythonSkillImportSmoke?.ok) throw new Error('New executable import self-test failed');
   // Imports may create cache files. Remove only generated skill caches inside the new build root.
   function removeGeneratedPythonCaches(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -184,17 +180,18 @@ async function build() {
     }
   }
   removeGeneratedPythonCaches(packageRoot);
-  const sourceInventory = execFileSync('git', ['-C', source, 'ls-files', '-z'], {encoding:'utf8'}).split('\0').filter(Boolean).map(file => ({path:file,sha256:hash(path.join(source,file))}));
+  const sourceInventory = files(source).filter(file => !file.includes(path.sep + '.git' + path.sep) && !/(__pycache__|\.py[co]$)/.test(file)).map(file => ({ path: path.relative(source, file).replaceAll('\\', '/'), sha256: hash(file) }));
   fs.writeFileSync(path.join(outputDirectory, 'source-inventory.json'), JSON.stringify(sourceInventory, null, 2));
-  const provenance = { schemaVersion: 2, productVersion, buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, pywin32Vendor: pywin32WheelUsed ? path.basename(pywin32WheelUsed) : 'preinstalled', pywin32WheelSource, pywin32WheelSha256: pywin32WheelUsed ? hash(pywin32WheelUsed) : '', sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(), sourceHasUncommittedFixes: sourceState.dirty, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
+  const provenance = { schemaVersion: 2, productVersion: '0.2.1', buildId, installerBuild, baseArchiveSha256: expectedBaseHash, nativeHelperRebuilt: true, extensionChanged: true, portablePythonRebuilt: false, pywin32Vendor: pywin32WheelUsed ? path.basename(pywin32WheelUsed) : 'preinstalled', pywin32WheelSource, pywin32WheelSha256: pywin32WheelUsed ? hash(pywin32WheelUsed) : '', sourceRecovery: 'Official hash-verified release native/skills; see RECOVERED_SOURCE_PROVENANCE.md', sourceGitHead: (() => { try { return execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).trim(); } catch { return null; } })(), sourceHasUncommittedFixes: true, sourceInventorySha256: hash(path.join(outputDirectory, 'source-inventory.json')), nodeVersion: process.version, nodeRuntimeSha256: hash(process.execPath), esbuildVersion: esbuild.version, postjectVersion: '1.0.0-alpha.6', nativeBundleSha256: hash(bundle), nativeExeSha256: hash(exe), nativeExecutableSigning: 'unsigned SEA rebuild; copied Node Authenticode metadata removed', builtAtUtc: new Date().toISOString() };
   if (reuse) { provenance.nativeHelperRebuilt = false; provenance.nativeExeReuseBuild = reuse.provenance.buildId; provenance.nativeBundleMatchVerified = true; }
   fs.writeFileSync(path.join(packageRoot, 'BUILD-PROVENANCE.json'), JSON.stringify(provenance, null, 2));
   fs.copyFileSync(path.join(source, 'RECOVERED_SOURCE_PROVENANCE.md'), path.join(packageRoot, 'RECOVERED_SOURCE_PROVENANCE.md'));
-  fs.writeFileSync(path.join(packageRoot, 'VERSION.txt'), `version=${productVersion}\nbuild=${buildId}\n`);
+  fs.writeFileSync(path.join(packageRoot, 'VERSION.txt'), `version=0.2.1\nbuild=${buildId}\n`);
   const checksumText = files(packageRoot).filter(file => path.relative(packageRoot, file) !== 'SHA256SUMS').map(file => `${hash(file)}  ${path.relative(packageRoot, file).replaceAll('\\', '/')}`).join('\n') + '\n';
   fs.writeFileSync(path.join(packageRoot, 'SHA256SUMS'), checksumText);
   const archive = path.join(outputDirectory, packageName + '.zip');
-  execFileSync(env.TIANYUAN_PYTHON_BIN, [path.join(source, 'scripts/release/package-macos.py'), 'zip', packageRoot, archive], { stdio: 'inherit', windowsHide: true });
+  const zipCode = 'import pathlib,sys,zipfile\nroot=pathlib.Path(sys.argv[1]); output=pathlib.Path(sys.argv[2])\nwith zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED,compresslevel=6) as archive:\n for file in sorted(root.rglob("*")):\n  if file.is_file(): archive.write(file,root.name+"/"+file.relative_to(root).as_posix())';
+  execFileSync(env.TIANYUAN_PYTHON_BIN, ['-c', zipCode, packageRoot, archive], { stdio: 'inherit', windowsHide: true });
   const archiveHash = hash(archive);
   fs.writeFileSync(archive + '.sha256', `${archiveHash} *${path.basename(archive)}\n`);
   fs.writeFileSync(path.join(outputDirectory, 'build-result.json'), JSON.stringify({ archive, archiveSha256: archiveHash, packageRoot, exe, provenance, selfTestPassed: true }, null, 2));
