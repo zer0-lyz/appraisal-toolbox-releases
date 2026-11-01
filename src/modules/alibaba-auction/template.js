@@ -38,6 +38,13 @@ export const alibabaAuctionTemplate = `
       <label class="alibaba-auction-date-field"><span>成交时间起</span><input id="alibabaAuctionStartDate" type="date" aria-label="成交时间起"></label>
       <label class="alibaba-auction-date-field"><span>成交时间止</span><input id="alibabaAuctionEndDate" type="date" aria-label="成交时间止"></label>
     </div>
+    <label class="alibaba-auction-mode-callout">
+      <span class="alibaba-auction-mode-callout-head">
+        <input id="alibabaAuctionBidOnly" type="checkbox" checked>
+        <span class="alibaba-auction-mode-callout-title">出价优先模式（推荐）</span>
+      </span>
+      <span id="alibabaAuctionBidOnlyText" class="alibaba-auction-mode-callout-text">已开启：跳过 0 次出价的流拍条目，仅逐条核验有出价记录的标的；取消勾选则逐条核验全部列表。</span>
+    </label>
     <label class="alibaba-auction-source-row"><span>检索网址</span><input id="alibabaAuctionSourceUrl" type="text" readonly></label>
     <div class="button-row alibaba-auction-parameter-actions">
       <button id="resetAlibabaAuctionParams" type="button" class="secondary">恢复默认</button>

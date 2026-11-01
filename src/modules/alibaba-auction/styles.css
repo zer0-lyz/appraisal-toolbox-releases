@@ -200,3 +200,37 @@
     grid-template-columns: 1fr;
   }
 }
+
+[data-module-id="alibaba-auction"] .alibaba-auction-mode-callout {
+  display: grid;
+  gap: 4px;
+  margin: 2px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  cursor: pointer;
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-mode-callout-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-mode-callout-head input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+[data-module-id="alibaba-auction"] .alibaba-auction-mode-callout-text {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}

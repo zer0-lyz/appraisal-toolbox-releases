@@ -31,11 +31,13 @@ export const alibabaLeaseTemplate = `
         <option value="all">全部状态</option>
       </select></label>
       <label><span>抓取页数</span><select id="alibabaLeaseMaxPages" aria-label="抓取页数">
-        <option value="1">当前 1 页</option>
+        <option value="1">1 页</option>
         <option value="2">2 页</option>
         <option value="3">3 页</option>
-        <option value="4">4 页</option>
         <option value="5">5 页</option>
+        <option value="10">10 页</option>
+        <option value="20">20 页</option>
+        <option value="50">最多 50 页（全量）</option>
       </select></label>
       <label class="alibaba-lease-keyword-field"><span>关键词（可选）</span><input id="alibabaLeaseKeyword" type="text" maxlength="100" placeholder="按标题或小区名过滤"></label>
       <label class="alibaba-lease-date-field"><span>结束时间起</span><input id="alibabaLeaseStartDate" type="date" aria-label="结束时间起"></label>
