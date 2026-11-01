@@ -1,4 +1,4 @@
-import { userErrorMessage, nativeResponseError, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
+﻿import { userErrorMessage, nativeResponseError, showUserErrorDiagnostics, localizeHistoryLabel } from "../../core/user-errors.js";
 import { alibabaAuctionTemplate } from "./template.js";
 import { openHtmlResultInCurrentBrowser } from "../../core/browser-results.js";
 import {
@@ -412,6 +412,7 @@ const DEFAULT_CONFIG = {
   endDate: "",
   outputDirectory: "",
   generateMap: true,
+  bidOnly: true,
   historyDirectory: "",
   historyPath: "",
   historyRefresh: true,
@@ -419,7 +420,7 @@ const DEFAULT_CONFIG = {
 
 const ALIBABA_PARAMETER_SNAPSHOT_FIELDS = [
   "province", "provinceCode", "city", "cityCode", "district", "districtCode",
-  "propertyType", "status", "entry", "keyword", "startDate", "endDate", "outputDirectory", "generateMap",
+  "propertyType", "status", "entry", "keyword", "startDate", "endDate", "outputDirectory", "generateMap", "bidOnly",
 ];
 
 function parameterSnapshotMatches(config, snapshot) {
@@ -442,7 +443,7 @@ function elementMap(documentRef) {
     "alibabaAuctionStatus", "alibabaAuctionKeyword", "alibabaAuctionStartDate",
     "alibabaAuctionEndDate", "alibabaAuctionSourceUrl", "openAlibabaAuctionSource", "runAlibabaAuction",
     "saveAlibabaAuctionParams", "resetAlibabaAuctionParams", "alibabaAuctionParameterState", "alibabaAuctionParameterMessage",
-    "alibabaAuctionOutputDirectory", "chooseAlibabaAuctionOutput", "alibabaAuctionGenerateMap",
+    "alibabaAuctionOutputDirectory", "chooseAlibabaAuctionOutput", "alibabaAuctionGenerateMap", "alibabaAuctionBidOnly", "alibabaAuctionBidOnlyText",
     "alibabaAuctionHistoryDirectory", "chooseAlibabaAuctionHistoryDirectory", "loadAlibabaAuctionHistoryCatalog", "alibabaAuctionHistorySelect", "loadAlibabaAuctionHistory", "alibabaAuctionRefreshHistory", "alibabaAuctionHistoryStatus", "runAlibabaAuctionHistory",
     "alibabaAuctionResultCount", "alibabaAuctionResultStatus", "openAlibabaAuctionResult", "exportAlibabaAuctionExcel", "openAlibabaAuctionExcel", "openAlibabaAuctionMap", "pauseAlibabaAuction", "stopAlibabaAuction",
     "clearAlibabaAuctionResults", "alibabaAuctionResultMessage", "alibabaAuctionProgressPhase",
@@ -503,6 +504,9 @@ function normalizeConfig(value = {}) {
     endDate: String(source.endDate || "").trim(),
     outputDirectory: String(source.outputDirectory || "").trim(),
     generateMap: source.generateMap !== false,
+    // 抓取模式（出价优先勾选框）：true＝先读列表仅核验有出价条目；false＝逐条
+    // 核验全部列表。兼容 storage 布尔与下拉框遗留的 "bid_only"/"all" 字符串。
+    bidOnly: source.bidOnly === false || source.bidOnly === "all" ? false : true,
     historyDirectory: String(source.historyDirectory || "").trim(),
     historyPath: String(source.historyPath || "").trim(),
     historyRefresh: source.historyRefresh !== false,
@@ -562,9 +566,40 @@ function propertyTypeLabel(value) {
   }[value] || value || "";
 }
 
-// 用户在阿里页面完成筛选后，插件只读取当前已经加载的这一页，不擅自继续翻页。
-const MAX_DIRECT_PAGES = 1;
+// 用户在阿里页面完成筛选后，插件按页数上限逐页读取；上限 50 页与 native 侧
+// SAFE_MAX_PAGES 对齐。循环内置"整页无新条目即停止"，超出官网实际页数时自然
+// 结束，不会空转。
+const MAX_DIRECT_PAGES = 50;
 const MANUAL_VERIFICATION_TIMEOUT_MS = 5 * 60 * 1000;
+
+// 翻页 URL 安全校验：仅允许 http/https，host 必须与来源一致，拒绝
+// localhost/环回/私网/保留地址，防止页码参数被用于构造越站跳转。
+function isPublicHttpHostname(hostname) {
+  const host = String(hostname || "").toLowerCase().replace(/\.$/, "");
+  if (!host) return false;
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) return false;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+    const parts = host.split(".").map(Number);
+    if (parts[0] === 0 || parts[0] === 10 || parts[0] === 127) return false;
+    if (parts[0] === 169 && parts[1] === 254) return false;
+    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return false;
+    if (parts[0] === 192 && parts[1] === 168) return false;
+    if (parts[0] >= 224) return false;
+  }
+  if (host === "[::1]" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80")) return false;
+  return host.includes(".");
+}
+
+function safePaginationUrl(sourceUrl, page) {
+  const base = new URL(String(sourceUrl || ""));
+  if (base.protocol !== "http:" && base.protocol !== "https:") throw new Error("ALIBABA_URL_PROTOCOL_INVALID");
+  if (!isPublicHttpHostname(base.hostname)) throw new Error("ALIBABA_URL_HOST_INVALID");
+  const url = new URL(base.href);
+  if (page <= 1) url.searchParams.delete("page");
+  else url.searchParams.set("page", String(Math.max(1, Number(page) || 1)));
+  if (url.protocol !== base.protocol || url.hostname !== base.hostname) throw new Error("ALIBABA_URL_HOST_INVALID");
+  return url.href;
+}
 
 async function waitForRunResume(control, emit) {
   if (control?.stopped) throw new Error("ALIBABA_SCRAPE_STOPPED");
@@ -576,6 +611,80 @@ async function waitForRunResume(control, emit) {
   });
   await new Promise((resolve) => control.resumeResolvers.push(resolve));
   if (control?.stopped) throw new Error("ALIBABA_SCRAPE_STOPPED");
+}
+
+// 在列表页内查找并点击“下一页”控件。两种实测形态（2026-10 实机 DOM）：
+// - sf.taobao.com 列表：.J_Pagination 容器里的 <a class="next">（箭头“›”，无
+//   “下一页”字样），末页渲染为 <span class="next unavailable">；
+// - zc-paimai 阿里资产搜索（Rax）：pc-pagination 容器里文本为“>”的 div。
+// 另兼容阿里 Fusion(.next-next)、ant-design 与 title/aria/纯文本“下一页”。
+function clickAlibabaListNextPage(chromeRef, tab) {
+  return executeCurrentTab(chromeRef, tab.id, () => {
+    const isVisible = (element) => {
+      if (!element) return false;
+      for (let current = element; current; current = current.parentElement) {
+        if (current.hasAttribute?.("hidden") || current.getAttribute?.("aria-hidden") === "true") return false;
+        const style = window.getComputedStyle(current);
+        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") return false;
+      }
+      const rect = element.getBoundingClientRect?.();
+      return rect ? rect.width > 0 && rect.height > 0 : element.getClientRects?.().length > 0;
+    };
+    const isDisabled = (element) => element.disabled === true
+      || element.getAttribute?.("aria-disabled") === "true"
+      || element.classList?.contains("next-disabled")
+      || element.classList?.contains("disabled")
+      || element.classList?.contains("unavailable")
+      || element.classList?.contains("ant-pagination-disabled");
+    const debug = [];
+    let target = null;
+    // 阿里资产搜索（zc-paimai，Rax 渲染）：“下一页”是分页容器里文本为“>”的
+    // div，类名带构建哈希、无“next”语义，只能按容器前缀 + 文本定位。
+    const pcPagination = document.querySelector('[class*="pc-pagination--container"]');
+    if (pcPagination) {
+      for (const el of pcPagination.children) {
+        if ((el.textContent || "").trim() !== ">") continue;
+        const disabled = isDisabled(el);
+        debug.push({ via: "pc-pagination>", tag: el.tagName, cls: String(el.className).slice(0, 60), disabled });
+        if (!disabled && !target) target = el;
+      }
+    }
+    const selectors = [
+      ".J_Pagination .next",
+      ".pagination .next",
+      ".next-pagination .next-next",
+      ".next-btn.next-next",
+      ".next-next",
+      "li.ant-pagination-next",
+      'a[title="下一页"]',
+      'button[title="下一页"]',
+      '[aria-label="下一页"]',
+      '[data-page="next"]',
+    ];
+    for (const selector of selectors) {
+      let nodes = [];
+      try { nodes = [...document.querySelectorAll(selector)]; } catch { continue; }
+      for (const el of nodes) {
+        if (!isVisible(el)) continue;
+        const disabled = isDisabled(el);
+        debug.push({ via: selector, tag: el.tagName, cls: String(el.className).slice(0, 60), disabled });
+        if (!disabled && !target) target = el;
+      }
+    }
+    if (!target) {
+      for (const el of document.querySelectorAll("a, button, li, span")) {
+        const text = (el.textContent || "").trim();
+        if (!/^下一页/.test(text) || text.length > 8 || !isVisible(el)) continue;
+        const disabled = isDisabled(el);
+        debug.push({ via: "text", tag: el.tagName, cls: String(el.className).slice(0, 60), disabled });
+        if (!disabled && !target) target = el;
+      }
+    }
+    if (!target) return { found: false, clicked: false, debug: debug.slice(0, 10) };
+    if (isDisabled(target)) return { found: true, clicked: false, lastPage: true, debug: debug.slice(0, 10) };
+    target.click();
+    return { found: true, clicked: true, debug: debug.slice(0, 10) };
+  }, []);
 }
 
 function extractAlibabaListPage() {
@@ -623,11 +732,35 @@ function extractAlibabaListPage() {
   const totalMatch = body.match(/共找到\s*([\d,]+)\s*条/);
   const verificationRequired = [...document.querySelectorAll('[class*="captcha"],[id*="captcha"],[class*="nc-container"],[id*="nc-container"],[class*="nc_wrapper"],[id*="nc_wrapper"],[class*="JDJRV"],[id*="JDJRV"],[class*="geetest"],[id*="geetest"],[class*="slider-verify"],[id*="slider-verify"]')].some(isVisible)
     || /验证码|滑块|安全验证|访问验证|人机验证|请完成.{0,8}验证/.test(body);
+  // 分页诊断：捕获页面内所有疑似“下一页”控件与分页容器，供翻页失败时定位真实 DOM 结构。
+  const paginationDebug = (() => {
+    const out = [];
+    const seenCls = new Set();
+    for (const el of document.querySelectorAll("a, button, li, span, div, em, i")) {
+      const text = clean(el.textContent || el.innerText || "");
+      if (!text || text.length > 10) continue;
+      if (!/下一页|^>$|^›$|^>$/.test(text) && !/next/i.test(String(el.className))) continue;
+      if (!isVisible(el)) continue;
+      const key = `${el.tagName}|${String(el.className).slice(0, 60)}`;
+      if (seenCls.has(key)) continue;
+      seenCls.add(key);
+      out.push({
+        tag: el.tagName,
+        cls: String(el.className).slice(0, 80),
+        text: text.slice(0, 10),
+        disabled: el.disabled === true || el.getAttribute?.("aria-disabled") === "true",
+        href: el.tagName === "A" ? String(el.href || "").slice(0, 120) : "",
+      });
+      if (out.length >= 8) break;
+    }
+    return out;
+  })();
   return {
     url: location.href,
     title: document.title,
     total: totalMatch ? totalMatch[1] : "",
     items,
+    paginationDebug,
     pageText: clean(body.slice(0, 1200)),
     loginFormPresent,
     verificationRequired,
@@ -2139,7 +2272,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   const currentListMatchesRequest = listPageMatchesRequest(tab.url, request);
   const zcEntry = request.entry === "zc";
   const listExtractor = zcEntry ? extractZcAuctionListPage : extractAlibabaListPage;
-  let listSourceUrl = currentListMatchesRequest ? tab.url : directListPageUrl(request.sourceUrl, 1);
+  let listSourceUrl = currentListMatchesRequest ? tab.url : safePaginationUrl(directListPageUrl(request.sourceUrl, 1), 1);
   let firstPage = 1;
   try {
     const currentPage = Number(new URL(listSourceUrl).searchParams.get("page"));
@@ -2150,18 +2283,23 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
   const candidates = [];
   const seen = new Set();
   let prefiltered = 0;
+  let advancedToNextPage = true;
   const progress = (payload) => emit({ security: { credentialsReturned: false }, ...payload });
-  progress({ phase: "opening", percent: 2, message: isAlibabaListPage(tab.url) ? (zcEntry ? "正在读取当前阿里资产出售筛选结果…" : "正在读取当前阿里拍卖筛选结果…") : (zcEntry ? "正在当前浏览器打开阿里资产搜索列表页…" : "正在当前浏览器打开阿里拍卖列表页…"), fetched: 0, verified: 0, skipped: 0 });
+  progress({ phase: "opening", percent: 2, message: `${isAlibabaListPage(tab.url) ? (zcEntry ? "正在读取当前阿里资产出售筛选结果…" : "正在读取当前阿里拍卖筛选结果…") : (zcEntry ? "正在当前浏览器打开阿里资产搜索列表页…" : "正在当前浏览器打开阿里拍卖列表页…")}${request.bidOnly !== false ? "〔抓取模式：先读列表·仅核验有出价条目〕" : "〔抓取模式：逐条核验全部列表〕"}`, fetched: 0, verified: 0, skipped: 0 });
 
   for (let page = firstPage; page < firstPage + MAX_DIRECT_PAGES && !historyCandidates.length; page += 1) {
     try {
       await waitForRunResume(control, progress);
       if (control) control.percent = Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30));
-      if (page !== firstPage || !listPageMatchesRequest(tab.url, request)) {
-        tab = await navigateCurrentTab(chromeRef, tab, directListPageUrl(listSourceUrl, page));
+      if (page === firstPage) {
+        if (!listPageMatchesRequest(tab.url, request)) {
+          tab = await navigateCurrentTab(chromeRef, tab, safePaginationUrl(listSourceUrl, firstPage));
+        }
+      } else if (!advancedToNextPage) {
+        break;
       }
-      const expectedListUrl = directListPageUrl(listSourceUrl, page);
-      let listRead = await readAlibabaPageWithManualVerification(context, tab, listExtractor, progress, "读取列表", control, { expectedUrl: expectedListUrl, pageKind: "list" });
+      const expectedListUrl = page === firstPage ? safePaginationUrl(listSourceUrl, firstPage) : tab.url;
+      let listRead = await readAlibabaPageWithManualVerification(context, tab, listExtractor, progress, page === firstPage ? "读取列表" : `读取列表第 ${page} 页`, control, { expectedUrl: expectedListUrl, pageKind: "list" });
       tab = listRead.tab;
       let extracted = listRead.value;
       let blocked = directPageLooksBlocked(extracted);
@@ -2196,6 +2334,13 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         if (!url || seen.has(url)) continue;
         seen.add(url);
         newItems += 1;
+        // 用户可选“仅抓取有出价记录的条目”（bidOnly，默认开启）：列表卡片
+        // 0 次出价必为流拍，详情核验阶段也会以“未识别出价次数或明确成交价”
+        // 跳过；在列表层预过滤只省去无效详情访问，不改变最终结果集合。
+        if (request.bidOnly !== false && !(Number(item.listedBidCount) > 0)) {
+          prefiltered += 1;
+          continue;
+        }
         if (!directCandidateInScope(item, request)) {
           prefiltered += 1;
           continue;
@@ -2212,7 +2357,7 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
       progress({
         phase: "listing",
         percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
-        message: `已读取当前筛选结果第 ${page} 页，共发现 ${candidates.length} 条页面记录，准备详情核验…`,
+        message: `已读取当前筛选结果第 ${page} 页，共发现 ${candidates.length} 条页面记录${request.bidOnly !== false ? `（已按出价记录预过滤 ${prefiltered} 条流拍条目）` : ""}，准备详情核验…`,
         page,
         pages: MAX_DIRECT_PAGES,
         fetched: candidates.length,
@@ -2232,11 +2377,162 @@ async function runCurrentTabScrape(context, request, emit = () => {}, control = 
         });
         break;
       }
-      if (!pageItems.length || newItems === 0) break;
+      if (!pageItems.length) {
+        setMessage(elements.alibabaAuctionResultMessage, `第 ${page} 页未读取到任何条目，列表收尾（页面记录 ${candidates.length} 条）。若该页在官网仍有内容，多为触发了淘宝安全验证，请完成滑块验证后重新抓取。`, "ok");
+        break;
+      }
+      // 翻页：点击页面内“下一页”控件（sf 列表页为 <a class="next">，zc 搜索页
+      // 为 pc-pagination 里的“>”div），点击触发跳转后等待新条目出现再继续。
+      if (page < firstPage + MAX_DIRECT_PAGES - 1) {
+        // 翻页前随机等待 2~4.5 秒：连续快速翻页会触发淘宝“验证码拦截”风控
+        // （实测第 3 页即命中，页面 0 条标的），放慢节奏能显著降低被拦概率。
+        const pacingMs = 2000 + Math.floor(Math.random() * 2500);
+        await new Promise((resolve) => setTimeout(resolve, pacingMs));
+        const nextClick = await clickAlibabaListNextPage(chromeRef, tab);
+        if (!nextClick.found) {
+          const dbg = (Array.isArray(extracted.paginationDebug) ? extracted.paginationDebug : [])
+            .map((d) => [d.tag, d.cls, d.text, d.disabled ? "disabled" : ""].filter(Boolean).join("#")).join(" | ").slice(0, 400);
+          const diagnostic = `列表翻页在第 ${page} 页后停止：未找到“下一页”控件。分页控件诊断（标签#类名#文字#状态）：${dbg || "页面上未捕获到任何疑似分页元素"}`;
+          // 诊断写入持久消息：详情核验阶段不会覆盖，便于用户截图反馈。
+          setMessage(elements.alibabaAuctionResultMessage, diagnostic, "error");
+          progress({
+            phase: "listing",
+            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
+            message: diagnostic,
+            page,
+            pages: page,
+            fetched: candidates.length,
+            verified: 0,
+            skipped: prefiltered,
+          });
+          break;
+        }
+        if (!nextClick.clicked) {
+          setMessage(elements.alibabaAuctionResultMessage, `列表翻页在第 ${page} 页后停止：“下一页”控件已禁用，官网列表已全部读取（页面记录 ${candidates.length} 条）。`, "ok");
+          progress({
+            phase: "listing",
+            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
+            message: `第 ${page} 页为最后一页（“下一页”已禁用），列表读取完成（页面记录 ${candidates.length} 条）。`,
+            page,
+            pages: page,
+            fetched: candidates.length,
+            verified: 0,
+            skipped: prefiltered,
+          });
+          break;
+        }
+        let freshDetected = false;
+        for (let wait = 0; wait < 40; wait += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // 点击“下一页”触发整页跳转：导航途中 executeScript 会被 Chrome 拒绝，
+          // 这类瞬时竞态必须继续轮询，不能当作致命错误中断整轮抓取。
+          let reRead = null;
+          try {
+            reRead = await executeCurrentTab(chromeRef, tab.id, listExtractor);
+          } catch {
+            continue;
+          }
+          const blocked = directPageLooksBlocked(reRead);
+          if (blocked === "ALIBABA_LOGIN_REQUIRED" || blocked === "ALIBABA_VERIFICATION_REQUIRED") {
+            // 快速翻页可能触发淘宝登录/滑块验证墙：进入人工等待流程，
+            // 用户在当前标签页完成后自动继续，而不是把整轮抓取判为失败。
+            const wallTab = await resolveVerificationTab(chromeRef, tab, tab.url);
+            const settled = blocked === "ALIBABA_LOGIN_REQUIRED"
+              ? await waitForManualLogin(context, wallTab || tab, listExtractor, progress, "列表翻页", control, { expectedUrl: tab.url, pageKind: "list" })
+              : await waitForManualVerification(context, wallTab || tab, listExtractor, progress, "列表翻页", control, { expectedUrl: tab.url, pageKind: "list" });
+            if (settled?.tab) tab = settled.tab;
+            reRead = settled?.value || null;
+          } else if (blocked) {
+            const wallError = new Error(blocked);
+            wallError.code = blocked;
+            throw wallError;
+          }
+          if (!reRead) continue;
+          const items = Array.isArray(reRead.items) ? reRead.items : [];
+          if (items.some((item) => { const u = directCanonicalUrl(item.href); return u && !seen.has(u); })) {
+            freshDetected = true;
+            break;
+          }
+        }
+        // 首轮等待未见新条目：先判断点击是否真的让页码前进了——偶发的点击
+        // 丢失会让下一页内容根本没加载，却按“无新条目”收尾（曾把 32 页的
+        // 列表误停在 8 页）。页码没前进就重试一次点击并再等 20 秒。
+        if (!freshDetected) {
+          let advanced = false;
+          try {
+            const liveTab = await chromeRef.tabs.get(tab.id);
+            const pageParam = Number(new URL(liveTab.url).searchParams.get("page") || "1");
+            advanced = Number.isFinite(pageParam) && pageParam >= page + 1;
+          } catch {
+            advanced = true; // 无法判断时不去重试，保持原收尾行为
+          }
+          if (!advanced) {
+            const retry = await clickAlibabaListNextPage(chromeRef, tab);
+            if (retry.clicked) {
+              for (let wait2 = 0; wait2 < 20 && !freshDetected; wait2 += 1) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                let reRead2 = null;
+                try {
+                  reRead2 = await executeCurrentTab(chromeRef, tab.id, listExtractor);
+                } catch {
+                  continue;
+                }
+                const blocked2 = directPageLooksBlocked(reRead2);
+                if (blocked2 === "ALIBABA_LOGIN_REQUIRED" || blocked2 === "ALIBABA_VERIFICATION_REQUIRED") {
+                  const wallTab2 = await resolveVerificationTab(chromeRef, tab, tab.url);
+                  const settled2 = blocked2 === "ALIBABA_LOGIN_REQUIRED"
+                    ? await waitForManualLogin(context, wallTab2 || tab, listExtractor, progress, "列表翻页重试", control, { expectedUrl: tab.url, pageKind: "list" })
+                    : await waitForManualVerification(context, wallTab2 || tab, listExtractor, progress, "列表翻页重试", control, { expectedUrl: tab.url, pageKind: "list" });
+                  if (settled2?.tab) tab = settled2.tab;
+                  reRead2 = settled2?.value || null;
+                }
+                if (!reRead2) continue;
+                const items2 = Array.isArray(reRead2.items) ? reRead2.items : [];
+                if (items2.some((item) => { const u = directCanonicalUrl(item.href); return u && !seen.has(u); })) {
+                  freshDetected = true;
+                }
+              }
+            }
+          }
+        }
+        if (freshDetected) {
+          // 点击翻页后 tab.url 已过期（仍是上一页地址），后续读取要用当前真实地址。
+          try {
+            tab = await chromeRef.tabs.get(tab.id);
+          } catch {
+            // 标签页若被替换，下一页读取器会重新解析并给出明确错误。
+          }
+        }
+        advancedToNextPage = freshDetected;
+        if (!freshDetected) {
+          // 收尾原因写入持久消息：详情核验阶段的进度不会覆盖它，便于回溯。
+          const stopNote = `点击“下一页”后未检测到新条目（含自动重试），列表在第 ${page} 页收尾：页面记录 ${candidates.length} 条、预过滤流拍 ${prefiltered} 条。若官网实际还有下一页，多为触发了淘宝安全验证——请到标签页完成滑块验证后重新抓取。`;
+          setMessage(elements.alibabaAuctionResultMessage, stopNote, "ok");
+          progress({
+            phase: "listing",
+            percent: Math.min(35, 5 + Math.round(((page - firstPage + 1) / MAX_DIRECT_PAGES) * 30)),
+            message: stopNote,
+            page,
+            pages: page,
+            fetched: candidates.length,
+            verified: 0,
+            skipped: prefiltered,
+          });
+          break;
+        }
+      }
     } catch (error) {
-      const reason = String(error?.message || error);
-      const errorCode = String(error?.code || (reason === "ALIBABA_SCRAPE_STOPPED" ? reason : "ALIBABA_SCRAPE_FAILED"));
-      return { ok: false, phase: reason === "ALIBABA_SCRAPE_STOPPED" ? "stopped" : "failed", errorCode, reason, stopped: reason === "ALIBABA_SCRAPE_STOPPED", candidates: candidates.length, results: [], security: { credentialsReturned: false } };
+      const rawReason = String(error?.message || error);
+      const stopped = rawReason === "ALIBABA_SCRAPE_STOPPED";
+      // 裸 throw 的错误码（如验证墙 ALIBABA_*_REQUIRED）必须保留成 errorCode，
+      // 面板才能给出对应的人工处理指引；原始英文异常加中文前缀，避免被
+      // getAlibabaFailureMessage 的净化规则吞成无信息量的通用文案。
+      const knownCodeShape = /^[A-Z][A-Z0-9_]{3,}$/.test(rawReason.trim());
+      const errorCode = String(error?.code || (stopped ? rawReason : knownCodeShape ? rawReason.trim() : "ALIBABA_SCRAPE_FAILED"));
+      const reason = stopped || knownCodeShape || error?.code
+        ? rawReason
+        : `列表读取阶段异常：${rawReason.slice(0, 160)}`;
+      return { ok: false, phase: stopped ? "stopped" : "failed", errorCode, reason, stopped, candidates: candidates.length, results: [], security: { credentialsReturned: false } };
     }
   }
 
@@ -2479,12 +2775,21 @@ export const alibabaAuctionModule = {
         endDate: elements.alibabaAuctionEndDate.value,
         outputDirectory: elements.alibabaAuctionOutputDirectory.value,
         generateMap: elements.alibabaAuctionGenerateMap.checked,
+        bidOnly: elements.alibabaAuctionBidOnly.checked,
       });
     }
 
+    // 出价优先勾选卡的动态说明：让当前抓取逻辑在面板上始终可见。
+    function updateBidOnlyText() {
+      const element = elements.alibabaAuctionBidOnlyText;
+      if (!element) return;
+      element.textContent = elements.alibabaAuctionBidOnly.checked
+        ? "已开启：跳过 0 次出价的流拍条目，仅逐条核验有出价记录的标的；取消勾选则逐条核验全部列表。"
+        : "已关闭：将逐条核验全部列表（含 0 次出价的流拍条目，速度较慢）。";
+    }
+
     function renderConfig() {
-      renderRegionOptions();
-      elements.alibabaAuctionEntry.value = config.entry;
+      renderRegionOptions();      elements.alibabaAuctionEntry.value = config.entry;
       elements.alibabaAuctionPropertyType.value = config.propertyType;
       elements.alibabaAuctionStatus.value = config.status;
       elements.alibabaAuctionKeyword.value = config.keyword;
@@ -2492,6 +2797,8 @@ export const alibabaAuctionModule = {
       elements.alibabaAuctionEndDate.value = config.endDate;
       elements.alibabaAuctionOutputDirectory.value = config.outputDirectory;
       elements.alibabaAuctionGenerateMap.checked = Boolean(config.generateMap);
+      elements.alibabaAuctionBidOnly.checked = config.bidOnly !== false;
+      updateBidOnlyText();
       elements.alibabaAuctionSourceUrl.value = buildSourceUrl(config);
       elements.alibabaAuctionHistoryDirectory.value = config.historyDirectory || config.outputDirectory || "";
       elements.alibabaAuctionRefreshHistory.checked = config.historyRefresh !== false;
@@ -3099,6 +3406,10 @@ export const alibabaAuctionModule = {
         }
         context.scope.on(elements.alibabaAuctionStatus, "change", syncConfigFromInputs);
         context.scope.on(elements.alibabaAuctionGenerateMap, "change", syncConfigFromInputs);
+        context.scope.on(elements.alibabaAuctionBidOnly, "change", () => {
+          syncConfigFromInputs();
+          updateBidOnlyText();
+        });
         context.scope.on(elements.alibabaAuctionProvince, "change", () => {
           config = normalizeConfig({ ...config, provinceCode: elements.alibabaAuctionProvince.value, city: "", cityCode: "", district: "", districtCode: "" });
           renderConfig();

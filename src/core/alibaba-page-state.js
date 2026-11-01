@@ -80,6 +80,9 @@ export function getAlibabaFailureMessage(errorCode, fallback = "", moduleKind = 
   if (/_SCRIPT_EXECUTION_FAILED$/.test(code)) {
     return "当前阿里页面暂不可读取。请在当前浏览器标签页打开对应列表，等待页面加载后重试。";
   }
+  if (/_URL_(?:PROTOCOL|HOST)_INVALID$/.test(code)) {
+    return `${openedPrefix}${productName}列表地址无效或被安全策略拒绝，请回到工具箱重新打开列表页后再试。`;
+  }
   if (/_TAB_REPLACED$/.test(code)) {
     return "抓取用的浏览器标签页已关闭或被替换。请重新打开阿里列表页后再试。";
   }
